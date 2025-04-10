@@ -1,17 +1,20 @@
 package be.helha.labos.crystalclash.Characters;
 
-public class Dragon extends Personnage{
-    public Dragon(){
-        super("Drangon",75,10);
+public class Dragon extends Personnage {
+
+    public Dragon() {
+        super("Dragon", 75, 10);
     }
 
     @Override
-    public void AttackSpecial(Personnage target){
-        if(CanUseSpecialAttack()) target.receiveDamage(40);
+    public void AttackSpecial(Personnage target) {
+        if (CanUseSpecialAttack()) {
+            target.receiveDamage(40);
+        }
     }
 
     @Override
-    public boolean CanUseSpecialAttack(){
-        return CompteurAttack >=6;
+    public boolean CanUseSpecialAttack() {
+        return CompteurAttack >= 6;
     }
 }

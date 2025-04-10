@@ -1,6 +1,6 @@
 package be.helha.labos.crystalclash.Factory;
 
-import be.helha.labos.Characters.*;
+import be.helha.labos.crystalclash.Characters.*;
 
 public class CharactersFactory {
     public static Personnage CreateCharacters(String Type, int Level){

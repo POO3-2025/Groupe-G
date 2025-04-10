@@ -1,6 +1,6 @@
 package be.helha.labos.crystalclash.Factory;
 
-import be.helha.labos.Object.*;
+import be.helha.labos.crystalclash.Object.*;
 
 import java.util.ArrayList;
 import java.util.List;

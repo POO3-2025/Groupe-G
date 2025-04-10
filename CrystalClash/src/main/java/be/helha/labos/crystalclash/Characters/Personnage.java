@@ -1,15 +1,14 @@
 package be.helha.labos.crystalclash.Characters;
 
-import be.helha.labos.Inventory.*;
-import be.helha.labos.Object.*;
+
 public abstract class Personnage {
 
     private String Name;
     private int PV;
     private int AttackBase;
-    protected int CompteurAttack = 0;
+    protected int CompteurAttack = 0; // <- ici OK, accessible dans Dragon
 
-    private BackPack backpack = new BackPack();
+
 
     public Personnage(String Name, int PV, int AttackBase) {
         this.Name = Name;
@@ -23,7 +22,6 @@ public abstract class Personnage {
     }
 
     public abstract void AttackSpecial(Personnage target);
-
     public abstract boolean CanUseSpecialAttack();
 
     public void receiveDamage(int damage) {
@@ -50,19 +48,17 @@ public abstract class Personnage {
         return AttackBase;
     }
 
-    public void AttackBase(int AttackBase) {
-        this.AttackBase = AttackBase;
+    public void setAttackBase(int attackBase) {
+        this.AttackBase = attackBase;
     }
 
     public int getCompteurAttack() {
         return CompteurAttack;
     }
 
-    public void CompteurAttack(int CompteurAttack) {
-        this.CompteurAttack = CompteurAttack;
+    public void setCompteurAttack(int compteurAttack) {
+        this.CompteurAttack = compteurAttack;
     }
 
-    public BackPack getBackpack() {
-        return backpack;
-    }
+
 }
