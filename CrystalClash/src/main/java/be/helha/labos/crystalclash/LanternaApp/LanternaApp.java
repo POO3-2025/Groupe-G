@@ -225,4 +225,16 @@ public class LanternaApp {
         gui.addWindowAndWait(invWindow);
     }
 
+
+    private static void ChoisirCharactere(WindowBasedTextGUI gui) {
+        BasicWindow invWindow = new BasicWindow("Choisisez votre personnage");
+        invWindow.setHints(Arrays.asList(Window.Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
+
+
+
+
+    }
 }
