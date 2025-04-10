@@ -20,6 +20,9 @@ public class InventoryController {
      *Appel mongodb InventoryMongoServices pour lire
      * si inventaire trouvé alors construit le json
      * */
+
+  
+
     @GetMapping("/{userId}")
     public ResponseEntity<?> getInventory(@PathVariable String userId) {
         try {
