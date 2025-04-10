@@ -5,6 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(scanBasePackages = {
     "be.helha.labos.crystalclash.server_auth",
+    "be.helha.labos.crystalclash.Controller",
+    "be.helha.labos.crystalclash.Services",
+    "be.helha.labos.crystalclash.User",
 })
 public class CrystalClashApplication {
 
