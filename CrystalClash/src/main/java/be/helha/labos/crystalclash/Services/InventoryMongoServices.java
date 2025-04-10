@@ -31,8 +31,8 @@ public class InventoryMongoServices {
              */
             Inventory inventory = new Inventory();
             Gson gson = new Gson();
-            String json = gson.toJson(inventory);
-            Document document = Document.parse(json);
+            String json = gson.toJson(inventory); // Sérialisation : Java → JSON
+            Document document = Document.parse(json); //JSON → Document MongoDB
             document.append("username", username);
 
             collection.insertOne(document);
@@ -66,8 +66,8 @@ public class InventoryMongoServices {
             document.remove("username");
 
             Gson gson = new Gson();
-            String json = document.toJson();
-            return gson.fromJson(json, Inventory.class);
+            String json = document.toJson(); //Doc mongo to Json
+            return gson.fromJson(json, Inventory.class); //Json to objet java
 
         } catch (Exception e) {
             e.printStackTrace();
