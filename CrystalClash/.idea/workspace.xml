@@ -4,7 +4,40 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2956677a-6775-455c-ad57-3201006c5960" name="Changes" comment="" />
+    <list default="true" id="2956677a-6775-455c-ad57-3201006c5960" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/ConfigManagerMysql_Mongo/ConfigManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/Configuration/Configuration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/Configuration/Credentials.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/Controller/InventoryController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/Controller/RegistreController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/Controller/UserController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/Inventory/Inventory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/LanternaApp/LanternaApp.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/Object/ObjectBase.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/Services/HttpService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/Services/InventoryMongoServices.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/User/UserInfo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/server_auth/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/server_auth/AuthResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/server_auth/CrystalClashApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/server_auth/CustomUserDetailsService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/server_auth/JwtAuthenticationFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/server_auth/JwtUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/server_auth/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/server_auth/Session.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/config.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.13/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.13/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/8.13/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/8.13/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CrystalClash.iml" beforeDir="false" afterPath="$PROJECT_DIR$/CrystalClash.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/be/helha/labos/crystalclash/CrystalClashApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,10 +48,13 @@
       <ProjectState />
     </projectState>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 6
-}]]></component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 6
+}</component>
   <component name="ProjectId" id="2vUdBKxZN99yrm15UwoMJw6Qg63" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -28,7 +64,11 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/spoti/Desktop/Groupe-G/CrystalClash",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.0",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -49,6 +89,7 @@
       <option name="presentableId" value="Default" />
       <updated>1744203453522</updated>
       <workItem from="1744203455064" duration="34000" />
+      <workItem from="1744316409907" duration="74000" />
     </task>
     <servers />
   </component>
