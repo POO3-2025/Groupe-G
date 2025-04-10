@@ -72,5 +72,26 @@ public class HttpService {
 
         return response.body();
     }
+    /*
+     * @param username et le token recu lors du login
+     *construit l url final = http://localhost:8080/inventory/gege (gege username)
+     * max de 5sec sinon requete echoue
+     * .header("Authorization", "Bearer " + token) = ajout du token dans le header pour voir si le joueur est bien co
+     *lire et construit l objet httprequest
+     * envoie la requete http et recup sous forme de chaine json
+     * retourne cette chaine
+     * dans lanterna on l'utilise comme ça String json = HttpService.getInventoryFromServer(Session.getUsername(), Session.getToken());
+     * */
+    public static String getInventoryFromServer(String username, String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/inventory/" + username))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .GET()
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body(); // Contient le JSON complet
+    }
 
 }
