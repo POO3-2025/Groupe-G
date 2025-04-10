@@ -25,7 +25,7 @@ public class SecurityConfig  {
         http
                 .csrf(csrf -> csrf.disable()) // Désactiver CSRF pour les tests (facultatif pour les APIs REST)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register","/inventory").permitAll()
+                        .requestMatchers("/login", "/register", "/user/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
