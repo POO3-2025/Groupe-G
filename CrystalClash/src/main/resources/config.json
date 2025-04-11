@@ -1,0 +1,50 @@
+{
+  "db": {
+    "mysqlproduction":{
+      "BDCredentials": {
+        "DBType": "mysql",
+        "HostName": "127.0.0.1",
+        "UserName": "root",
+        "Port": "3306",
+        "Password": "",
+        "DBName": "mysqlproduction"
+      }
+    },
+
+    "MySqlTest":{
+      "ConnectionType": "DB",
+      "DBType": "mysql",
+      "BDCredentials": {
+        "HostName": "127.0.0.1",
+        "UserName": "root",
+        "Password": "",
+        "DBName": "MySqlTest"
+      }
+    },
+
+    "MongoDBProduction": {
+      "ConnectionType": "NoSQL",
+      "DBType": "mongodb",
+      "BDCredentials": {
+        "HostName": "127.0.0.1",
+        "Port": "27017",
+        "UserName": "admin",
+        "Password": "1234",
+        "DBName": "MongoDBProduction"
+      }
+    },
+
+    "MongoDBTest": {
+      "ConnectionType": "NoSQL",
+      "DBType": "mongodb",
+      "BDCredentials": {
+        "HostName": "127.0.0.1",
+        "Port": "27017",
+        "UserName": "admin",
+        "Password": "1234",
+        "DBName": "MongoDBTest"
+      }
+    }
+  }
+}
+
