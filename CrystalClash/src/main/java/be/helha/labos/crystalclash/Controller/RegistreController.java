@@ -38,8 +38,7 @@ public class RegistreController {
         * Insertion du user si tout OK
         * Appelle InventoryMongoServices pour crée l'inventaire du nouveau uti stocké en MongDB
         */
-        try (Connection conn = ConfigManager.getSQLConnection("mysqlproduction")) {
-            // Vérifie si l'utilisateur existe déjà
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) { // Utilisation du singleton            // Vérifie si l'utilisateur existe déjà
             PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?");
             checkStmt.setString(1, request.getUsername());
             ResultSet rs = checkStmt.executeQuery();

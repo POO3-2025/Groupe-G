@@ -14,9 +14,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class ConfigManager {
-    private static JsonObject config;
+    private static ConfigManager instance;
+    private JsonObject config;
 
-    static {
+    // Constructeur privé pour empêcher l'instanciation externe
+    private ConfigManager() {
         try {
             Gson gson = new Gson();
             InputStreamReader reader = new InputStreamReader(
@@ -31,16 +33,29 @@ public class ConfigManager {
         }
     }
 
+    // Méthode pour obtenir l'instance unique
+    public static ConfigManager getInstance() {
+        if (instance == null) {
+            synchronized (ConfigManager.class) {
+                if (instance == null) {
+                    instance = new ConfigManager();
+                }
+            }
+        }
+        return instance;
+    }
+
     /**
      * Retourne la configuration complète
      */
-    public static JsonObject getConfig() {
+    public JsonObject getConfig() {
         return config;
     }
 
     /**
      * Vérifie si une base de données SQL existe et la crée si elle est absente
-     */public static Connection getSQLConnection(String dbKey) throws SQLException {
+     */
+    public Connection getSQLConnection(String dbKey) throws SQLException {
         try {
             JsonObject db = config.getAsJsonObject("db");
             JsonObject section = db.getAsJsonObject(dbKey);
@@ -63,13 +78,10 @@ public class ConfigManager {
         }
     }
 
-
-
-
     /**
-     *Vérifie si une base MongoDB existe et la crée si elle est absente
+     * Vérifie si une base MongoDB existe et la crée si elle est absente
      */
-    public static MongoDatabase getMongoDatabase(String dbKey) {
+    public MongoDatabase getMongoDatabase(String dbKey) {
         try {
             JsonObject dbConfig = config.getAsJsonObject("db").getAsJsonObject(dbKey).getAsJsonObject("BDCredentials");
             String uri = "mongodb://" + dbConfig.get("UserName").getAsString() + ":" +

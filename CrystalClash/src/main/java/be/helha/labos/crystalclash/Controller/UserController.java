@@ -19,7 +19,7 @@ public class UserController {
 
     @GetMapping("/{username}")
     public ResponseEntity<?> getUserInfo(@PathVariable String username) {
-        try (Connection conn = ConfigManager.getSQLConnection("mysqlproduction")) {
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) { // Utilisation du singleton
             PreparedStatement stmt = conn.prepareStatement("SELECT level, cristaux FROM users WHERE username = ?");
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
