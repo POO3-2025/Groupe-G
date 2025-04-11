@@ -21,7 +21,7 @@ public class InventoryMongoServices {
      */
     public static void CreateInvetoriesForUser(String username) {
         try {
-            MongoDatabase mongoDB = ConfigManager.getMongoDatabase("MongoDBProduction");
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Inventory");
 
             /*
@@ -52,7 +52,7 @@ public class InventoryMongoServices {
      * */
     public static Inventory getInventoryByUsername(String username){
         try {
-            MongoDatabase mongoDB = ConfigManager.getMongoDatabase("MongoDBProduction");
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Inventory");
 
             Document document = collection.find(new Document("username", username)).first();
@@ -82,7 +82,7 @@ public class InventoryMongoServices {
      * */
     public static void AjouterObjetInventaire(String username, ObjectBase objet) {
         try {
-            MongoDatabase mongoDB = ConfigManager.getMongoDatabase("MongoDBProduction");
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Inventory");
 
             Document document = collection.find(new Document("username", username)).first();
