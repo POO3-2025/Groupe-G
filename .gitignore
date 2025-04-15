@@ -1,0 +1,75 @@
+# === IntelliJ IDEA ===
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# === Build directories ===
+out/
+target/
+build/
+
+# === Logs ===
+*.log
+
+# === MacOS ===
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Fichiers créés par macOS lors du montage des volumes
+.Spotlight-V100
+.Trashes
+
+# === Windows ===
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# === Java ===
+*.class
+*.jar
+*.war
+*.ear
+
+# === Maven ===
+.mvn/
+!**/src/main/**/mvnw
+!**/src/main/**/mvnw.cmd
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# === Gradle ===
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+
+# === Eclipse (au cas où un membre l’utilise) ===
+.project
+.classpath
+.c9/
+.settings/
+*.launch
+
+# === Autres fichiers temporaires ===
+*.swp
+*.swo
+*.tmp
+*.bak
+*.old
+*.orig
+
+# === Coverage reports ===
+coverage/
+jacoco.exec
+*.ec
+*.exec
+
+# === Test results ===
+test-results/
+surefire-reports/
