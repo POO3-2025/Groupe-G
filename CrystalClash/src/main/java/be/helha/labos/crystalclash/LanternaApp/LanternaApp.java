@@ -1,5 +1,6 @@
 package be.helha.labos.crystalclash.LanternaApp;
 
+import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Services.HttpService;
 import be.helha.labos.crystalclash.User.UserInfo;
@@ -167,11 +168,10 @@ public class LanternaApp {
             MessageDialog.showMessageDialog(gui, "Profil", "Fonctionnalité à venir !");
         }));
 
-       // mainPanel.addComponent(new Button("2. Accéder à la boutique", () -> afficherBoutique(gui)));
 
-       // mainPanel.addComponent(new Button("2. Changer de personnage", () -> afficherChoixPersonnage(gui)));
-        mainPanel.addComponent(new Button("3. Voir inventaire", () -> afficherInventaire(gui)));
-
+        mainPanel.addComponent(new Button("2. Voir mon inventaire", () -> {
+            afficherInventaire(gui);
+        }));
 
         mainPanel.addComponent(new Button("5. Voir joueurs connectés", () -> afficherJoueursConnectes(gui)));
 
@@ -184,59 +184,6 @@ public class LanternaApp {
 
         menuWindow.setComponent(mainPanel);
         gui.addWindowAndWait(menuWindow);
-    }
-
-    /*
-     * Crée fenetre lanterna avec inventaire comme titre
-     * bon apres ce n est que du visuel mais on aligne verticalement la colonne
-     * affiche le nom de luti connecter
-     * requete http vers le serv springbbot = String json = HttpService.getInventoryFromServer(Session.getUsername(), Session.getToken());
-     * parse le json c est a dire du json en objet java (clé-valeur)
-     * si inventaire ok est là alors converit inventory en tb objets de objectBase
-     * puis on affiche le nombre d objets dedans
-     * si il y a objet on les affiche sur ligne
-     * si erreur ben erreur
-     * */
-    private static void afficherInventaire(WindowBasedTextGUI gui) {
-        BasicWindow invWindow = new BasicWindow("Inventaire");
-        invWindow.setHints(Arrays.asList(Hint.CENTERED));
-
-        Panel panel = new Panel(new GridLayout(1));
-        panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
-
-        panel.addComponent(new Label("Inventaire de " + Session.getUsername()));
-
-        try {
-            String json = HttpService.getInventoryFromServer(Session.getUsername(), Session.getToken());
-
-            JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
-
-            if (jsonObject.has("inventory")) {
-                Gson gson = new Gson();
-                ObjectBase[] objets = gson.fromJson(json, ObjectBase[].class);
-
-                panel.addComponent(new Label("Objets : " + objets.length + " / 30"));
-
-                if (objets.length == 0) {
-                    panel.addComponent(new Label("Aucun objet dans l'inventaire."));
-                } else {
-                    for (ObjectBase obj : objets) {
-                        panel.addComponent(new Label("- " + obj.getName()));
-                    }
-                }
-            } else if (jsonObject.has("message")) {
-                panel.addComponent(new Label("Erreur : " + jsonObject.get("message").getAsString()));
-            } else {
-                panel.addComponent(new Label("Réponse invalide."));
-            }
-
-        } catch (Exception e) {
-            panel.addComponent(new Label("Erreur de communication : " + e.getMessage()));
-        }
-
-        panel.addComponent(new Button("Retour", invWindow::close));
-        invWindow.setComponent(panel);
-        gui.addWindowAndWait(invWindow);
     }
 
     private static void afficherJoueursConnectes(WindowBasedTextGUI gui) {
@@ -263,4 +210,33 @@ public class LanternaApp {
         connectedUsersWindow.setComponent(panel);
         gui.addWindowAndWait(connectedUsersWindow);
     }
+    private static void afficherInventaire(WindowBasedTextGUI gui) {
+        try {
+            String username = Session.getUsername();
+            String json = HttpService.get("/inventory/" + username, Session.getToken());
+            Inventory inventory = new Gson().fromJson(json, Inventory.class);
+
+            BasicWindow inventoryWindow = new BasicWindow("Inventaire de " + username);
+            inventoryWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+            Panel panel = new Panel(new GridLayout(1));
+
+            if (inventory.getObjets().isEmpty()) {
+                panel.addComponent(new Label("Votre inventaire est vide."));
+            } else {
+                panel.addComponent(new Label("Objets dans l'inventaire :"));
+                for (ObjectBase obj : inventory.getObjets()) {
+                    panel.addComponent(new Label("- " + obj.getName())); // peux personnaliser ça selon la classe ObjectBase
+                }
+            }
+
+            panel.addComponent(new Button("Retour", inventoryWindow::close));
+            inventoryWindow.setComponent(panel);
+            gui.addWindowAndWait(inventoryWindow);
+
+        } catch (Exception e) {
+            MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de charger l'inventaire : " + e.getMessage());
+        }
+    }
+
 }
