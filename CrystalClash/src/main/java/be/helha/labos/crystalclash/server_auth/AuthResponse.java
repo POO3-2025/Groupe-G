@@ -1,4 +1,4 @@
-package be.helha.labos.crystalclash.Controller.server_auth;
+package be.helha.labos.crystalclash.server_auth;
 
 public class AuthResponse {
     private String token;

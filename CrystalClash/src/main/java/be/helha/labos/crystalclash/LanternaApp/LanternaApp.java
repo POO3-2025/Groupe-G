@@ -1,4 +1,4 @@
-package be.helha.labos.crystalclash.Controller.LanternaApp;
+package be.helha.labos.crystalclash.LanternaApp;
 
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Services.HttpService;
@@ -133,7 +133,7 @@ public class LanternaApp {
                 if (json.contains("Inscription réussie")) {
                     MessageDialog.showMessageDialog(gui, "Succès", "Compte créé !");
                     gui.getActiveWindow().close();
-
+                    afficherChoixPersonnage(gui);
                 } else {
                     MessageDialog.showMessageDialog(gui, "Erreur", "Erreur : " + json);
                 }
@@ -167,11 +167,11 @@ public class LanternaApp {
             MessageDialog.showMessageDialog(gui, "Profil", "Fonctionnalité à venir !");
         }));
 
-       // mainPanel.addComponent(new Button("2. Accéder à la boutique", () -> afficherBoutique(gui)));
+        // mainPanel.addComponent(new Button("2. Accéder à la boutique", () -> afficherBoutique(gui)));
 
         mainPanel.addComponent(new Button("2. Changer de personnage", () -> afficherChoixPersonnage(gui)));
         mainPanel.addComponent(new Button("3. Voir inventaire", () -> afficherInventaire(gui)));
-
+        mainPanel.addComponent(new Button("4. Voir personnage", () -> afficherPersonnage(gui)));
 
         mainPanel.addComponent(new Button("5. Voir joueurs connectés", () -> afficherJoueursConnectes(gui)));
 
@@ -263,4 +263,78 @@ public class LanternaApp {
         connectedUsersWindow.setComponent(panel);
         gui.addWindowAndWait(connectedUsersWindow);
     }
+    /**
+     * Affiche la fenêtre de choix de personnage
+     * @param gui
+     */
+    private static void afficherChoixPersonnage(WindowBasedTextGUI gui) {
+        BasicWindow characterChoiceWindow = new BasicWindow("Choix du personnage");
+        characterChoiceWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
+
+        panel.addComponent(new Label("Choisissez votre personnage :"));
+        panel.addComponent(new Button("Elf", creerActionSelectionPersonnage(gui, "Elf")));
+        panel.addComponent(new Button("Troll", creerActionSelectionPersonnage(gui, "Troll")));
+        panel.addComponent(new Button("Dragon", creerActionSelectionPersonnage(gui, "Dragon")));
+        panel.addComponent(new Button("Aquaman", creerActionSelectionPersonnage(gui, "Aquaman")));
+        panel.addComponent(new Button("Retour", characterChoiceWindow::close));
+
+        characterChoiceWindow.setComponent(panel);
+        gui.addWindowAndWait(characterChoiceWindow);
+    }
+    /**
+     * Crée une action pour sélectionner un personnage (pour pas repeter 1000 fois le même code)
+     * @param gui => pour afficher les messages
+     * @param personnage => le personnage à sélectionner
+     * @return
+     */
+    private static Runnable creerActionSelectionPersonnage(WindowBasedTextGUI gui, String personnage) {
+        return () -> {
+            try {
+                HttpService.selectCharacter(Session.getUsername(), personnage, Session.getToken());
+                MessageDialog.showMessageDialog(gui, "Succès", "Personnage sélectionné : " + personnage);
+                afficherMenuPrincipal(gui);
+            } catch (Exception e) {
+                MessageDialog.showMessageDialog(gui, "Erreur", "Erreur : " + e.getMessage());
+            }
+        };
+    }
+    private static void afficherPersonnage(WindowBasedTextGUI gui) {
+        BasicWindow persoWindow = new BasicWindow("Mon Personnage");
+        persoWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label("Personnage de " + Session.getUsername()));
+
+        try {
+            String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
+            JsonElement element = JsonParser.parseString(json);
+
+            if (element.isJsonPrimitive()) {
+                // On suppose que c'est juste un string comme "Troll"
+                String characterType = element.getAsString();
+                panel.addComponent(new Label("Type : " + characterType));
+            } else if (element.isJsonObject()) {
+                JsonObject obj = element.getAsJsonObject();
+
+                if (obj.has("message")) {
+                    panel.addComponent(new Label("Level insuffisant : " + obj.get("message").getAsString()));
+                } else {
+                    panel.addComponent(new Label("Personnage non trouvé."));
+                }
+            } else {
+                panel.addComponent(new Label("Format de réponse inconnu."));
+            }
+        } catch (Exception e) {
+            panel.addComponent(new Label("Erreur de communication : " + e.getMessage()));
+        }
+
+
+        panel.addComponent(new Button("Retour", persoWindow::close));
+        persoWindow.setComponent(panel);
+        gui.addWindowAndWait(persoWindow);
+    }
+
 }
