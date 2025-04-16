@@ -9,6 +9,9 @@ public class Aquaman extends Personnage {
     @Override
     public void AttackSpecial(Personnage target){
         if(CanUseSpecialAttack()) target.receiveDamage(30);
+        else {
+            System.out.println("Attaque spéciale indisponible !");
+        }
     }
 
     @Override

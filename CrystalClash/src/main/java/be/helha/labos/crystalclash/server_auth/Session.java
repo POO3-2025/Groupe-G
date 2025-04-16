@@ -37,9 +37,9 @@ public class Session {
     public static UserInfo getUserInfo() {
         return userInfo;
     }
-    /*
-     *Session.clear(); = rénitialiser la session (déco du joueur)
-     */
+
+   //  Session.clear(); //= rénitialiser la session (déco du joueur)
+
     public static void clear() {
         jwtToken = null;
         username = null;

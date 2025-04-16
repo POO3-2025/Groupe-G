@@ -10,6 +10,8 @@ public class Dragon extends Personnage {
     public void AttackSpecial(Personnage target) {
         if (CanUseSpecialAttack()) {
             target.receiveDamage(40);
+        }else {
+            System.out.println("Attaque spéciale indisponible !");
         }
     }
 

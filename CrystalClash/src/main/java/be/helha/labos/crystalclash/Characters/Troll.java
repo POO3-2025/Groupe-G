@@ -7,6 +7,9 @@ public class Troll extends Personnage {
     @Override
     public void AttackSpecial(Personnage target){
         if(CanUseSpecialAttack()) target.receiveDamage(10);
+        else {
+            System.out.println("Attaque spéciale indisponible !");
+        }
     }
 
     @Override
