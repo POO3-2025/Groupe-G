@@ -1,4 +1,4 @@
-package be.helha.labos.crystalclash.Controller.server_auth;
+package be.helha.labos.crystalclash.server_auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

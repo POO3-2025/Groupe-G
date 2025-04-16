@@ -1,4 +1,4 @@
-package be.helha.labos.crystalclash.Controller.LanternaApp;
+package be.helha.labos.crystalclash.LanternaApp;
 
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Services.HttpService;
@@ -169,7 +169,7 @@ public class LanternaApp {
 
        // mainPanel.addComponent(new Button("2. Accéder à la boutique", () -> afficherBoutique(gui)));
 
-        mainPanel.addComponent(new Button("2. Changer de personnage", () -> afficherChoixPersonnage(gui)));
+       // mainPanel.addComponent(new Button("2. Changer de personnage", () -> afficherChoixPersonnage(gui)));
         mainPanel.addComponent(new Button("3. Voir inventaire", () -> afficherInventaire(gui)));
 
 
