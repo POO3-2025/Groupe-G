@@ -1,6 +1,8 @@
 package be.helha.labos.crystalclash.Services;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,7 +27,7 @@ import java.util.Map;
  *
  * */
 public class HttpService {
-  //  private static final String BASE_URL = "http://192.168.28.146:8080/";
+    //  private static final String BASE_URL = "http://192.168.28.146:8080/";
     private static final String BASE_URL = "http://localhost:8080";
 
     public static String login(String username, String password) throws Exception {
@@ -93,51 +95,4 @@ public class HttpService {
         return response.body(); // Retourne le JSON brut : { "username": "...", "level": 1, "cristaux": 100 }
     }
 
-
-    /**
-     * Envoie une requête pour sélectionner un personnage
-     * @param username
-     * @param characterType
-     * @param token
-     * @throws Exception
-     */
-    public static void selectCharacter(String username, String characterType, String token) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/characters/select"))
-                .timeout(Duration.ofSeconds(5))
-                .header("Authorization", "Bearer " + token)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(
-                        new Gson().toJson(Map.of(
-                                "username", username,
-                                "characterType", characterType,
-                                "token", token
-                        ))
-                ))
-                .build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (response.statusCode() != 200) {
-            throw new RuntimeException("Erreur serveur : " + response.body());
-        }
-    }
-    /**
-     * Envoie une requête pour récupérer le personnage d'un utilisateur
-     * @param username
-     * @param token
-     * @return
-     * @throws Exception
-     */
-    public static String getCharacter(String username, String token) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/characters/" + username))
-                .timeout(Duration.ofSeconds(5))
-                .header("Authorization", "Bearer " + token)
-                .GET()
-                .build();
-
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-        return response.body();
-    }
 }

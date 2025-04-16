@@ -1,6 +1,6 @@
 package be.helha.labos.crystalclash.Characters;
 
-public abstract class Personnage {
+public class Personnage {
 
     private String Name;
     private int PV;
@@ -9,6 +9,10 @@ public abstract class Personnage {
 
    // private BackPack backpack = new BackPack();
 
+    public Personnage() {
+        // Requis pour désérialisation JSON en hson ou jackson
+    }
+
     public Personnage(String Name, int PV, int AttackBase) {
         this.Name = Name;
         this.PV = PV;
@@ -16,16 +20,22 @@ public abstract class Personnage {
     }
 
     public void tackle(Personnage target) {
+        System.out.println(this.Name + " attaque " + target.getName() + " avec une attaque normale !");
         target.receiveDamage(AttackBase);
         CompteurAttack++;
     }
 
-    public abstract void AttackSpecial(Personnage target);
+    public  void AttackSpecial(Personnage target){
+        System.out.println(Name + " n’a pas d’attaque spéciale ou ne peut pas l’utiliser.");
+    };
 
-    public abstract boolean CanUseSpecialAttack();
+    public  boolean CanUseSpecialAttack(){
+return false;
+    };
 
     public void receiveDamage(int damage) {
         this.PV -= damage;
+        System.out.println(Name + " subit " + damage + " points de dégâts. PV restants : " + PV);
     }
 
     public String getName() {
