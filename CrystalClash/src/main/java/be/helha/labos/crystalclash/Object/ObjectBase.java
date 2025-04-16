@@ -1,10 +1,14 @@
 package be.helha.labos.crystalclash.Object;
 
-public abstract class ObjectBase {
+public class ObjectBase {
     private String Name;
     protected int Price;
     protected int RequiredLevel;
     protected int reliability;
+
+    public ObjectBase() {
+        // Constructeur par défaut requis pour la désérialisation
+    }
 
     public ObjectBase(String Name, int Price, int RequiredLevel, int reliability) {
         this.Name = Name;
@@ -13,7 +17,9 @@ public abstract class ObjectBase {
         this.reliability = reliability;
     }
 
-    public abstract String use();
+    public String use() {
+        return "Objet utilisé.";
+    }
 
    public boolean IsUsed(){
        return reliability > 0 ;

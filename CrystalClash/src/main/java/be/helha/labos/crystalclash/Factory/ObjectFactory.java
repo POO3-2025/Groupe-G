@@ -3,7 +3,9 @@ package be.helha.labos.crystalclash.Factory;
 import be.helha.labos.crystalclash.Object.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ObjectFactory {
     public static ObjectBase CreateObject(String Name, String Type, int LevelPlayer) {
@@ -69,11 +71,11 @@ public class ObjectFactory {
                 else throw new IllegalArgumentException("Niveau insuffisant pour Colère du Dragon");
 
             case "ecaille du vent":
-                return new Armor("Écaille du Vent", 25, 1, 3, 10);
+                return new Armor("Écaille du Vent", 25, 2, 3, 10);
             case "cuirasse du colosse":
-                return new Armor("Cuirasse du Colosse", 35, 1, 6, 25);
+                return new Armor("Cuirasse du Colosse", 35, 3, 6, 25);
             case "traqueur des ombres":
-                return new Armor("Traqueur des Ombres", 50, 1, 15, 35);
+                return new Armor("Traqueur des Ombres", 50,5 , 15, 35);
 
             case "coffre des joyaux":
                 return new CoffreDesJoyaux();
@@ -82,29 +84,43 @@ public class ObjectFactory {
                 throw new IllegalArgumentException("Objet inconnu: " + Name);
         }
     }
-    public static List<ObjectBase> getAllObjectsForLevel(int level) {
-        List<ObjectBase> objetsDisponibles = new ArrayList<>();
+    public static Map<String, ObjectBase> getAllObjectsByName() {
+        Map<String, ObjectBase> map = new HashMap<>();
 
-        String[] allNames = {
-            "epee en bois", "couteau en bois", "hache en bois",
-            "epee en fer", "couteau en fer", "hache en fer",
-            "epee en diamant", "couteau en diamant", "hache en diamant",
-            "fusil", "bazooka", "arme de poing", "ak-47",
-            "elixir daube", "larme de licorne", "fluide du phenix",
-            "venin dombre", "fiole des abysses", "colere du dragon",
-            "ecaille du vent", "cuirasse du colosse", "traqueur des ombres",
-            "coffre des joyaux"
-        };
+        map.put("epee en bois", new Weapon("Epée en bois", 50, 1, 5, 4));
+        map.put("couteau en bois", new Weapon("Couteau en bois", 50, 1, 5, 4));
+        map.put("hache en bois", new Weapon("Hache en bois", 50, 1, 5, 4));
 
-        for (String name : allNames) {
-            try {
-                objetsDisponibles.add(CreateObject(name, "", level));
-            } catch (IllegalArgumentException e) {
-                // Objet non dispo pour ce niveau → on l'ignore
-            }
-        }
+        map.put("epee en fer", new Weapon("Epée en fer", 70, 3, 10, 8));
+        map.put("couteau en fer", new Weapon("Couteau en fer", 70, 3, 10, 6));
+        map.put("hache en fer", new Weapon("Hache en fer", 70, 3, 10, 3));
 
-        return objetsDisponibles;
+        map.put("epee en diamant", new Weapon("Epée en fer", 150, 5, 20, 13));
+        map.put("couteau en diamant", new Weapon("Couteau en fer", 150, 5, 20, 10));
+        map.put("hache en diamant", new Weapon("Hache en fer", 150, 5, 20, 15));
+
+
+        map.put("fusil", new Weapon("Fusil", 150, 7, 5, 10));
+        map.put("bazooka", new Weapon("Bazooka", 350, 7, 1, 70));
+        map.put("arme de poing", new Weapon("Arme de poing", 175, 7, 3, 20));
+        map.put("ak-47", new Weapon("Ak-47", 175, 7, 3, 20));
+
+        map.put("elixir daube", new HealingPotion("Elexir d' Aube", 20, 2, 15));
+        map.put("larme de licorne", new HealingPotion("Larme de Licorne", 30, 4, 25));
+        map.put("fluide du phenix", new HealingPotion("Fluide du Phénix", 60, 6, 50));
+
+        map.put("venin dombre", new PotionOfStrenght("Venin d' Ombre", 25, 2, 5));
+        map.put("fiole des abysses", new PotionOfStrenght("Fiole des Abysses ", 35, 1, 25));
+        map.put("colere du dragon", new PotionOfStrenght("Colère du Dragon", 35, 1, 25));
+
+        map.put("ecaille du vent", new Armor("Ecaille du Vent", 25, 2, 3, 10));
+        map.put("cuirasse du colosse", new Armor("Cuirasse du Colosse", 35, 3, 6, 25));
+        map.put("traqueur des ombres", new Armor("Traqueur des Ombres", 35, 5, 15, 35));
+
+        map.put("coffre des joyaux", new CoffreDesJoyaux());
+        
+        return map;
     }
+
 }
 
