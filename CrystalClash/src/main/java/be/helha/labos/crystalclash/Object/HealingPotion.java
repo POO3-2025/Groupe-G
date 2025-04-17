@@ -23,5 +23,8 @@ public class HealingPotion extends ObjectBase {
     public void setHeal(int Heal){
         this.Heal = Heal;
     }
-
+    @Override
+    public String toString() {
+        return getName() + " – Dégâts : " + Heal;
+    }
 }

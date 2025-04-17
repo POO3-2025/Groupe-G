@@ -23,4 +23,9 @@ public class PotionOfStrenght extends ObjectBase {
     public void setBonusATK(int BonusATK){
         this.BonusATK= BonusATK;
     }
+
+    @Override
+    public String toString() {
+        return getName() + " – Dégâts : " + BonusATK;
+    }
 }

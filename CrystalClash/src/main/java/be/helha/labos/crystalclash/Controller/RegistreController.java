@@ -1,6 +1,8 @@
 package be.helha.labos.crystalclash.Controller;
 
-import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
+import be.helha.labos.crystalclash.DAO.InventoryDAO;
+import be.helha.labos.crystalclash.DAO.RegistreDAO;
+import be.helha.labos.crystalclash.DTO.RegisterRequest;
 import be.helha.labos.crystalclash.server_auth.AuthResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,14 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import be.helha.labos.crystalclash.DAO.*;
-import be.helha.labos.crystalclash.DAOImpl.*;
-import be.helha.labos.crystalclash.DTO.RegisterRequest;
 
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 @RestController
 public class RegistreController {
 

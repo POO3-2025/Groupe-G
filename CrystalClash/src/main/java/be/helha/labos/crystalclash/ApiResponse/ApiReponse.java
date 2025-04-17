@@ -19,7 +19,7 @@ public class ApiReponse {
 
 
 
-    public Object datda(){
+    public Object getData(){
         return data;
     }
 

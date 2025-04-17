@@ -23,4 +23,8 @@ public class Weapon extends ObjectBase {
     public void setDamage(int damage) {
         this.damage = damage;
     }
+    @Override
+    public String toString() {
+        return getName() + " – Dégâts : " + damage;
+    }
 }
