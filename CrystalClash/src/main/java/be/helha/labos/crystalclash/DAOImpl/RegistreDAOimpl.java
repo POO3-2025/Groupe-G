@@ -2,7 +2,7 @@ package be.helha.labos.crystalclash.DAOImpl;
 
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
-import be.helha.labos.crystalclash.DAO.*;
+import be.helha.labos.crystalclash.DAO.RegistreDAO;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;

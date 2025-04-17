@@ -1,5 +1,7 @@
 package be.helha.labos.crystalclash.Characters;
 
+import be.helha.labos.crystalclash.Object.BackPack;
+
 public class Personnage {
 
     private String Name;
@@ -7,7 +9,7 @@ public class Personnage {
     private int AttackBase;
     protected int CompteurAttack = 0;
 
-   // private BackPack backpack = new BackPack();
+    private BackPack backpack = new BackPack();
 
     public Personnage() {
         // Requis pour désérialisation JSON en hson ou jackson

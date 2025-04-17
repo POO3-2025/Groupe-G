@@ -23,4 +23,9 @@ public class Armor extends ObjectBase {
     public void setBonusPV(int bonusPV) {
         BonusPV = bonusPV;
     }
+
+    @Override
+    public String toString() {
+        return getName() + " – Dégâts : " + BonusPV;
+    }
 }

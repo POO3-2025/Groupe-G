@@ -9,7 +9,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     "be.helha.labos.crystalclash.Services",
     "be.helha.labos.crystalclash.User",
     "be.helha.labos.crystalclash.DAO",
-    "be.helha.labos.crystalclash.DAOImpl"
+    "be.helha.labos.crystalclash.DAOImpl",
+    "be.helha.labos.crystalclash.Service",
+
 })
 
 public class CrystalClashApplication {

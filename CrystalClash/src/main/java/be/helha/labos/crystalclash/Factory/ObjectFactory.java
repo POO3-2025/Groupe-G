@@ -118,7 +118,7 @@ public class ObjectFactory {
         map.put("traqueur des ombres", new Armor("Traqueur des Ombres", 35, 5, 15, 35));
 
         map.put("coffre des joyaux", new CoffreDesJoyaux());
-        
+
         return map;
     }
 
