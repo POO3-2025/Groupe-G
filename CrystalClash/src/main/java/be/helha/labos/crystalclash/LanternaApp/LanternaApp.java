@@ -138,10 +138,10 @@ public class LanternaApp {
             try {
                 String json = HttpService.register(usernameBox.getText(), passwordBox.getText());
                 if (json.contains("Inscription réussie")) {
-                   try {
+                    try {
                         String loginReponse = HttpService.login(usernameBox.getText(), passwordBox.getText());
                         //Parser le loginReposne pour le manipuler en java
-                       // JsonParser.parseString(loginReponse) = convertit la chaine json en 1 objet Json
+                        // JsonParser.parseString(loginReponse) = convertit la chaine json en 1 objet Json
                         JsonObject response = JsonParser.parseString(loginReponse).getAsJsonObject(); //OK c bien un object json
 
                         if (response.has("token") && !response.get("token").isJsonNull()) {
@@ -157,13 +157,13 @@ public class LanternaApp {
                             Session.setUserInfo(info);
                             MessageDialog.showMessageDialog(gui, "Succès", "Compte créé et connecté !");
                             gui.getActiveWindow().close();
-                       // afficherChoixPersonnage(gui);
+                            afficherChoixPersonnage(gui);
                         } else {
                             MessageDialog.showMessageDialog(gui, "Erreur", "Connexion automatique échouée.");
                         }
-                   }catch (Exception e){
-                       MessageDialog.showMessageDialog(gui, "Erreur", "Connexion auto impossible : " + e.getMessage());
-                   }
+                    }catch (Exception e){
+                        MessageDialog.showMessageDialog(gui, "Erreur", "Connexion auto impossible : " + e.getMessage());
+                    }
                 } else {
                     MessageDialog.showMessageDialog(gui, "Erreur", "Erreur : " + json);
                 }
@@ -186,33 +186,27 @@ public class LanternaApp {
 
         mainPanel.addComponent(new Label(" Bienvenue dans Crystal Clash, " + Session.getUsername() + " !"));
         UserInfo info = Session.getUserInfo();
-        if (info != null) {
-            mainPanel.addComponent(new Label(" Niveau : " + info.getLevel()));
-            mainPanel.addComponent(new Label(" Cristaux : " + info.getCristaux()));
-        }
+        //if (info != null) {
+        //mainPanel.addComponent(new Label(" Niveau : " + info.getLevel()));
+        //mainPanel.addComponent(new Label(" Cristaux : " + info.getCristaux()));
+        // }
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
-        mainPanel.addComponent(new Button("1. Voir profil", () -> {
-            MessageDialog.showMessageDialog(gui, "Profil", "Fonctionnalité à venir !");
-        }));
-
+        mainPanel.addComponent(new Button("1. Voir profil", () -> afficherMonProfil(gui)));
 
         // mainPanel.addComponent(new Button("2. Accéder à la boutique", () -> afficherBoutique(gui)));
 
-     //mainPanel.addComponent(new Button("2. Changer de personnage", () -> afficherChoixPersonnage(gui)));
-        mainPanel.addComponent(new Button("3. Voir inventaire", () -> afficherInventaire(gui)));
-     // mainPanel.addComponent(new Button("4. Voir personnage", () -> afficherPersonnage(gui)));
-
-
-        mainPanel.addComponent(new Button("2. Voir mon inventaire", () -> {
+        mainPanel.addComponent(new Button("3. Changer de personnage", () -> afficherChoixPersonnage(gui)));
+        mainPanel.addComponent(new Button("4. Voir BackPack", () -> afficherBackPack(gui)));
+        mainPanel.addComponent(new Button("5. Voir personnage", () -> afficherPersonnage(gui)));
+        mainPanel.addComponent(new Button("6. Voir mon inventaire", () -> {
             afficherInventaire(gui);
         }));
 
+        mainPanel.addComponent(new Button("7. Voir joueurs connectés", () -> afficherJoueursConnectes(gui)));
 
-        mainPanel.addComponent(new Button("5. Voir joueurs connectés", () -> afficherJoueursConnectes(gui)));
-
-        mainPanel.addComponent(new Button("6. Se déconnecter", () -> {
+        mainPanel.addComponent(new Button("8. Se déconnecter", () -> {
             Session.clear();
             MessageDialog.showMessageDialog(gui, "Déconnexion", "Vous avez été déconnecté !");
             gui.getActiveWindow().close();
@@ -248,6 +242,89 @@ public class LanternaApp {
         gui.addWindowAndWait(connectedUsersWindow);
     }
 
+    /**
+     * Affiche la fenêtre de choix de personnage
+     * @param gui
+     */
+    private static void afficherChoixPersonnage(WindowBasedTextGUI gui) {
+        BasicWindow characterChoiceWindow = new BasicWindow("Choix du personnage");
+        characterChoiceWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
+
+        panel.addComponent(new Label("Choisissez votre personnage :"));
+
+        Map<String, Integer> reqs = CharactersFactory.getRequiredLevelByType();
+        for (String type : reqs.keySet()) {
+            panel.addComponent(new Button(type + " (niveau " + reqs.get(type) + "+)", creerActionSelectionPersonnage(gui, type)));
+        }
+
+        panel.addComponent(new Button("Retour", characterChoiceWindow::close));
+        characterChoiceWindow.setComponent(panel);
+        gui.addWindowAndWait(characterChoiceWindow);
+    }
+    /**
+     * Crée une action pour sélectionner un personnage (pour pas repeter 1000 fois le même code)
+     * @param gui => pour afficher les messages
+     * @param personnage => le personnage à sélectionner
+     * @return
+     */
+    private static Runnable creerActionSelectionPersonnage(WindowBasedTextGUI gui, String personnage) {
+        return () -> {
+            try {
+                HttpService.selectCharacter(Session.getUsername(), personnage, Session.getToken());
+                MessageDialog.showMessageDialog(gui, "Succès", "Personnage sélectionné : " + personnage);
+                afficherMenuPrincipal(gui);
+            } catch (Exception e) {
+                String message = e.getMessage();
+
+                if (message != null && message.toLowerCase().contains("niveau")) {
+                    // Erreur côté serveur sur le niveau insuffisant
+                    MessageDialog.showMessageDialog(gui, "Niveau insuffisant", message);
+                } else {
+                    // Erreur générique
+                    MessageDialog.showMessageDialog(gui, "Erreur", message != null ? message : "Une erreur inconnue est survenue.");
+                }
+            }
+        };
+    }
+    private static void afficherPersonnage(WindowBasedTextGUI gui) {
+        BasicWindow persoWindow = new BasicWindow("Mon Personnage");
+        persoWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label("Personnage de " + Session.getUsername()));
+
+        try {
+            String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
+            JsonElement element = JsonParser.parseString(json);
+
+            if (element.isJsonPrimitive()) {
+                // On suppose que c'est juste un string comme "Troll"
+                String characterType = element.getAsString();
+                panel.addComponent(new Label("Type : " + characterType));
+
+            } else if (element.isJsonObject()) {
+                JsonObject obj = element.getAsJsonObject();
+
+                if (obj.has("message")) {
+                    panel.addComponent(new Label("Level insuffisant : " + obj.get("message").getAsString()));
+                } else {
+                    panel.addComponent(new Label("Personnage non trouvé."));
+                }
+            } else {
+                panel.addComponent(new Label("Format de réponse inconnu."));
+            }
+        } catch (Exception e) {
+            panel.addComponent(new Label("Erreur de communication : " + e.getMessage()));
+        }
+
+
+        panel.addComponent(new Button("Retour", persoWindow::close));
+        persoWindow.setComponent(panel);
+        gui.addWindowAndWait(persoWindow);
+    }
     private static void afficherInventaire(WindowBasedTextGUI gui) {
         try {
             String username = Session.getUsername();
@@ -277,5 +354,66 @@ public class LanternaApp {
         }
 
     }
+    private static void afficherBackPack(WindowBasedTextGUI gui) {
+        BasicWindow window = new BasicWindow("Mon BackPack");
+        window.setHints(Arrays.asList(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        String username = Session.getUsername();
+
+        try {
+            String json = HttpService.getBackpack(username, Session.getToken());
+            ObjectBase[] objets = new Gson().fromJson(json, ObjectBase[].class);
+
+            if (objets.length == 0) {
+                panel.addComponent(new Label("Votre BackPack est vide."));
+            } else {
+                panel.addComponent(new Label("Contenu du BackPack :"));
+                for (ObjectBase obj : objets) {
+                    panel.addComponent(new Label("- " + obj.getName()));
+                }
+            }
+        } catch (Exception e) {
+            panel.addComponent(new Label("Erreur : " + e.getMessage()));
+        }
+
+        panel.addComponent(new Button("Retour", window::close));
+        window.setComponent(panel);
+        gui.addWindowAndWait(window);
+    }
+    /**
+
+     Affiche le profil de l'utilisateur
+     @param gui => pour afficher les messages*/
+    public static void afficherMonProfil(WindowBasedTextGUI gui) {
+        BasicWindow profileWindow = new BasicWindow("Mon Profil");
+        profileWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label("Profil de " + Session.getUsername()));
+
+        UserInfo info = Session.getUserInfo();
+        if (info != null) {
+            panel.addComponent(new Label("Niveau : " + info.getLevel()));
+            panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
+
+            try {
+                String personnageJson = HttpService.getCharacter(Session.getUsername(), Session.getToken());
+                JsonElement element = JsonParser.parseString(personnageJson);
+                String characterType = element.getAsString();
+                panel.addComponent(new Label("Personnage choisi : " + characterType));
+            } catch (Exception e) {
+                panel.addComponent(new Label("Erreur lors du chargement du personnage."));
+            }
+
+        } else {
+            panel.addComponent(new Label("Aucune information disponible."));
+        }
+
+        panel.addComponent(new Button("Retour", profileWindow::close));
+        profileWindow.setComponent(panel);
+        gui.addWindowAndWait(profileWindow);
+    }
+
 
 }

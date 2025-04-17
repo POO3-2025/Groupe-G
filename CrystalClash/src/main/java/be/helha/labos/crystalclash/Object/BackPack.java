@@ -29,4 +29,3 @@ public class BackPack {
         return CAPACITE_MAX;
     }
 }
-
