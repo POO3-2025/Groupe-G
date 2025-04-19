@@ -1,5 +1,7 @@
 package be.helha.labos.crystalclash.LanternaApp;
 
+
+import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
@@ -7,10 +9,7 @@ import be.helha.labos.crystalclash.Services.HttpService;
 import be.helha.labos.crystalclash.User.UserInfo;
 import be.helha.labos.crystalclash.User.UserManger;
 import be.helha.labos.crystalclash.server_auth.Session;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.Window.Hint;
@@ -23,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 
 public class LanternaApp {
 
@@ -258,12 +258,26 @@ public class LanternaApp {
         Map<String, Integer> reqs = CharactersFactory.getRequiredLevelByType();
         for (String type : reqs.keySet()) {
             panel.addComponent(new Button(type + " (niveau " + reqs.get(type) + "+)", creerActionSelectionPersonnage(gui, type)));
+            try {
+                // Création du personnage "exemple" via la factory
+                Personnage perso = CharactersFactory.CreateCharacters(type, reqs.get(type));
+
+                // Ajout des infos de ce perso
+                panel.addComponent(new Label("   PV : " + perso.getPV()));
+                panel.addComponent(new Label("   Attaque : " + perso.getNameAttackBase() + " (" + perso.getAttackBase() + ")"));
+                panel.addComponent(new Label("   Attaque spéciale disponible après " + perso.getRestrictionAttackSpecial()+" attaques"));
+                panel.addComponent(new Label("   Spéciale : " + perso.getNameAttaqueSpecial() + " (" + perso.getAttackSpecial() + ")"));
+            } catch (IllegalArgumentException e) {
+                // Si factory refuse (niveau trop bas), on skip l'affichage
+                panel.addComponent(new Label("   [Indisponible à ce niveau]"));
+            }
         }
 
         panel.addComponent(new Button("Retour", characterChoiceWindow::close));
         characterChoiceWindow.setComponent(panel);
         gui.addWindowAndWait(characterChoiceWindow);
     }
+
     /**
      * Crée une action pour sélectionner un personnage (pour pas repeter 1000 fois le même code)
      * @param gui => pour afficher les messages
@@ -279,11 +293,11 @@ public class LanternaApp {
             } catch (Exception e) {
                 String message = e.getMessage();
 
-                if (message != null && message.toLowerCase().contains("niveau")) {
-                    // Erreur côté serveur sur le niveau insuffisant
+                if (message != null && message.toLowerCase().contains("déjà sélectionné")) {
+                    MessageDialog.showMessageDialog(gui, "Info", "Ce personnage est déjà sélectionné.");
+                } else if (message != null && message.toLowerCase().contains("niveau")) {
                     MessageDialog.showMessageDialog(gui, "Niveau insuffisant", message);
                 } else {
-                    // Erreur générique
                     MessageDialog.showMessageDialog(gui, "Erreur", message != null ? message : "Une erreur inconnue est survenue.");
                 }
             }

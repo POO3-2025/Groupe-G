@@ -2,7 +2,7 @@ package be.helha.labos.crystalclash.Characters;
 
 public class Elf extends Personnage {
     public Elf(){
-        super("Elf",95,2);
+        super("Elf",95,2,"Arc à flèche",20,"Pluie de flèches",4);
     }
 
     @Override
