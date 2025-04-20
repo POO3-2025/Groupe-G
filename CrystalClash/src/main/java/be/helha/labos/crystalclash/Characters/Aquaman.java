@@ -3,7 +3,7 @@ package be.helha.labos.crystalclash.Characters;
 public class Aquaman extends Personnage {
 
     public Aquaman(){
-        super("Aquaman",85,10);
+        super("Aquaman",85,10,"Lancer de poison ",30,"Tsunami",5);
     }
 
     @Override

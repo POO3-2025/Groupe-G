@@ -2,14 +2,10 @@ package be.helha.labos.crystalclash.DAOImpl;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAO.CharacterDAO;
-import be.helha.labos.crystalclash.Inventory.Inventory;
-import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Object.*;
-import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import be.helha.labos.crystalclash.Object.BackPack;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,25 +21,52 @@ public class CharacterDAOImpl implements CharacterDAO {
         return (doc != null) ? doc.getString("type") : null;
     }
 
+    /*
+     * Modif apportées, reiteré la ligne qui supprimait les anciens persos du joueur
+     * ajoute le perso si il n'existe pas if (existing == null)
+     * */
     @Override
     public void saveCharacterForUser(String username, String characterType) {
         MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
         MongoCollection<Document> collection = mongoDB.getCollection("Characters");
         Document doc = new Document("username", username).append("type", characterType);
-        collection.deleteMany(new Document("username", username));
-        collection.insertOne(doc);
+        Document existing = collection.find(doc).first();
+
+        if (existing == null) {
+            // Ajout du personnage + backpack vide
+            Document backpack = new Document("objets", List.of());
+            Document docu = new Document("username", username)
+                    .append("type", characterType)
+                    .append("backpack", backpack);
+            collection.insertOne(doc);
+        }
     }
 
+    /*
+     * Crée un backPack pour un nouveau perso choisi
+     * SI deja BackPack alors on le garde
+     * */
     @Override
-    public void createBackPackForCharacter(String username){
+    public void createBackPackForCharacter(String username, String characterType) {
         MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
         MongoCollection<Document> collection = mongoDB.getCollection("Characters");
 
-        Document BackPack = new Document("objets", List.of()); //vide
-        Document update = new Document("$set", new Document("backpack", BackPack));
-        collection.updateOne(new Document("username", username), update);
+        // Filtre  retrouver le document du perso
+        Document filtre = new Document("username", username).append("type", characterType);
+        Document doc = collection.find(filtre).first();
 
+        // S'il existe déjà et qu'il a un backpack, RIen faire
+        if (doc != null && doc.containsKey("backpack")) {
+            return; //si existe deja retourn rien
+        }
+        //Si pas deja, crée un
+        Document backpack = new Document("objets", List.of());
+        Document update = new Document("$set", new Document("backpack", backpack));
+        collection.updateOne(filtre, update);
     }
+
+
+
 
     @Override
     public BackPack getBackPackForCharacter(String username) {
@@ -88,5 +111,6 @@ public class CharacterDAOImpl implements CharacterDAO {
 
         return new BackPack(); // retourne un backpack vide si erreur ou pas trouvé
     }
+
 
 }
