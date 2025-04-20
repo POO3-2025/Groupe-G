@@ -455,18 +455,21 @@ public class LanternaApp {
         Panel panel = new Panel(new GridLayout(1));
         panel.addComponent(new Label("Profil de " + Session.getUsername()));
 
+        //Dés que le joueur clique sur mon profil ses crisatux son aut mis a jour
+        try {
+            String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+            UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
+            Session.setUserInfo(updatedInfo);
+        } catch (Exception e) {
+            System.out.println("Impossible de rafraîchir les infos du joueur : " + e.getMessage());
+        }
+
         UserInfo info = Session.getUserInfo();
         if (info != null) {
             panel.addComponent(new Label("Niveau : " + info.getLevel()));
             panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
             //pour mettre a jour les cristaux
-            try {
-                String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
-                UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
-                Session.setUserInfo(updatedInfo);
-            } catch (Exception e) {
-                System.out.println("Impossible de rafraîchir les infos du joueur : " + e.getMessage());
-            }
+
 
             try {
                 String personnageJson = HttpService.getCharacter(Session.getUsername(), Session.getToken());
