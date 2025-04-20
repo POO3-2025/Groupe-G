@@ -34,7 +34,12 @@ public class LanternaApp {
         Screen screen = new DefaultTerminalFactory().createScreen();
         screen.startScreen();
 
-        WindowBasedTextGUI gui = new MultiWindowTextGUI(screen);
+        TextColor backgroundColor = TextColor.ANSI.BLACK; // Choisir couleur ici
+        WindowBasedTextGUI gui = new MultiWindowTextGUI(
+            screen,
+            new DefaultWindowManager(),
+            new EmptySpace(backgroundColor) // Fond global ici
+        );
 
         afficherEcranAccueil(gui, screen);
     }
