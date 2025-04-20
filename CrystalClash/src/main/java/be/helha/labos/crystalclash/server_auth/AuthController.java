@@ -30,10 +30,10 @@ public class AuthController {
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
-                            loginRequest.getPassword()
-                    )
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+                )
             );
 
             // Stocker l'authentification dans le SecurityContext
@@ -44,10 +44,14 @@ public class AuthController {
             return ResponseEntity.ok(new AuthResponse(jwtToken, "Authentification réussie !"));
         }catch (AuthenticationException e) {
             JsonObject errorJson = new JsonObject();
-            errorJson.addProperty("message", "Échec de l'authentification : " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorJson);
+            errorJson.addProperty("message", " de l'authentification : " + e.getMessage());
+            return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                //On renvoie le message sous form de json ducoup lanterna et gson savent s'en occuper
+                .header("Content-Type", "application/json")
+                .body(errorJson.toString()); // .toString() pour s'assurer que c’est bien du JSON texte
         }
-
+//ok
 
     }
 
