@@ -60,6 +60,7 @@ public class ObjectBase {
         return "Nom : " + Name + "\n"
                 + "Type : " + type + "\n"
                 + "Prix : " + Price + " cristaux\n"
-                + "Niveau requis : " + RequiredLevel;
+                + "Niveau requis : " + RequiredLevel
+            ;
     }
 }

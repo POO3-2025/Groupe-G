@@ -7,6 +7,10 @@ import com.google.gson.*;
 import java.lang.reflect.Type;
 
 //classe implementant JsonDeserializer diisant que je veux déserialiser vers objectBase
+//cree nv objet a partir de type,name
+//creer l'objet apres l'achat
+//utilise le factory
+//verifie niveau joueur
 public class ObjectBaseDeserializer implements JsonDeserializer<ObjectBase> {
 
     private int levelPlayer; // tu peux injecter dynamiquement ce niveau
@@ -37,3 +41,4 @@ public class ObjectBaseDeserializer implements JsonDeserializer<ObjectBase> {
         }
     }
 }
+
