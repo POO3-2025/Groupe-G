@@ -43,6 +43,7 @@ public class AuthController {
             String jwtToken = jwtUtils.generateToken(authentication);
             return ResponseEntity.ok(new AuthResponse(jwtToken, "Authentification réussie !"));
         }catch (AuthenticationException e) {
+            e.printStackTrace();
             JsonObject errorJson = new JsonObject();
             errorJson.addProperty("message", " de l'authentification : " + e.getMessage());
             return ResponseEntity
@@ -51,7 +52,6 @@ public class AuthController {
                 .header("Content-Type", "application/json")
                 .body(errorJson.toString()); // .toString() pour s'assurer que c’est bien du JSON texte
         }
-//ok
 
     }
 

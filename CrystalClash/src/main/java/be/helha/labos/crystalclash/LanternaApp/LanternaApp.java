@@ -364,8 +364,8 @@ public class LanternaApp {
 
             // Création de Gson avec désérialiseur custom
             Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(ObjectBase.class, new ObjectBaseDeserializer(levelPlayer))
-                    .create();
+                .registerTypeAdapter(ObjectBase.class, new ObjectBaseDeserializer(levelPlayer))
+                .create();
 
             // Désérialisation de l'inventaire avec le bon type d'objets
             Inventory inventory = gson.fromJson(json, Inventory.class);
