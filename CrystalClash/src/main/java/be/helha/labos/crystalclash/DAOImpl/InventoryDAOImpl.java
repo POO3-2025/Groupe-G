@@ -3,10 +3,12 @@ package be.helha.labos.crystalclash.DAOImpl;
 import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAO.InventoryDAO;
+import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Service.UserService;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
@@ -52,7 +54,9 @@ public class InventoryDAOImpl implements InventoryDAO {
             Document doc = collection.find(new Document("username", username)).first();
             if (doc != null) {
                 doc.remove("_id");
-                Gson gson = new Gson();
+                Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
                 return gson.fromJson(doc.toJson(), Inventory.class);
             }
         } catch (Exception e) {
