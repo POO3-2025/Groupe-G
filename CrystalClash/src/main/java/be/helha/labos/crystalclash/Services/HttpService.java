@@ -81,6 +81,18 @@ public class HttpService {
             return content.toString();
         }
     }
+    public static String getInventory(String username, String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/inventory/" + username))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token) // Envoie le token JWT dans l'en-tête
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        return response.body(); // Retourne le JSON brut : { "username": "...", "level": 1, "cristaux": 100 }
+    }
 
     public static String getUserInfo(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -168,4 +180,54 @@ public class HttpService {
 
         return response.body(); // Contient un tableau JSON : [{"name":"...","price":...}, ...]
     }
+
+
+    public static String buyItem(String name, String type, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+                "name", name,
+                "type", type
+        ));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/shop/buy"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body(); // {"success":true,"message":"Epée achetée avec succès !"}
+    }
+    public static String getShops(String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/shop"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body(); // retour JSON brut : [{"name":"Epée", "type":"Weapon",...
+    }
+
+    public static String sellObjetc(String name, String type, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+                "name", name,
+                "type", type
+        ));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/inventory/sell"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
 }

@@ -1,6 +1,7 @@
 package be.helha.labos.crystalclash.Service;
 
 import be.helha.labos.crystalclash.DAO.UserDAO;
+import be.helha.labos.crystalclash.User.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,13 @@ public class UserService {
         this.userDAO = userDAO;
     }
 
-    public Optional<Map<String, Object>> getUserInfo(String username) throws Exception {
-        return userDAO.getUserInfo(username);
+    public Optional<UserInfo> getUserInfo(String username) {
+        return userDAO.getUserByUsername(username);
     }
+
+    public void updateCristaux(String username, int newCristaux) {
+        userDAO.updateCristaux(username, newCristaux);
+    }
+
+
 }

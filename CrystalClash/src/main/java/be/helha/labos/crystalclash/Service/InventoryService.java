@@ -1,10 +1,13 @@
 package be.helha.labos.crystalclash.Service;
 
 
+import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.DAO.InventoryDAO;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 
@@ -25,4 +28,12 @@ public class InventoryService {
         return inventoryDAO.getInventoryForUser(username);
     }
 
+    public void saveInventoryForUser(String username, Inventory inventory){
+        inventoryDAO.saveInventoryForUser(username, inventory);
     }
+
+    public ApiReponse SellObject(String username, String name, String type){
+        return inventoryDAO.SellObject(username, name, type);
+    }
+
+}

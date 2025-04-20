@@ -21,13 +21,15 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/{username}")
-    public ResponseEntity<?> getUserInfo(@PathVariable String username) {
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
         try {
             return userService.getUserInfo(username)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(404).body(Map.of("message", "Utilisateur introuvable")));
+                    .map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.status(404).body((be.helha.labos.crystalclash.User.UserInfo) Map.of("message", "Utilisateur introuvable")));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("message", "Erreur serveur"));
         }
     }
+
 }
+

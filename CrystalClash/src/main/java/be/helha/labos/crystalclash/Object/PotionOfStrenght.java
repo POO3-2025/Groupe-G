@@ -28,4 +28,9 @@ public class PotionOfStrenght extends ObjectBase {
     public String toString() {
         return getName() + " – Dégâts : " + BonusATK;
     }
+    @Override
+    public String getDetails() {
+        return super.getDetails() + "\n"
+                + "BonusATK : " + BonusATK + "\n";
+    }
 }

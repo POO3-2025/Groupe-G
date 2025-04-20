@@ -1,16 +1,28 @@
 package be.helha.labos.crystalclash.DAOImpl;
 
+import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAO.InventoryDAO;
 import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.Object.ObjectBase;
+import be.helha.labos.crystalclash.Service.UserService;
 import com.google.gson.Gson;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Repository
 public class InventoryDAOImpl implements InventoryDAO {
+
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private UserDAOImpl userDAOImpl;
 
     @Override
     public void createInventoryForUser(String username) {
@@ -48,4 +60,95 @@ public class InventoryDAOImpl implements InventoryDAO {
         }
         return new Inventory();
     }
+
+    @Override
+    public void saveInventoryForUser(String username, Inventory inventory) {
+        try {
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
+            MongoCollection<Document> collection = mongoDB.getCollection("Inventory");
+
+            //Transforme l'objet Inventory en JSON puis en Doc MongoDB et enregistre.
+            //Mongo sait a qui l'inventaire appartient car rajout de username dans Inventory
+            Gson gson = new Gson();
+            Document updated = Document.parse(gson.toJson(inventory)); // contient la liste des objets
+
+            collection.replaceOne(new Document("username", username), updated); // sauvegarde complète et met a jour l'inventaire du joueur.
+            System.out.println("Inventaire mis à jour pour " + username);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /*
+     * Retire l'objet de l(inventaire
+     * Donne le crustaux
+     * Map parce que ça renvoie plusieurs infos voulues
+     *Prend le usernamen, name de l'objet et son type
+     * */
+    @Override
+    public ApiReponse  SellObject(String username, String name, String type) {
+
+        //Stock la reposne
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Inventory inventory = getInventoryForUser(username);
+
+            //cherche l'obejt a vendre ds l'inventaire du joueur en comparant nom et type et stock dans sellObject
+            ObjectBase sellObject = null;
+            for (ObjectBase obj : inventory.getObjets()) {
+                if (obj.getName().equalsIgnoreCase(name) && obj.getType().equalsIgnoreCase(type)) {
+                    sellObject = obj;
+                    break;
+                }
+            }
+
+            if (sellObject == null) {
+                return new ApiReponse("Objet non trouvé dans l'inventaire.", null);
+            }
+
+            //retire l'objet de l'inventaire
+            //Et appelle saveInventoryForUser pour sauvegarder
+            inventory.getObjets().remove(sellObject);
+            saveInventoryForUser(username, inventory);
+
+            //Recup info du joueur pour modif ses cristaux
+            var userOpt = userService.getUserInfo(username);
+            if (userOpt.isEmpty()) {
+                return new ApiReponse("Utilisateur introuvable.", null);
+            }
+
+            //logqiue pour le calcule de la vente
+            int price = sellObject.getPrice();
+            int valueSell = price / 2; // divise par deux la valeur de l'obejt
+            int cristaux = userOpt.get().getCristaux();
+            userService.updateCristaux(username, cristaux + valueSell);
+
+            //Amusement mais au niveau du prix ca détecte sa rareté
+            String rarity = "commun";
+            if (price > 50 && price <= 100) {
+                rarity = "medium";
+            } else if (price > 100 && price <= 200) {
+                rarity = "high";
+            } else if (price > 200) {
+                rarity = "Légendaire";
+            }
+
+            // Construit le contenu de data
+            Map<String, Object> data = new HashMap<>();
+            data.put("gain", valueSell);
+            data.put("nouveau_solde", cristaux + valueSell);
+            data.put("rarity", rarity);
+            data.put("value", price);
+            data.put("status", true);
+
+            return new ApiReponse("Objet vendu avec succès pour " + valueSell + " cristaux.", data);
+        } catch (Exception e) {
+            return new ApiReponse("Erreur interne lors de la vente : " + e.getMessage(), null);
+        }
+
+    }
+
 }
+

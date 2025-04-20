@@ -2,6 +2,7 @@ package be.helha.labos.crystalclash.LanternaApp;
 
 
 import be.helha.labos.crystalclash.Characters.Personnage;
+import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBaseDeserializer;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
@@ -10,10 +11,13 @@ import be.helha.labos.crystalclash.User.UserInfo;
 import be.helha.labos.crystalclash.User.UserManger;
 import be.helha.labos.crystalclash.server_auth.Session;
 import com.google.gson.*;
+import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.Window.Hint;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
+import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 
@@ -36,13 +40,21 @@ public class LanternaApp {
     }
 
     private static void afficherEcranAccueil(WindowBasedTextGUI gui, Screen screen) {
-        BasicWindow window = new BasicWindow("Crystal Clash : Connexion");
+        BasicWindow window = new BasicWindow(" ");
         window.setHints(Arrays.asList(Hint.CENTERED));
 
         Panel panel = new Panel(new GridLayout(1));
-        panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
 
-        panel.addComponent(new Label("Bienvenue dans Crystal Clash"));
+        Label titre = new Label("✨ Crystal Clash : Connexion ✨");
+        titre.setForegroundColor(TextColor.ANSI.BLACK);
+        titre.addStyle(SGR.BOLD);
+        panel.addComponent(titre);
+
+        Label label = new Label("Bienvenue dans Crystal Clash !");
+        label.setForegroundColor(TextColor.ANSI.CYAN_BRIGHT);
+        label.setBackgroundColor(TextColor.ANSI.BLACK);
+        label.addStyle(SGR.BOLD);
+
         panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
         panel.addComponent(new Button("1. Connexion", () -> afficherFormulaireConnexion(gui, window)));
@@ -195,16 +207,16 @@ public class LanternaApp {
 
         mainPanel.addComponent(new Button("1. Voir profil", () -> afficherMonProfil(gui)));
 
-        // mainPanel.addComponent(new Button("2. Accéder à la boutique", () -> afficherBoutique(gui)));
 
-        mainPanel.addComponent(new Button("3. Changer de personnage", () -> afficherChoixPersonnage(gui)));
-        mainPanel.addComponent(new Button("4. Voir BackPack", () -> afficherBackPack(gui)));
-        mainPanel.addComponent(new Button("5. Voir personnage", () -> afficherPersonnage(gui)));
-        mainPanel.addComponent(new Button("6. Voir mon inventaire", () -> {
-            afficherInventaire(gui);
+        mainPanel.addComponent(new Button("2. Changer de personnage", () -> afficherChoixPersonnage(gui)));
+        mainPanel.addComponent(new Button("3. Voir BackPack", () -> afficherBackPack(gui)));
+        mainPanel.addComponent(new Button("4. Voir personnage", () -> afficherPersonnage(gui)));
+        mainPanel.addComponent(new Button("5. Voir mon inventaire", () -> {
+            displayInventory(gui);
         }));
 
-        mainPanel.addComponent(new Button("7. Voir joueurs connectés", () -> afficherJoueursConnectes(gui)));
+        mainPanel.addComponent(new Button("6. Voir joueurs connectés", () -> DesplayUserConnected(gui)));
+        mainPanel.addComponent(new Button("7. Accéder à la boutique", () -> DisplayShop(gui)));
 
         mainPanel.addComponent(new Button("8. Se déconnecter", () -> {
             Session.clear();
@@ -217,7 +229,7 @@ public class LanternaApp {
         gui.addWindowAndWait(menuWindow);
     }
 
-    private static void afficherJoueursConnectes(WindowBasedTextGUI gui) {
+    private static void DesplayUserConnected(WindowBasedTextGUI gui) {
         BasicWindow connectedUsersWindow = new BasicWindow("Joueurs Connectés");
         connectedUsersWindow.setHints(Arrays.asList(Hint.CENTERED));
 
@@ -257,7 +269,9 @@ public class LanternaApp {
 
         Map<String, Integer> reqs = CharactersFactory.getRequiredLevelByType();
         for (String type : reqs.keySet()) {
-            panel.addComponent(new Button(type + " (niveau " + reqs.get(type) + "+)", creerActionSelectionPersonnage(gui, type)));
+            panel.addComponent(new Button(type + " (niveau " + reqs.get(type) + "+)",creerActionSelectionPersonnage(gui, type, characterChoiceWindow)
+            ));
+
             try {
                 // Création du personnage "exemple" via la factory
                 Personnage perso = CharactersFactory.CreateCharacters(type, reqs.get(type));
@@ -284,11 +298,12 @@ public class LanternaApp {
      * @param personnage => le personnage à sélectionner
      * @return
      */
-    private static Runnable creerActionSelectionPersonnage(WindowBasedTextGUI gui, String personnage) {
+    private static Runnable creerActionSelectionPersonnage(WindowBasedTextGUI gui, String personnage, Window currentWindow) {
         return () -> {
             try {
                 HttpService.selectCharacter(Session.getUsername(), personnage, Session.getToken());
                 MessageDialog.showMessageDialog(gui, "Succès", "Personnage sélectionné : " + personnage);
+                currentWindow.close(); //Ferme fenetre apres choix
                 afficherMenuPrincipal(gui);
             } catch (Exception e) {
                 String message = e.getMessage();
@@ -339,11 +354,21 @@ public class LanternaApp {
         persoWindow.setComponent(panel);
         gui.addWindowAndWait(persoWindow);
     }
-    private static void afficherInventaire(WindowBasedTextGUI gui) {
+    private static void displayInventory(WindowBasedTextGUI gui) {
         try {
             String username = Session.getUsername();
-            String json = HttpService.get("/inventory/" + username, Session.getToken());
-            Inventory inventory = new Gson().fromJson(json, Inventory.class);
+            String json = HttpService.getInventory(username, Session.getToken());
+
+            // Niveau du joueur pour filtrer les objets disponibles
+            int levelPlayer = Session.getUserInfo().getLevel();
+
+            // Création de Gson avec désérialiseur custom
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBaseDeserializer(levelPlayer))
+                    .create();
+
+            // Désérialisation de l'inventaire avec le bon type d'objets
+            Inventory inventory = gson.fromJson(json, Inventory.class);
 
             BasicWindow inventoryWindow = new BasicWindow("Inventaire de " + username);
             inventoryWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -354,11 +379,35 @@ public class LanternaApp {
                 panel.addComponent(new Label("Votre inventaire est vide."));
             } else {
                 panel.addComponent(new Label("Objets dans l'inventaire :"));
+
+                //Parcour liste objets de l'inventaire
+                //obj représente object du joueur
+                // Personnalisation selon le type
                 for (ObjectBase obj : inventory.getObjets()) {
-                    panel.addComponent(new Label("- " + obj.getName())); // peux personnaliser ça selon la classe ObjectBase
+                    String label = obj.getName() + " (" + obj.getType() + ")";
+
+                    panel.addComponent(new Button(label, () -> {
+
+                        String details = obj.getDetails() + "\n\nSouhaitez-vous vendre cet objet ?";
+                        MessageDialogButton response = MessageDialog.showMessageDialog(gui, "Détails de l'objet", details, MessageDialogButton.Yes, MessageDialogButton.No);
+
+                        if (response == MessageDialogButton.Yes){
+                            try{
+                                //Appel de l'api
+                                String reponse = HttpService.sellObjetc(obj.getName(), obj.getType(), Session.getToken());
+                                JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
+                                String message = result.get("message").getAsString();
+                                MessageDialog.showMessageDialog(gui, "Ventre", message);
+                                inventoryWindow.close();
+                                displayInventory(gui);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }));
                 }
             }
-
+            panel.addComponent(new EmptySpace());
             panel.addComponent(new Button("Retour", inventoryWindow::close));
             inventoryWindow.setComponent(panel);
             gui.addWindowAndWait(inventoryWindow);
@@ -366,8 +415,8 @@ public class LanternaApp {
         } catch (Exception e) {
             MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de charger l'inventaire : " + e.getMessage());
         }
-
     }
+
     private static void afficherBackPack(WindowBasedTextGUI gui) {
         BasicWindow window = new BasicWindow("Mon BackPack");
         window.setHints(Arrays.asList(Hint.CENTERED));
@@ -410,6 +459,14 @@ public class LanternaApp {
         if (info != null) {
             panel.addComponent(new Label("Niveau : " + info.getLevel()));
             panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
+            //pour mettre a jour les cristaux
+            try {
+                String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+                UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
+                Session.setUserInfo(updatedInfo);
+            } catch (Exception e) {
+                System.out.println("Impossible de rafraîchir les infos du joueur : " + e.getMessage());
+            }
 
             try {
                 String personnageJson = HttpService.getCharacter(Session.getUsername(), Session.getToken());
@@ -429,5 +486,60 @@ public class LanternaApp {
         gui.addWindowAndWait(profileWindow);
     }
 
+    private static void DisplayShop(WindowBasedTextGUI gui) {
+        BasicWindow shopWindow = new BasicWindow("Boutique");
+        shopWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+        int level = Session.getUserInfo().getLevel();
+
+        Panel panel = new Panel(new GridLayout(1));
+        //pour mettre a jour les cristaux
+        try {
+            String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+            UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
+            Session.setUserInfo(updatedInfo);
+        } catch (Exception e) {
+            System.out.println("Impossible de rafraîchir les infos du joueur : " + e.getMessage());
+        }
+        UserInfo info = Session.getUserInfo();
+        panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
+
+        try {
+            String json = HttpService.getShops(Session.getToken());
+            List<Map<String, Object>> shopItems = new Gson().fromJson(json, List.class);
+
+            panel.addComponent(new Label("Objets disponibles :"));
+            for (Map<String, Object> item : shopItems) {
+                String name = (String) item.get("name");
+                String type = (String) item.get("type");
+                double price = (double) item.get("price");
+                double requiredLevel = (double) item.get("requiredLevel");
+                if (level < requiredLevel) continue;
+                panel.addComponent(new Button(name + " (" + type + ", " + price + "c, niv " + requiredLevel + "+)", () -> {
+                    try {
+                        String resultJson = HttpService.buyItem(name, type, Session.getToken());
+                        JsonObject result = JsonParser.parseString(resultJson).getAsJsonObject();
+                        String message = result.get("message").getAsString();
+                        MessageDialog.showMessageDialog(gui, "Achat", message);
+                        try{
+                            String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+                            UserInfo updateUserInfo = new Gson().fromJson(userJson, UserInfo.class);
+                        }catch (Exception e){
+                            System.out.println("Impossible de mettre a jour les info du joueur" + e.getMessage());
+                        }
+                    } catch (Exception e) {
+                        MessageDialog.showMessageDialog(gui, "Erreur", "Impossible d'acheter : " + e.getMessage());
+                    }
+                }));
+            }
+
+        } catch (Exception e) {
+            panel.addComponent(new Label("Erreur lors du chargement de la boutique : " + e.getMessage()));
+        }
+
+        panel.addComponent(new Button("Retour", shopWindow::close));
+        shopWindow.setComponent(panel);
+        gui.addWindowAndWait(shopWindow);
+    }
 
 }

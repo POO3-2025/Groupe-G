@@ -1,10 +1,12 @@
 package be.helha.labos.crystalclash.Object;
 
 public class ObjectBase {
+    private String type;
     private String Name;
     protected int Price;
     protected int RequiredLevel;
     protected int reliability;
+
 
     public ObjectBase() {
         // Constructeur par défaut requis pour la désérialisation
@@ -15,21 +17,24 @@ public class ObjectBase {
         this.Price = Price;
         this.RequiredLevel = RequiredLevel;
         this.reliability = reliability;
+
     }
+    public String getType() {return type;}
+    public void setType(String type) {  this.type = type; }
 
     public String use() {
         return "Objet utilisé.";
     }
 
-   public boolean IsUsed(){
-       return reliability > 0 ;
-   }
+    public boolean IsUsed(){
+        return reliability > 0 ;
+    }
 
-   public void Reducereliability(){
-       if(reliability > 0){
-           reliability--;
-       }
-   }
+    public void Reducereliability(){
+        if(reliability > 0){
+            reliability--;
+        }
+    }
     public String getName() {
         return Name;
     }
@@ -50,6 +55,11 @@ public class ObjectBase {
     }
     public int getReliability() {
         return reliability;
-
-   }
+    }
+    public String getDetails() {
+        return "Nom : " + Name + "\n"
+                + "Type : " + type + "\n"
+                + "Prix : " + Price + " cristaux\n"
+                + "Niveau requis : " + RequiredLevel;
+    }
 }

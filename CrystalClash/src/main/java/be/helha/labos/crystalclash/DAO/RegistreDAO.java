@@ -1,9 +1,9 @@
 package be.helha.labos.crystalclash.DAO;
 
 /*
-* Voir si user existe
-* Inserer user dans la db
-* */
+ * Voir si user existe
+ * Inserer user dans la db
+ * */
 
 public interface RegistreDAO {
 

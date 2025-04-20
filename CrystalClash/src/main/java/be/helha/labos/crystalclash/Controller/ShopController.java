@@ -1,0 +1,53 @@
+package be.helha.labos.crystalclash.Controller;
+
+
+import be.helha.labos.crystalclash.Service.ShopService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/shop")
+public class ShopController {
+
+    @Autowired
+    private ShopService shopService;
+
+    //Get shop
+
+    @GetMapping
+    public List<Map<String, Object>> getShops() {
+        return shopService.getShopItems();
+    }
+
+
+    @PostMapping("/buy")
+    public ResponseEntity<Map<String, Object>> buyItem(
+        @RequestBody Map<String, String> payload
+    ) {
+        String name = payload.get("name");
+        String type = payload.get("type");
+
+        //Va récupe l objet Authentication mis dans JwUtils
+        //appelle de GetName sur l'objet Authentication qui retourne par defaut le subject du token JWT
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName(); // ici Spring récupère le subject du JWT
+
+        boolean success = shopService.buyItem(username, name, type);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", success);
+        response.put("message", success
+            ? name + " acheté avec succès !"
+            : "Achat échoué. Vérifie ton niveau, tes cristaux ou ton inventaire.");
+        return ResponseEntity.ok(response);
+    }
+
+
+}
