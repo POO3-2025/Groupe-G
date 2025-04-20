@@ -27,4 +27,11 @@ public class Weapon extends ObjectBase {
     public String toString() {
         return getName() + " – Dégâts : " + damage;
     }
+
+    @Override
+    public String getDetails() {
+        return super.getDetails() + "\n"
+                + "Dégâts : " + damage + "\n"
+                + "Fiabilité : " + reliability;
+    }
 }

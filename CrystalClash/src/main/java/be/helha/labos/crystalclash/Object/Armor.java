@@ -28,4 +28,10 @@ public class Armor extends ObjectBase {
     public String toString() {
         return getName() + " – Dégâts : " + BonusPV;
     }
+
+    @Override
+    public String getDetails() {
+        return super.getDetails() + "\n"
+                + "Défense : " + BonusPV + "\n";
+    }
 }

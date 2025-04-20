@@ -13,9 +13,9 @@ import java.sql.ResultSet;
 public class RegistreDAOimpl implements RegistreDAO{
 
     /*
-    * @Param username
-    * Va dans la table users, select les users pour voir déjç ceux crées
-    * */
+     * @Param username
+     * Va dans la table users, select les users pour voir déjç ceux crées
+     * */
     @Override
     public boolean userExists(String username) throws Exception {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
@@ -29,16 +29,16 @@ public class RegistreDAOimpl implements RegistreDAO{
 
 
     /*
-    * @Param username
-    * @Pram hashedPassword
-    * Va ajouter le user inscrit dans la db avec son username et password haché
-    * initialise le niveau a 1 et cristaux a 100
-    * */
+     * @Param username
+     * @Pram hashedPassword
+     * Va ajouter le user inscrit dans la db avec son username et password haché
+     * initialise le niveau a 1 et cristaux a 100
+     * */
     @Override
     public void insertUser(String username, String hashedPassword) throws Exception {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
             PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO users (username, password, level, cristaux) VALUES (?, ?, ?, ?)");
+                    "INSERT INTO users (username, password, level, cristaux) VALUES (?, ?, ?, ?)");
             stmt.setString(1, username);
             stmt.setString(2, hashedPassword);
             stmt.setInt(3, 1);

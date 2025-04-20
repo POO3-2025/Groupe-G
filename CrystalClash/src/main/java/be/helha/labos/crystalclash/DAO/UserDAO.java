@@ -1,14 +1,9 @@
 package be.helha.labos.crystalclash.DAO;
 
-
-import java.util.Map;
+import be.helha.labos.crystalclash.User.UserInfo;
 import java.util.Optional;
 
-/*
- * Map Stocker les infos du J
- */
-
-    public interface UserDAO {
-        Optional<Map<String, Object>> getUserInfo(String username) throws Exception;
-    }
-
+public interface UserDAO {
+    Optional<UserInfo> getUserByUsername(String username);
+    void updateCristaux(String username, int newCristaux);
+}
