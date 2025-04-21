@@ -1,36 +1,37 @@
+
 package be.helha.labos.crystalclash.Object;
 
 public class HealingPotion extends ObjectBase {
 
-    private int Heal;
+    private int heal;
 
-    public HealingPotion(String Name, int Price,int LevelRequired, int Heal){
-        super(Name,Price,LevelRequired,1);
-        this.Heal = Heal;
+    public HealingPotion(String name, int price,int levelrequired, int heal){
+        super(name,price,levelrequired,1);
+        this.heal = heal;
     }
 
     @Override
     public String use() {
         if (!IsUsed()) return "Potion already used";
         Reducereliability();
-        return "You recovered " + Heal + " PV";
+        return "You recovered " + heal + " PV";
     }
 
     public int getHeal(){
-        return Heal;
+        return heal;
     }
 
     public void setHeal(int Heal){
-        this.Heal = Heal;
+        this.heal = Heal;
     }
     @Override
     public String toString() {
-        return getName() + " – Dégâts : " + Heal;
+        return getName() + " – Dégâts : " + heal;
     }
 
     @Override
     public String getDetails() {
         return super.getDetails() + "\n"
-                + "Heal : " + Heal + "\n";
+            + "Heal : " + heal + "\n";
     }
 }

@@ -1,12 +1,13 @@
+
 package be.helha.labos.crystalclash.Object;
 
 public class Weapon extends ObjectBase {
 
     private int damage;
 
-    public Weapon(String Name, int Price, int LevelRequired, int reliability, int Damage) {
-        super(Name, Price, LevelRequired, reliability);
-        this.damage = Damage;
+    public Weapon(String name, int price, int levelrequired, int reliability, int damage) {
+        super(name, price, levelrequired, reliability);
+        this.damage = damage;
     }
 
     @Override
@@ -31,6 +32,6 @@ public class Weapon extends ObjectBase {
     @Override
     public String getDetails() {
         return super.getDetails() + "\n"
-                + "Dégâts : " + damage + "\n";
+            + "Dégâts : " + damage + "\n";
     }
 }
