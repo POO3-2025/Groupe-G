@@ -1,5 +1,6 @@
 package be.helha.labos.crystalclash.Service;
 
+import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.DAO.CharacterDAO;
 import be.helha.labos.crystalclash.Object.BackPack;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,17 @@ public class CharacterService {
 
     public BackPack getBackPackForCharacter(String username){
         return characterDAO.getBackPackForCharacter(username);
+    }
+
+    public void setSelectedCharacter(String username, String character){
+        characterDAO.setSelectedCharacter(username, character);
+    }
+    public void  saveBackPackForCharacter(String username, BackPack backPack){
+        characterDAO.saveBackPackForCharacter(username, backPack);
+    }
+
+    public ApiReponse addObjectToBackPack(String username, String name, String type){
+        return characterDAO.addObjectToBackPack(username, name, type);
     }
 
 
