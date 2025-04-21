@@ -1,11 +1,11 @@
 package be.helha.labos.crystalclash.Object;
 
 public class Armor extends ObjectBase {
-    private int BonusPV;
+    private int bonusPV;
 
-    public Armor(String Name, int Price, int LevelRequired,int reliability, int BonusPV) {
-        super(Name, Price, LevelRequired, reliability);
-        this.BonusPV = BonusPV;
+    public Armor(String name, int price, int levelrequired,int reliability, int bonusPV) {
+        super(name, price, levelrequired, reliability);
+        this.bonusPV = bonusPV;
     }
 
 
@@ -13,25 +13,25 @@ public class Armor extends ObjectBase {
     public String use() {
         if (!IsUsed()) return "The weapon worn";
         Reducereliability();
-        return "Armor used , +" + BonusPV + "Pv during " +reliability+ " tours.";
+        return "Armor used , +" + bonusPV + "Pv during " +reliability+ " tours.";
     }
 
     public int getBonusPV() {
-        return BonusPV;
+        return bonusPV;
     }
 
     public void setBonusPV(int bonusPV) {
-        BonusPV = bonusPV;
+        bonusPV = bonusPV;
     }
 
     @Override
     public String toString() {
-        return getName() + " – Dégâts : " + BonusPV;
+        return getName() + " – Dégâts : " + bonusPV;
     }
 
     @Override
     public String getDetails() {
         return super.getDetails() + "\n"
-                + "Défense : " + BonusPV + "\n";
+                + "Défense : " + bonusPV + "\n";
     }
 }
