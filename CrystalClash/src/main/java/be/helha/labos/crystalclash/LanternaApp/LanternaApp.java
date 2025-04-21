@@ -1,8 +1,10 @@
+
 package be.helha.labos.crystalclash.LanternaApp;
 
 
 import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBaseDeserializer;
+import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
@@ -369,7 +371,7 @@ public class LanternaApp {
 
             // Création de Gson avec désérialiseur custom
             Gson gson = new GsonBuilder()
-                .registerTypeAdapter(ObjectBase.class, new ObjectBaseDeserializer(levelPlayer))
+                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                 .create();
 
             // Désérialisation de l'inventaire avec le bon type d'objets
@@ -551,3 +553,4 @@ public class LanternaApp {
     }
 
 }
+

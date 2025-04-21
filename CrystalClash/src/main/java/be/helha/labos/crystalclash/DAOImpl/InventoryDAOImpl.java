@@ -101,12 +101,16 @@ public class InventoryDAOImpl implements InventoryDAO {
 
             //cherche l'obejt a vendre ds l'inventaire du joueur en comparant nom et type et stock dans sellObject
             ObjectBase sellObject = null;
+            //Parcout tout objet ds inventaire du user
             for (ObjectBase obj : inventory.getObjets()) {
-                if (obj.getName().equalsIgnoreCase(name) && obj.getType().equalsIgnoreCase(type)) {
-                    sellObject = obj;
+                if (obj.getName() != null && obj.getType() != null &&// verif si type et name pas null
+                    obj.getName().equalsIgnoreCase(name) && // si name de l objet egal au nom recherché
+                    obj.getType().equalsIgnoreCase(type)) { // pareil ici
+                    sellObject = obj; //SI tout ok on sauv ds sellObject
                     break;
                 }
             }
+
 
             if (sellObject == null) {
                 return new ApiReponse("Objet non trouvé dans l'inventaire.", null);
@@ -155,4 +159,3 @@ public class InventoryDAOImpl implements InventoryDAO {
     }
 
 }
-

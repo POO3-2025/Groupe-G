@@ -1,21 +1,22 @@
+
 package be.helha.labos.crystalclash.Object;
 
-public class ObjectBase {
-    private String type;
-    private String Name;
-    protected int Price;
-    protected int RequiredLevel;
-    protected int reliability;
 
+public class ObjectBase {
+    private String name;
+    protected int price;
+    protected int requiredLevel;
+    protected int reliability;
+    private String type;
 
     public ObjectBase() {
         // Constructeur par défaut requis pour la désérialisation
     }
 
-    public ObjectBase(String Name, int Price, int RequiredLevel, int reliability) {
-        this.Name = Name;
-        this.Price = Price;
-        this.RequiredLevel = RequiredLevel;
+    public ObjectBase(String name, int price, int requiredLevel, int reliability) {
+        this.name = name;
+        this.price = price;
+        this.requiredLevel = requiredLevel;
         this.reliability = reliability;
 
     }
@@ -36,31 +37,31 @@ public class ObjectBase {
         }
     }
     public String getName() {
-        return Name;
+        return name;
     }
     public void setName(String name) {
-        Name = name;
+        this.name = name;
     }
     public int getPrice() {
-        return Price;
+        return price;
     }
     public void setPrice(int price) {
-        Price = price;
+        this.price = price;
     }
     public int getRequiredLevel() {
-        return RequiredLevel;
+        return requiredLevel;
     }
     public void setRequiredLevel(int requiredLevel) {
-        RequiredLevel = requiredLevel;
+        this.requiredLevel = requiredLevel;
     }
     public int getReliability() {
         return reliability;
     }
     public String getDetails() {
-        return "Nom : " + Name + "\n"
-                + "Type : " + type + "\n"
-                + "Prix : " + Price + " cristaux\n"
-                + "Niveau requis : " + RequiredLevel
+        return "Nom : " + name + "\n"
+            + "Type : " + type + "\n"
+            + "Prix : " + price + " cristaux\n"
+            + "Niveau requis : " + requiredLevel
             ;
     }
 }
