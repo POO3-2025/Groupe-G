@@ -12,7 +12,7 @@ public class ObjectFactory {
 
         switch (Name.toLowerCase()) {
             case "epee en bois":
-                obj = new Weapon("Epée en bois", 50, 1, 5, 4);
+                obj = new Weapon("Epee en bois", 50, 1, 5, 4);
                 break;
             case "couteau en bois":
                 obj = new Weapon("Couteau en bois", 50, 1, 5, 4);
@@ -22,7 +22,7 @@ public class ObjectFactory {
                 break;
 
             case "epee en fer":
-                if (LevelPlayer >= 3) obj = new Weapon("Epée en fer", 70, 3, 10, 8);
+                if (LevelPlayer >= 3) obj = new Weapon("Epee en fer", 70, 3, 10, 8);
                 else throw new IllegalArgumentException("Niveau insuffisant pour Epée en fer");
                 break;
             case "couteau en fer":
@@ -35,7 +35,7 @@ public class ObjectFactory {
                 break;
 
             case "epee en diamant":
-                if (LevelPlayer >= 5) obj = new Weapon("Epée en diamant", 150, 5, 20, 13);
+                if (LevelPlayer >= 5) obj = new Weapon("Epee en diamant", 150, 5, 20, 13);
                 else throw new IllegalArgumentException("Niveau insuffisant pour Epée en diamant");
                 break;
             case "couteau en diamant":
@@ -86,7 +86,7 @@ public class ObjectFactory {
                 else throw new IllegalArgumentException("Niveau insuffisant pour Fiole des Abysses");
                 break;
             case "colere du dragon":
-                if (LevelPlayer >= 6) obj = new PotionOfStrenght("Colère du Dragon", 40, 6, 20);
+                if (LevelPlayer >= 6) obj = new PotionOfStrenght("Colere du Dragon", 40, 6, 20);
                 else throw new IllegalArgumentException("Niveau insuffisant pour Colère du Dragon");
                 break;
 
@@ -120,11 +120,11 @@ public class ObjectFactory {
         map.put("couteau en bois", new Weapon("Couteau en bois", 50, 1, 5, 4));
         map.put("hache en bois", new Weapon("Hache en bois", 50, 1, 5, 4));
 
-        map.put("epee en fer", new Weapon("Epée en fer", 70, 3, 10, 8));
+        map.put("epee en fer", new Weapon("Epee en fer", 70, 3, 10, 8));
         map.put("couteau en fer", new Weapon("Couteau en fer", 70, 3, 10, 6));
         map.put("hache en fer", new Weapon("Hache en fer", 70, 3, 10, 3));
 
-        map.put("epee en diamant", new Weapon("Epée en diamant", 150, 5, 20, 13));
+        map.put("epee en diamant", new Weapon("Epee en diamant", 150, 5, 20, 13));
         map.put("couteau en diamant", new Weapon("Couteau en diamant", 150, 5, 20, 10));
         map.put("hache en diamant", new Weapon("Hache en diamant", 150, 5, 20, 15));
 
@@ -135,13 +135,13 @@ public class ObjectFactory {
 
         map.put("elixir daube", new HealingPotion("Elixir d'Aube", 20, 2, 15));
         map.put("larme de licorne", new HealingPotion("Larme de Licorne", 30, 4, 25));
-        map.put("fluide du phenix", new HealingPotion("Fluide du Phénix", 60, 6, 50));
+        map.put("fluide du phenix", new HealingPotion("Fluide du Phenix", 60, 6, 50));
 
         map.put("venin dombre", new PotionOfStrenght("Venin d'Ombre", 25, 2, 5));
         map.put("fiole des abysses", new PotionOfStrenght("Fiole des Abysses", 35, 4, 10));
-        map.put("colere du dragon", new PotionOfStrenght("Colère du Dragon", 40, 6, 20));
+        map.put("colere du dragon", new PotionOfStrenght("Colere du Dragon", 40, 6, 20));
 
-        map.put("ecaille du vent", new Armor("Écaille du Vent", 25, 2, 3, 10));
+        map.put("ecaille du vent", new Armor("Ecaille du Vent", 25, 2, 3, 10));
         map.put("cuirasse du colosse", new Armor("Cuirasse du Colosse", 35, 3, 6, 25));
         map.put("traqueur des ombres", new Armor("Traqueur des Ombres", 50, 5, 15, 35));
 
