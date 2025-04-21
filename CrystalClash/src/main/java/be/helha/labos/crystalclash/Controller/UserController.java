@@ -1,6 +1,8 @@
 package be.helha.labos.crystalclash.Controller;
 
+import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.UserService;
+import be.helha.labos.crystalclash.User.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.Optional;
 
 
 @RestController
@@ -16,20 +19,31 @@ import java.util.Map;
 public class UserController {
 
 
-
     @Autowired
+    private CharacterService characterService;
+    @Autowired
+
     private UserService userService;
 
     @GetMapping("/{username}")
     public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
         try {
-            return userService.getUserInfo(username)
-                    .map(ResponseEntity::ok)
-                    .orElseGet(() -> ResponseEntity.status(404).body((be.helha.labos.crystalclash.User.UserInfo) Map.of("message", "Utilisateur introuvable")));
+            Optional<UserInfo> optionalInfo = userService.getUserInfo(username);
+
+            if (optionalInfo.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("message", "Utilisateur introuvable"));
+            }
+
+            UserInfo info = optionalInfo.get();
+            String selectedCharacter = characterService.getCharacterForUser(username);
+            info.setSelectedCharacter(selectedCharacter);
+
+            return ResponseEntity.ok(info);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("message", "Erreur serveur"));
         }
     }
 
-}
 
+
+}

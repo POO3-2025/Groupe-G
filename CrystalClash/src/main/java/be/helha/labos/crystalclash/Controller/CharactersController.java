@@ -50,6 +50,8 @@ public class CharactersController {
             }
 
             Personnage character = CharactersFactory.CreateCharacters(characterType, user.getLevel());
+            //Appelle setSelectedCharacter, déselctionne tout les perso et met celui selectionné par le user a true
+            characterService.setSelectedCharacter(user.getUsername(), character.getClass().getSimpleName());
             characterService.saveCharacterForUser(user.getUsername(), character.getClass().getSimpleName());
             characterService.createBackPackForCharacter(user.getUsername(), character.getClass().getSimpleName());
 
@@ -89,5 +91,23 @@ public class CharactersController {
                     .body("Erreur lors de la récupération du backpack : " + e.getMessage());
         }
     }
+
+    /*
+     * Ajoute un objet au backpack du personnage
+     * */
+    @PostMapping("/{username}/backpack/add")
+    public ResponseEntity<ApiReponse> addObjectToBackpack(@PathVariable String username, @RequestBody Map<String, String> payload) {
+        String name = payload.get("name");
+        String type = payload.get("type");
+
+        if (name == null || type == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiReponse("Name et type sont requis.", null));
+        }
+
+        ApiReponse response = characterService.addObjectToBackPack(username, name, type);
+        return ResponseEntity.ok(response);
+    }
+
 
 }
