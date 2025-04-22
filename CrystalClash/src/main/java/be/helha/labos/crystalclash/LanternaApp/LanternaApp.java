@@ -33,6 +33,7 @@ public class LanternaApp {
 
     /**
      * Point d'entrée de l'application
+     *
      * @param args
      * @throws Exception
      */
@@ -42,9 +43,9 @@ public class LanternaApp {
 
         TextColor backgroundColor = TextColor.ANSI.BLACK; // Choisir couleur ici
         WindowBasedTextGUI gui = new MultiWindowTextGUI(
-            screen,
-            new DefaultWindowManager(),
-            new EmptySpace(backgroundColor) // Fond global ici
+                screen,
+                new DefaultWindowManager(),
+                new EmptySpace(backgroundColor) // Fond global ici
         );
 
         afficherEcranAccueil(gui, screen);
@@ -52,6 +53,7 @@ public class LanternaApp {
 
     /**
      * Affiche l'écran d'accueil
+     *
      * @param gui
      * @param screen
      */
@@ -90,6 +92,7 @@ public class LanternaApp {
 
     /**
      * Affiche le formulaire de connexion
+     *
      * @param gui
      * @param menuInitialWindow
      */
@@ -144,7 +147,8 @@ public class LanternaApp {
                 } else {
                     message = message.replaceAll("\\p{Cntrl}", " "); // Enlève tous les caractères de contrôle
                 }
-                MessageDialog.showMessageDialog(gui, "Exception", message);            }
+                MessageDialog.showMessageDialog(gui, "Exception", message);
+            }
         }));
 
         loginPanel.addComponent(new Button("Retour", loginWindow::close));
@@ -154,6 +158,7 @@ public class LanternaApp {
 
     /**
      * Affiche le formulaire d'inscription
+     *
      * @param gui
      */
     private static void afficherFormulaireInscription(WindowBasedTextGUI gui) {
@@ -187,7 +192,7 @@ public class LanternaApp {
                             Session.setUsername(usernameBox.getText());
 
                             //Recup des infos uti
-                            String UserJson = HttpService.getUserInfo(Session.getUsername(),token);
+                            String UserJson = HttpService.getUserInfo(Session.getUsername(), token);
                             //gson convertit (deserialise) la chaine userJson en 1 insatnce de UserInfo
                             //Mapping auto
                             UserInfo info = new Gson().fromJson(UserJson, UserInfo.class);
@@ -198,7 +203,7 @@ public class LanternaApp {
                         } else {
                             MessageDialog.showMessageDialog(gui, "Erreur", "Connexion automatique échouée.");
                         }
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", "Connexion auto impossible : " + e.getMessage());
                     }
                 } else {
@@ -216,6 +221,7 @@ public class LanternaApp {
 
     /**
      * Affiche le menu principal après la connexion
+     *
      * @param gui
      */
     private static void afficherMenuPrincipal(WindowBasedTextGUI gui) {
@@ -238,7 +244,8 @@ public class LanternaApp {
 
 
         mainPanel.addComponent(new Button("2. Changer de personnage", () -> afficherChoixPersonnage(gui)));
-        mainPanel.addComponent(new Button("3. Voir BackPack", () -> afficherBackPack(gui)));
+        mainPanel.addComponent(new Button("3. Voir BackPack", () -> afficherBackPack(gui, () -> {
+        })));
         mainPanel.addComponent(new Button("4. Voir personnage", () -> afficherPersonnage(gui)));
         mainPanel.addComponent(new Button("5. Voir mon inventaire", () -> {
             displayInventory(gui);
@@ -261,6 +268,7 @@ public class LanternaApp {
 
     /**
      * Affiche la liste des utilisateurs connectés
+     *
      * @param gui
      */
     private static void DesplayUserConnected(WindowBasedTextGUI gui) {
@@ -290,6 +298,7 @@ public class LanternaApp {
 
     /**
      * Affiche la fenêtre de choix de personnage
+     *
      * @param gui
      */
     private static void afficherChoixPersonnage(WindowBasedTextGUI gui) {
@@ -303,7 +312,7 @@ public class LanternaApp {
 
         Map<String, Integer> reqs = CharactersFactory.getRequiredLevelByType();
         for (String type : reqs.keySet()) {
-            panel.addComponent(new Button(type + " (niveau " + reqs.get(type) + "+)",creerActionSelectionPersonnage(gui, type, characterChoiceWindow)
+            panel.addComponent(new Button(type + " (niveau " + reqs.get(type) + "+)", creerActionSelectionPersonnage(gui, type, characterChoiceWindow)
             ));
 
             try {
@@ -313,7 +322,7 @@ public class LanternaApp {
                 // Ajout des infos de ce perso
                 panel.addComponent(new Label("   PV : " + perso.getPV()));
                 panel.addComponent(new Label("   Attaque : " + perso.getNameAttackBase() + " (" + perso.getAttackBase() + ")"));
-                panel.addComponent(new Label("   Attaque spéciale disponible après " + perso.getRestrictionAttackSpecial()+" attaques"));
+                panel.addComponent(new Label("   Attaque spéciale disponible après " + perso.getRestrictionAttackSpecial() + " attaques"));
                 panel.addComponent(new Label("   Spéciale : " + perso.getNameAttaqueSpecial() + " (" + perso.getAttackSpecial() + ")"));
             } catch (IllegalArgumentException e) {
                 // Si factory refuse (niveau trop bas), on skip l'affichage
@@ -328,7 +337,8 @@ public class LanternaApp {
 
     /**
      * Crée une action pour sélectionner un personnage (pour pas repeter 1000 fois le même code)
-     * @param gui => pour afficher les messages
+     *
+     * @param gui        => pour afficher les messages
      * @param personnage => le personnage à sélectionner
      * @return
      */
@@ -355,6 +365,7 @@ public class LanternaApp {
 
     /**
      * Affiche le personnage du joueur
+     *
      * @param gui => pour afficher les messages
      */
     private static void afficherPersonnage(WindowBasedTextGUI gui) {
@@ -396,6 +407,7 @@ public class LanternaApp {
 
     /**
      * Affiche l'inventaire du joueur
+     *
      * @param gui => pour afficher les messages
      */
     private static void displayInventory(WindowBasedTextGUI gui) {
@@ -408,8 +420,8 @@ public class LanternaApp {
 
             // Création de Gson avec désérialiseur custom
             Gson gson = new GsonBuilder()
-                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                .create();
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
 
             // Désérialisation de l'inventaire avec le bon type d'objets
             Inventory inventory = gson.fromJson(json, Inventory.class);
@@ -451,8 +463,9 @@ public class LanternaApp {
     /**
      * Affiche les détails d'un objet
      * et propose de le vendre ou de le mettre dans le BackPack
-     * @param gui => pour afficher les messages
-     * @param obj => l'objet à afficher
+     *
+     * @param gui              => pour afficher les messages
+     * @param obj              => l'objet à afficher
      * @param refreshInventory => pour rafraîchir l'inventaire après une action
      */
     private static void afficherDetailsObjet(WindowBasedTextGUI gui, ObjectBase obj, Runnable refreshInventory) {
@@ -477,7 +490,7 @@ public class LanternaApp {
 
         panel.addComponent(new Button("Mettre dans le BackPack", () -> {
             try {
-                String result = HttpService.putInBackpack(Session.getUsername(),obj.getName(), obj.getType(), Session.getToken());
+                String result = HttpService.putInBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                 JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
                 String message = resultJson.get("message").getAsString();
                 MessageDialog.showMessageDialog(gui, "BackPack", message);
@@ -496,6 +509,7 @@ public class LanternaApp {
 
     /**
      * Affiche le profil de l'utilisateur
+     *
      * @param gui => pour afficher les messages
      */
     public static void afficherMonProfil(WindowBasedTextGUI gui) {
@@ -518,8 +532,7 @@ public class LanternaApp {
             panel.addComponent(new Label("Niveau : " + info.getLevel()));
             panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
             panel.addComponent(new Label("Personnage choisi : " + info.getSelectedCharacter()));
-        }
-        else {
+        } else {
             panel.addComponent(new Label("Aucune information disponible."));
         }
 
@@ -530,6 +543,7 @@ public class LanternaApp {
 
     /**
      * Affiche la boutique
+     *
      * @param gui
      */
     private static void DisplayShop(WindowBasedTextGUI gui) {
@@ -567,10 +581,10 @@ public class LanternaApp {
                         JsonObject result = JsonParser.parseString(resultJson).getAsJsonObject();
                         String message = result.get("message").getAsString();
                         MessageDialog.showMessageDialog(gui, "Achat", message);
-                        try{
+                        try {
                             String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
                             UserInfo updateUserInfo = new Gson().fromJson(userJson, UserInfo.class);
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             System.out.println("Impossible de mettre a jour les info du joueur" + e.getMessage());
                         }
                     } catch (Exception e) {
@@ -590,9 +604,10 @@ public class LanternaApp {
 
     /**
      * Affiche le contenu du BackPack
+     *
      * @param gui => pour afficher les messages
      */
-    private static void afficherBackPack(WindowBasedTextGUI gui) {
+    private static void afficherBackPack(WindowBasedTextGUI gui, Runnable refreshInventory) {
         BasicWindow window = new BasicWindow("Mon BackPack");
         window.setHints(Arrays.asList(Hint.CENTERED));
 
@@ -618,20 +633,22 @@ public class LanternaApp {
                         detailsPanel.addComponent(new EmptySpace());
                         detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
                             try {
-                                String reponse = HttpService.removeFromBackpack(Session.getUsername(),obj.getName(), obj.getType(), Session.getToken());
+                                String reponse = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+
                                 JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
                                 String message = result.get("message").getAsString();
                                 MessageDialog.showMessageDialog(gui, "Retrait", message);
-                                detailsWindow.close();
+                                window.close();
+                                refreshInventory.run();
                             } catch (Exception e) {
                                 MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer du backPack : " + e.getMessage());
                             }
                         }));
-
                         detailsPanel.addComponent(new Button("Retour", detailsWindow::close));
                         detailsWindow.setComponent(detailsPanel);
                         gui.addWindowAndWait(detailsWindow);
                     }));
+
                 }
             }
         } catch (Exception e) {

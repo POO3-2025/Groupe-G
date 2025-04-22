@@ -3,10 +3,13 @@ package be.helha.labos.crystalclash.DAOImpl;
 import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAO.CharacterDAO;
+import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.*;
 import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.InventoryService;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
@@ -23,6 +26,7 @@ public class CharacterDAOImpl implements CharacterDAO {
 
     /**
      * Récupère le type de personnage pour un utilisateur
+     *
      * @param username Nom d'utilisateur
      * @return Le type de personnage
      */
@@ -37,7 +41,8 @@ public class CharacterDAOImpl implements CharacterDAO {
 
     /**
      * Sauvegarde le personnage pour un utilisateur
-     * @param username Nom d'utilisateur
+     *
+     * @param username      Nom d'utilisateur
      * @param characterType Type de personnage
      */
     /*
@@ -68,7 +73,8 @@ public class CharacterDAOImpl implements CharacterDAO {
     /**
      * Crée un backPack pour un nouveau perso choisi
      * si deja BackPack alors on le garde
-     * @param username Nom d'utilisateur
+     *
+     * @param username      Nom d'utilisateur
      * @param characterType Type de personnage
      */
     @Override
@@ -92,6 +98,7 @@ public class CharacterDAOImpl implements CharacterDAO {
 
     /**
      * Récupère le backpack du personnage du joueur
+     *
      * @param username Nom d'utilisateur
      * @return Le backpack du personnage
      */
@@ -104,58 +111,11 @@ public class CharacterDAOImpl implements CharacterDAO {
             Document doc = collection.find(new Document("username", username)).first();
             if (doc != null && doc.containsKey("backpack")) {
                 Document backpackDoc = (Document) doc.get("backpack");
-                List<Document> objetsDocs = (List<Document>) backpackDoc.get("objets");
-
-                BackPack backpack = new BackPack();
-
-                for (Document objDoc : objetsDocs) {
-                    if (objDoc == null) continue;
-
-                    String type = objDoc.getString("type");
-                    String name = objDoc.getString("name");
-                    int price = objDoc.getInteger("price", 0);
-                    int requiredLevel = objDoc.getInteger("requiredLevel", 0);
-                    int reliability = objDoc.getInteger("reliability", 0);
-
-                    ObjectBase obj = null;
-
-                    switch (type != null ? type.toLowerCase() : "") {
-                        case "weapon" -> {
-                            Weapon weapon = new Weapon(name, price, requiredLevel, reliability, objDoc.getInteger("damage", 0));
-                            weapon.setType("Weapon");
-                            obj = weapon;
-                        }
-                        case "armor" -> {
-                            Armor armor = new Armor(name, price, requiredLevel, reliability, objDoc.getInteger("bonusPV", 0));
-                            armor.setType("Armor");
-                            obj = armor;
-                        }
-                        case "healingpotion" -> {
-                            HealingPotion potion = new HealingPotion(name, price, requiredLevel, objDoc.getInteger("heal", 0));
-                            potion.setType("HealingPotion");
-                            obj = potion;
-                        }
-                        case "potionofstrenght" -> {
-                            PotionOfStrenght potion = new PotionOfStrenght(name, price, requiredLevel, objDoc.getInteger("bonusATK", 0));
-                            potion.setType("PotionOfStrenght");
-                            obj = potion;
-                        }
-                        case "coffredesjoyaux" -> {
-                            CoffreDesJoyaux coffre = new CoffreDesJoyaux();
-                            coffre.setType("CoffreDesJoyaux");
-                            obj = coffre;
-                        }
-                        default -> {
-                            System.err.println("Type inconnu ou null pour objet '" + name + "'");
-                        }
-                    }
-
-                    if (obj != null) {
-                        backpack.ajouterObjet(obj);
-                    }
-                }
-
-                return backpack;
+                doc.remove("_id"); // important
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                        .create();
+                return gson.fromJson(backpackDoc.toJson(), BackPack.class);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -166,7 +126,8 @@ public class CharacterDAOImpl implements CharacterDAO {
 
     /**
      * Met a jour le personnage sélectionné pour un utilisateur
-     * @param username Nom d'utilisateur
+     *
+     * @param username      Nom d'utilisateur
      * @param characterType Type de personnage
      */
     @Override
@@ -193,6 +154,7 @@ public class CharacterDAOImpl implements CharacterDAO {
 
     /**
      * sauve le backpack du personnage du joueur
+     *
      * @param username
      * @param backPack
      */
@@ -258,11 +220,13 @@ public class CharacterDAOImpl implements CharacterDAO {
             e.printStackTrace();
         }
     }
+
     /**
      * Ajoute un objet au backpack du personnage du joueur
+     *
      * @param username Nom d'utilisateur
-     * @param name Nom de l'objet
-     * @param type Type de l'objet
+     * @param name     Nom de l'objet
+     * @param type     Type de l'objet
      * @return Réponse de l'API reponse
      */
     @Override
@@ -298,4 +262,54 @@ public class CharacterDAOImpl implements CharacterDAO {
             return new ApiReponse("Erreur lors de l'ajout de l'objet au backpack : " + e.getMessage(), null);
         }
     }
+
+
+    /**
+     * Supprime un objet du backpack du personnage du joueur
+     *
+     * @param username Nom d'utilisateur
+     * @param name     Nom de l'objet
+     * @return Réponse de l'API reponse
+     */
+    @Override
+    public ApiReponse removeObjectFromBackPack(String username, String name) {
+        try {
+            BackPack backpack = getBackPackForCharacter(username);
+            Inventory inventory = inventoryService.getInventoryForUser(username);
+
+            if (backpack == null) {
+                return new ApiReponse("Backpack introuvable.", null);
+            }
+            if (backpack.getObjets().isEmpty()) {
+                return new ApiReponse("Backpack vide !", null);
+            }
+
+            ObjectBase objectToRemove = backpack.getObjets().stream()
+                    .filter(obj -> obj.getName().equals(name))
+                    .findFirst()
+                    .orElse(null);
+
+            if (objectToRemove == null) {
+                return new ApiReponse("Objet non trouvé dans le backpack.", null);
+            }
+
+            backpack.retirerObjet(objectToRemove);
+            if (inventory.getObjets().size() > 30) {
+                return new ApiReponse("Inventaire plein !", null);
+            }
+            if (!inventory.ajouterObjet(objectToRemove)) {
+                return new ApiReponse("Erreur lors de l'ajout de l'objet à l'inventaire.", null);
+            }
+            saveBackPackForCharacter(username, backpack);
+            inventoryService.saveInventoryForUser(username, inventory);
+            System.out.println("Objet retiré du backpack : " + objectToRemove.getName());
+            return new ApiReponse("Objet retiré du backpack avec succès !", backpack);
+
+        } catch (Exception e) {
+            return new ApiReponse("Erreur lors de la suppression de l'objet du backpack : " + e.getMessage(), null);
+        }
+    }
 }
+
+}
+

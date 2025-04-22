@@ -69,5 +69,9 @@ public class CharacterService {
         return characterDAO.addObjectToBackPack(username, name, type);
     }
 
+    public ApiReponse removeObjectFromBackPack(String username, String name){
+        return characterDAO.removeObjectFromBackPack(username, name);
+    }
+
 
 }
