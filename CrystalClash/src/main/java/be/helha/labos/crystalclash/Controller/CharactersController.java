@@ -50,11 +50,12 @@ public class CharactersController {
             }
 
             Personnage character = CharactersFactory.CreateCharacters(characterType, user.getLevel());
-            //Appelle setSelectedCharacter, déselctionne tout les perso et met celui selectionné par le user a true
-            characterService.setSelectedCharacter(user.getUsername(), character.getClass().getSimpleName());
             characterService.saveCharacterForUser(user.getUsername(), character.getClass().getSimpleName());
             characterService.createBackPackForCharacter(user.getUsername(), character.getClass().getSimpleName());
 
+
+            //Appelle setSelectedCharacter, déselctionne tout les perso et met celui selectionné par le user a true
+            characterService.setSelectedCharacter(user.getUsername(), character.getClass().getSimpleName());
 
             return ResponseEntity.ok(new ApiReponse("Personnage sélectionné avec succès !", character.getClass().getSimpleName()));
 

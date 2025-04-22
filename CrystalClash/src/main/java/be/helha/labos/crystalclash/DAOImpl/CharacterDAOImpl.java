@@ -59,9 +59,13 @@ public class CharacterDAOImpl implements CharacterDAO {
         if (existing == null) {
             // Ajout du personnage + backpack vide
             Document backpack = new Document("objets", List.of());
+            //Si premier perso du user on le met a 1
+            long count = collection.countDocuments(new Document("username", username));
+            boolean IsFirst = (count == 0);
             Document docu = new Document("username", username)
                     .append("type", characterType)
-                    .append("backpack", backpack);
+                    .append("backpack", backpack)
+                    .append("selected",IsFirst);
             collection.insertOne(doc);
         }
     }
@@ -229,7 +233,7 @@ public class CharacterDAOImpl implements CharacterDAO {
     public ApiReponse addObjectToBackPack(String username, String name, String type) {
         try {
             Inventory inventory = inventoryService.getInventoryForUser(username);
-            BackPack backpack = getBackPackForCharacter(username); // 🔄 remplacement ici
+            BackPack backpack = getBackPackForCharacter(username);
 
             if (backpack.getObjets().size() >= 10) {
                 return new ApiReponse("Backpack plein !", null);
@@ -258,6 +262,7 @@ public class CharacterDAOImpl implements CharacterDAO {
             return new ApiReponse("Erreur lors de l'ajout de l'objet au backpack : " + e.getMessage(), null);
         }
     }
+
 
     /**
      * Supprime un objet du backpack du personnage du joueur
@@ -305,3 +310,6 @@ public class CharacterDAOImpl implements CharacterDAO {
         }
     }
 }
+
+}
+

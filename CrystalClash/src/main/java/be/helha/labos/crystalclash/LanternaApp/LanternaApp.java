@@ -633,6 +633,7 @@ public class LanternaApp {
                         detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
                             try {
                                 String reponse = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+
                                 JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
                                 String message = result.get("message").getAsString();
                                 MessageDialog.showMessageDialog(gui, "Retrait", message);

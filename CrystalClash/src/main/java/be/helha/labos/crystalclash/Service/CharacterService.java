@@ -21,7 +21,7 @@ public class CharacterService {
     }
 
     public void saveCharacterForUser(String username, String character){
-        //Logique métier pour la validation, gere perso, ..
+        //Logique métier pouµ la validation, gere perso, ..
         characterDAO.saveCharacterForUser(username, character);
     }
 
