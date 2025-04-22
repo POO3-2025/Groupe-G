@@ -109,5 +109,22 @@ public class CharactersController {
         return ResponseEntity.ok(response);
     }
 
+    /*
+     * Supprime un objet du backpack du personnage
+     * */
+    @PostMapping("/{username}/backpack/remove")
+    public ResponseEntity<ApiReponse> removeObjectFromBackpack(@PathVariable String username, @RequestBody Map<String, String> payload) {
+        String name = payload.get("name");
+
+
+        if (name == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiReponse("Name est requis.", null));
+        }
+
+        ApiReponse response = characterService.removeObjectFromBackPack(username, name);
+        return ResponseEntity.ok(response);
+    }
+
 
 }
