@@ -13,6 +13,12 @@ import java.util.Optional;
 @Repository
 public class UserDAOImpl implements UserDAO {
 
+    /**
+     * @param username
+     * Obtenir les infos du joueur
+     * Optional car les infos peut etre vide, rien trouvé au nom de l'uti
+     * pour eviter les null, ptional.empty est utilisé
+     * */
     @Override
     public Optional<UserInfo> getUserByUsername(String username) {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
@@ -33,6 +39,11 @@ public class UserDAOImpl implements UserDAO {
         return Optional.empty();
     }
 
+    /**
+     * @param username
+     * @param newCristaux
+     * update les cristaux du suer apres un achat ou une vente
+     * */
     @Override
     public void updateCristaux(String username, int newCristaux) {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {

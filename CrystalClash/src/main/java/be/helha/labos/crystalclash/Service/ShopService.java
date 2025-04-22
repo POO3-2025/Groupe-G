@@ -12,6 +12,9 @@ public class ShopService {
 
     private final ShopDAO shopDAO;
 
+    /**
+     * @param shopDAO
+     * **/
     @Autowired
     public ShopService(ShopDAO shopDAO) {
         this.shopDAO = shopDAO;
@@ -20,7 +23,11 @@ public class ShopService {
     public List<Map<String, Object>> getShopItems(){
         return shopDAO.getShopItems();
     }
-
+    /**
+     * @param username
+     * @param itemName
+     * @param type
+     * **/
     public boolean buyItem(String username, String itemName, String type){
         return shopDAO.buyItem(username, itemName, type);
     }

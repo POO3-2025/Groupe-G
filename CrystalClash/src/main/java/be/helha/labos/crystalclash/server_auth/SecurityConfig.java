@@ -13,13 +13,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity(securedEnabled = true)
+/**
+ * Securité backend
+ * quelles routes ouvertes ou fermées
+ * comment géres l'thentification
+ * et quels filtres a appliquer
+ * **/
+@Configuration //Classe de config spring
+@EnableWebSecurity //Active secu pring
+@EnableMethodSecurity(securedEnabled = true) //Permet l'uti de certaines annotations
 public class SecurityConfig  {
     @Autowired
     private JwtUtils jwtUtils;
 
+    /**
+     * @param http
+     * methode configure le comportement secu global de l'application
+     * */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -28,9 +38,12 @@ public class SecurityConfig  {
                         .requestMatchers("/login", "/register","/inventory").permitAll()
                         .anyRequest().authenticated()
                 )
+            //Tout repose sur le token JWT
                 .sessionManagement(session -> session
                 .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
-                .addFilterBefore(
+            //chaque requete passe par ici
+            // lire le jwt, verdif sa validité et authentifie le user
+            .addFilterBefore(
                        new JwtAuthenticationFilter(jwtUtils),
                         UsernamePasswordAuthenticationFilter.class)
                 ;
@@ -41,11 +54,13 @@ public class SecurityConfig  {
         return http.build();
     }
 
+    // bean permet à Spring de gérer l’authentification classique
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
+    //chiffre mdp
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

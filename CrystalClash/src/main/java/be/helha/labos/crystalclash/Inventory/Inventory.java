@@ -14,12 +14,19 @@ public class Inventory {
         this.objets = new ArrayList<>();
     }
 
+    /**
+    * @param objet
+     * Si l'inventaire pas plein on ajoute l objet dedans
+    * **/
     public boolean ajouterObjet(ObjectBase objet) {
         if (objets.size() >= CAPACITE_MAX) return false;
         objets.add(objet);
         return true;
     }
 
+    /**
+     * @param objet
+     * **/
     public boolean retirerObjet(ObjectBase objet) {
         return objets.remove(objet);
     }
@@ -32,6 +39,9 @@ public class Inventory {
         return CAPACITE_MAX;
     }
 
+    /**
+     * @param objets
+     * **/
     public void setObjets(List<ObjectBase> objets) {
         this.objets = objets;
     }
@@ -40,6 +50,10 @@ public class Inventory {
         return username;
     }
 
+    /**
+     * @param username
+     * Permet de savoir a qui linventaire apparatient
+     * **/
     public void setUsername(String username) {
         this.username = username;
     }

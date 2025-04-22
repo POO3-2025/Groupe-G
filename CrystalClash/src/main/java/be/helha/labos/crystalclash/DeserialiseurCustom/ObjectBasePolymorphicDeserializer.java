@@ -11,7 +11,13 @@ import java.lang.reflect.Type;
 //Lit tout les champs
 public class ObjectBasePolymorphicDeserializer implements JsonDeserializer<ObjectBase> {
 
-    //Appellé par Gson chaque fois que ObjectBase doit construire un JsonElement
+    /**
+     * @param json bloc brute que Gson lit
+     * @param typeOfT type de jave que gson essaye de construire (objectBase,weapon, ect, ...
+     * @param context permet de désérialiser  un json imbriqué
+     * Appellé par Gson chaque fois que ObjectBase doit construire un JsonElement
+     * */
+
     @Override
     public ObjectBase deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         //Convertit l objet json but en objet jsonObject pour avoir accés a ses champ

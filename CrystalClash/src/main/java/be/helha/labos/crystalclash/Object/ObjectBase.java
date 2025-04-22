@@ -13,6 +13,12 @@ public class ObjectBase {
         // Constructeur par défaut requis pour la désérialisation
     }
 
+    /**
+     * @param name
+     * @param price
+     * @param reliability
+     * @param requiredLevel
+     * **/
     public ObjectBase(String name, int price, int requiredLevel, int reliability) {
         this.name = name;
         this.price = price;
@@ -21,6 +27,9 @@ public class ObjectBase {
 
     }
     public String getType() {return type;}
+    /**
+     * @param type
+     * **/
     public void setType(String type) {  this.type = type; }
 
     public String use() {
@@ -39,18 +48,27 @@ public class ObjectBase {
     public String getName() {
         return name;
     }
+    /**
+     * @param name
+     * **/
     public void setName(String name) {
         this.name = name;
     }
     public int getPrice() {
         return price;
     }
+    /**
+     * @param price
+     * **/
     public void setPrice(int price) {
         this.price = price;
     }
     public int getRequiredLevel() {
         return requiredLevel;
     }
+    /**
+     * @param requiredLevel
+     * **/
     public void setRequiredLevel(int requiredLevel) {
         this.requiredLevel = requiredLevel;
     }

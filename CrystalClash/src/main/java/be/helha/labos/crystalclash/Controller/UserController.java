@@ -25,6 +25,11 @@ public class UserController {
 
     private UserService userService;
 
+    /**
+     * @param username
+     * obtenir le user
+     * il faut se connecter, récupere le token et apres on pouura l'obtenir
+     * */
     @GetMapping("/{username}")
     public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
         try {

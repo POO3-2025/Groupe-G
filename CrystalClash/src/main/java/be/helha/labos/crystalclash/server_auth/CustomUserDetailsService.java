@@ -14,8 +14,8 @@ import java.sql.ResultSet;
 import java.util.Collections;
 /*
 * Permet a spring Security de retrouver l'uti ds la db mysql lors de la connexion
-*UserDetailsService interface officielle de springSecurity appelle automatiquement lors d'une tentative de connection
-* Dès qu'il y a un login avec un username Spring appelle direct cette méthode pour cherhcer me compte en db
+* UserDetailsService interface officielle de springSecurity appelle automatiquement lors d'une tentative de connection
+* Dès qu'il y a un login avec un username Spring appelle direct cette méthode pour chercher le compte en db
 * Connection a la base de données mysqlproduction
 *Il y a la requête sql (checher le user avec le username)
 * si trouvé on crée un userDetails

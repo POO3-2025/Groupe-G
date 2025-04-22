@@ -1,5 +1,7 @@
 package be.helha.labos.crystalclash.User;
-
+/**
+ *avoir info du joueur
+ * */
 public class UserInfo {
     private String username;
     private int level;

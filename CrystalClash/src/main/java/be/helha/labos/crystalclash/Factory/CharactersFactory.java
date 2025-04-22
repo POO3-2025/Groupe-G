@@ -6,6 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 public class CharactersFactory {
+
+    /**
+     * @param Type
+     * @param Level
+     * **/
     public static Personnage CreateCharacters(String Type, int Level){
         switch(Type.toLowerCase().trim()){
             case "elf": return new Elf();
@@ -28,7 +33,7 @@ public class CharactersFactory {
     }
 
     /*
-    * DOnne niveau requis pour chaque perso
+    * Donne niveau requis pour chaque perso
     * Map : table correspondante entre String(Perso) et integer (niveau)
     * et verif le niveau
     * */
