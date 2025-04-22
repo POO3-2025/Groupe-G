@@ -39,9 +39,9 @@ public interface CharacterDAO {
      * @param character
      * */
     void setSelectedCharacter(String username, String character);
-
-}
-
     ApiReponse removeObjectFromBackPack(String username, String name);
+
 }
+
+
 

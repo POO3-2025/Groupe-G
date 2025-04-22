@@ -311,5 +311,5 @@ public class CharacterDAOImpl implements CharacterDAO {
     }
 }
 
-}
+
 

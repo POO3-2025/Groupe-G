@@ -245,6 +245,7 @@ public class LanternaApp {
 
         mainPanel.addComponent(new Button("2. Changer de personnage", () -> afficherChoixPersonnage(gui)));
         mainPanel.addComponent(new Button("3. Voir BackPack", () -> afficherBackPack(gui, () -> {
+            afficherBackPack(gui, () -> {}); // on relance une fois pour rafraîchir le contenu
         })));
         mainPanel.addComponent(new Button("4. Voir personnage", () -> afficherPersonnage(gui)));
         mainPanel.addComponent(new Button("5. Voir mon inventaire", () -> {
@@ -607,7 +608,7 @@ public class LanternaApp {
      *
      * @param gui => pour afficher les messages
      */
-    private static void afficherBackPack(WindowBasedTextGUI gui, Runnable refreshInventory) {
+    private static void afficherBackPack(WindowBasedTextGUI gui, Runnable refreshBackpack ) {
         BasicWindow window = new BasicWindow("Mon BackPack");
         window.setHints(Arrays.asList(Hint.CENTERED));
 
@@ -638,8 +639,9 @@ public class LanternaApp {
                                 JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
                                 String message = result.get("message").getAsString();
                                 MessageDialog.showMessageDialog(gui, "Retrait", message);
+                                detailsWindow.close();
                                 window.close();
-                                refreshInventory.run();
+                                refreshBackpack.run();
                             } catch (Exception e) {
                                 MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer du backPack : " + e.getMessage());
                             }
