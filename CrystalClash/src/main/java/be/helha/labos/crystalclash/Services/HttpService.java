@@ -30,6 +30,11 @@ public class HttpService {
     //  private static final String BASE_URL = "http://192.168.28.146:8080/";
     private static final String BASE_URL = "http://localhost:8080";
 
+    /**
+     * Envoie requete pour login user
+     * @param password
+     * @param username
+     * **/
     public static String login(String username, String password) throws Exception {
         String json = String.format("{\"username\":\"%s\", \"password\":\"%s\"}", username, password);
         HttpRequest request = HttpRequest.newBuilder()
@@ -44,13 +49,16 @@ public class HttpService {
         return response.body();
     }
 
-    /*
+    /**
      * envoie la requête à /register pour créer un nouvel utilisateur
-     *poste un JSON avec pseudo + mot de passe
+      *poste un JSON avec pseudo + mot de passe
      * Le serveur vérifie que l’utilisateur n’existe pas
      *Le serveur vérifie que l’utilisateur n’existe pas
      *Il renvoie un message (pas de token)
-     * */
+     *
+     * @param password
+     * @param username
+     **/
     public static String register(String username, String password) throws Exception {
         String json = String.format("{\"username\":\"%s\", \"password\":\"%s\"}", username, password);
         HttpRequest request = HttpRequest.newBuilder()
@@ -82,6 +90,13 @@ public class HttpService {
         }
     }
 
+
+    /**
+     * Envoie requete pour avoir inventaire user
+     * @param username
+     * @param token
+     * **/
+
     public static String getInventory(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/inventory/" + username))
@@ -95,6 +110,11 @@ public class HttpService {
         return response.body(); // Retourne le JSON brut : { "username": "...", "level": 1, "cristaux": 100 }
     }
 
+    /**
+     * avoir info user
+     * @param username
+     * @param token
+     * **/
     public static String getUserInfo(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/user/" + username))
@@ -187,6 +207,12 @@ public class HttpService {
     }
 
 
+    /**
+     * acheter un item avec requete passant name et type ds le json
+     * @param name
+     * @param type
+     * @param token
+     * **/
     public static String buyItem(String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,
@@ -205,6 +231,11 @@ public class HttpService {
         return response.body(); // {"success":true,"message":"Epée achetée avec succès !"}
     }
 
+    /**
+     * obtenir shop, token obligatoire car on afficher shop en focntion  du level du user
+   * @param token
+     * **/
+
     public static String getShops(String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/shop"))
@@ -217,6 +248,12 @@ public class HttpService {
         return response.body(); // retour JSON brut : [{"name":"Epée", "type":"Weapon",...
     }
 
+    /**
+     * vend object json le meme
+     *  @param name
+     *   @param type
+     * @param token
+     * **/
     public static String sellObjetc(String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,
@@ -236,6 +273,13 @@ public class HttpService {
         return response.body();
     }
 
+    /**
+     * Met objet de l'inventaire ds le back en envoyant requete
+     *  @param username
+     * @param name
+     * @param token
+     * @param type
+     * **/
     public static String putInBackpack(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,
@@ -254,6 +298,13 @@ public class HttpService {
         return response.body();
     }
 
+    /**
+     * Retire de back pour mettre dans inventaire, evoie requete
+     * @param token
+     * @param name
+     * @param username
+     * @param type
+     * **/
     public static String removeFromBackpack(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,
@@ -271,4 +322,33 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
     }
+
+    /**
+     * envoie requete pour jouer a la roulette
+     @param username
+     @param token
+     **/
+    public static String PlayRoulette(String username, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+            "username", username
+        ));
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/roulette/play"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("Status: " + response.statusCode());
+        System.out.println("Body: " + response.body());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur lors du tirage de la roulette : " + response.body());
+        }
+
+        return response.body();
+    }
+
+
 }

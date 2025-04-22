@@ -18,14 +18,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     @Autowired
-    private JwtUtils jwtUtils;
+    private JwtUtils jwtUtils; //Gere la generation du token
 
-    private final AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager; //Valide le couple login + mode de passe
 
+    /**
+     * @param authenticationManager
+     * passe authenticationManager via le constructeur, on aurait pu faire une Autowired
+     * **/
     public AuthController(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 
+    /**
+     * @param loginRequest
+     * Attend un Json avec username et password
+     * si tout ok, stock le user
+     * lui crée un token
+     * et renvoie la reponse du serveur
+     * **/
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
@@ -54,6 +65,10 @@ public class AuthController {
         }
 
     }
+
+    /**
+     * Classe interne direct
+     **/
 
     static class LoginRequest {
         private String username;

@@ -23,7 +23,11 @@ public class CharactersController {
     @Autowired
     private CharacterService characterService;
 
-
+    /**
+     * @param payload
+     *Permet de selectionné un personnage
+     * passe plusieurs vérfi
+     * */
     @PostMapping("/select")
     public ResponseEntity<ApiReponse> selectCharacter(@RequestBody Map<String, String> payload) {
         String username = payload.get("username");
@@ -69,6 +73,10 @@ public class CharactersController {
     }
 
 
+    /**
+     * @param username
+     * Obtenir le perso du user
+     * */
     @GetMapping("/{username}")
     public ResponseEntity<String> getCharacter(@PathVariable String username) {
         String characterType = characterService.getCharacterForUser(username);
@@ -79,8 +87,9 @@ public class CharactersController {
         return ResponseEntity.ok(characterType);
     }
 
-    /*
-     * recup le backPack du perso avec le username
+    /**
+     * @param username
+     *  recup le backPack du perso avec le username
      * */
     @GetMapping("/{username}/backpack")
     public ResponseEntity<?> getBackpack(@PathVariable String username) {
@@ -93,7 +102,9 @@ public class CharactersController {
         }
     }
 
-    /*
+
+    /**
+     * @param username
      * Ajoute un objet au backpack du personnage
      * */
     @PostMapping("/{username}/backpack/add")

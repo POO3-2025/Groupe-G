@@ -253,8 +253,9 @@ public class LanternaApp {
 
         mainPanel.addComponent(new Button("6. Voir joueurs connectés", () -> DesplayUserConnected(gui)));
         mainPanel.addComponent(new Button("7. Accéder à la boutique", () -> DisplayShop(gui)));
+        mainPanel.addComponent(new Button("8. Jouer a la roulette", () -> PLayRoulette(gui)));
 
-        mainPanel.addComponent(new Button("8. Se déconnecter", () -> {
+        mainPanel.addComponent(new Button("9. Se déconnecter", () -> {
             Session.clear();
             MessageDialog.showMessageDialog(gui, "Déconnexion", "Vous avez été déconnecté !");
             gui.getActiveWindow().close();
@@ -657,6 +658,44 @@ public class LanternaApp {
         panel.addComponent(new Button("Retour", window::close));
         window.setComponent(panel);
         gui.addWindowAndWait(window);
+    }
+
+
+
+    private static void PLayRoulette (WindowBasedTextGUI gui){
+        try{
+            String json = HttpService.PlayRoulette(Session.getUsername(), Session.getToken());
+            //Convertit une chaine json recue depuis le serveur en 1 objet java que l'on peut jouer avec
+            //et acceder au champ
+            JsonObject result = JsonParser.parseString(json).getAsJsonObject();
+
+            //extaction du message erreur ou pas
+            String message = result.get("message").getAsString();
+
+            //Recup data dans la reponse Json qui contienr objet si le j a win
+            JsonObject data = result.getAsJsonObject("data");
+            if (data != null && data.has("objet")) { //data exiscte
+                JsonObject objet = data.getAsJsonObject("objet"); //recup objet gagné
+                //Description
+                String name = objet.get("name").getAsString();
+                String type = objet.get("type").getAsString();
+                String desc = " Vous avez gagné : " + name + " (" + type + ") !";
+
+                //pour different type d'objet ça s'applique
+                if (objet.has("damage")) desc += "\nDégâts : " + objet.get("damage").getAsInt();
+                if (objet.has("defense")) desc += "\nDéfense : " + objet.get("defense").getAsInt();
+                if (objet.has("reliability")) desc += "\nFiabilité : " + objet.get("reliability").getAsInt();
+
+                MessageDialog.showMessageDialog(gui, "Roulette - Gain !", desc);
+            } else {
+                MessageDialog.showMessageDialog(gui, "Roulette", message);
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+            MessageDialog.showMessageDialog(gui, "Erreur", "La roulette a échoué : " + e.getMessage());
+
+        }
     }
 
 }

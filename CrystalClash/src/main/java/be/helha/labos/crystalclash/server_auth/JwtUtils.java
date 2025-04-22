@@ -16,24 +16,39 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Permet la creation, lecture validation, extraction du username et role sur le token
+ * **/
 @Component
 public class JwtUtils {
     private SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     private final int jwtExpirationMs = 3600000;   // DurÃ©e en millisecondes (1 heure)
 
+    /**
+     * @param authentication
+     * Recup l'uti avec authentication.getPrincipal();
+     * prend son username et recup ses roles
+     * et lui genere un JWT token
+     *
+     **/
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return Jwts.builder()
-            .setSubject(userDetails.getUsername())
+            .setSubject(userDetails.getUsername())// identifiant du joueur
             .claim("roles", userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(",")))
-            .setIssuedAt(new Date())
-            .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-            .signWith(key)
-            .compact();
+                .map(GrantedAuthority::getAuthority)//  ROLE_USER
+                .collect(Collectors.joining(",")))// "ROLE_USER"
+            .setIssuedAt(new Date())// date d’émission
+            .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))// date d’expiration
+            .signWith(key)// signature du token avec la clé secrète
+            .compact();// construit le token
     }
 
+    /**
+     * @param request
+     * Extraction du Jwt depuis une requte
+     * Lit L'en tete http supp le Bearer
+     * */
     public String extractJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
@@ -43,6 +58,10 @@ public class JwtUtils {
     }
 
 
+    /**
+     * @param token
+     * Extrait username et dechiffrant le token et en lissant getSubject qui contient le username
+     * **/
     public String getUsernameFromJwtToken(String token) {
         return Jwts.parserBuilder()
             .setSigningKey(key)
@@ -52,6 +71,10 @@ public class JwtUtils {
             .getSubject();
     }
 
+    /**
+     * Verif si token ok
+     * bien signé, pas expiré et bien formé
+     * **/
     public boolean validateJwtToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
@@ -61,6 +84,11 @@ public class JwtUtils {
         }
     }
 
+    /**
+     * @param token
+     * extrait role du token
+     * claim stocke role et fais une liste
+     * **/
     public List<String> getRolesFromJwtToken(String token) {
         Claims claims = Jwts.parserBuilder()
             .setSigningKey(key)

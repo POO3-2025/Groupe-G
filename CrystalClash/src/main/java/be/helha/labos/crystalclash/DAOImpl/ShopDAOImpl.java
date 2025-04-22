@@ -26,7 +26,7 @@ public class ShopDAOImpl implements ShopDAO{
 
     /*
      *Grace a la méthode dans ObjectFactory qui est getAllObjectsByName ou va aller rechercher les objects dispo
-     * Retounr tous les objest dispo dans la Map (afit comme un catalogue)
+     * Retourne tous les objest dispo dans la Map (afit comme un catalogue)
      *
      */
     @Override
@@ -52,6 +52,14 @@ public class ShopDAOImpl implements ShopDAO{
         shopItems.sort(Comparator.comparingInt(i -> (int) i.get("requiredLevel")));
         return shopItems;
     }
+
+    /**
+     * @param username
+     * @param itemName
+     * @param type
+     * permet d'acheter un objet dans le shop
+     * il faut récup les infos du joueur avant pour savoir sont level et affiher ce qu il faut dans le shop
+     * */
     @Override
     public boolean buyItem(String username, String itemName, String type) {
         try {

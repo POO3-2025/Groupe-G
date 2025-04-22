@@ -13,15 +13,25 @@ public class UserService {
 
     private final UserDAO userDAO;
 
+    /**
+     * @param userDAO
+     * **/
     @Autowired
     public UserService(UserDAO userDAO) {
         this.userDAO = userDAO;
     }
 
+    /**
+     * @param username
+     * **/
     public Optional<UserInfo> getUserInfo(String username) {
         return userDAO.getUserByUsername(username);
     }
 
+    /**
+     * @param username
+     * @param newCristaux
+     * **/
     public void updateCristaux(String username, int newCristaux) {
         userDAO.updateCristaux(username, newCristaux);
     }

@@ -5,8 +5,21 @@ import be.helha.labos.crystalclash.Object.*;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/**
+ * Pq Un factory, c'est un disign pattern qui sert a centraliser la création d'objets
+ * ça evite de faire par exemple new Weapon() la ou il faut l'itiliser
+ * Creation d'objets en fct de leurs parametres
+ * et facile a changer
+ * */
+
 public class ObjectFactory {
 
+    /**
+     * @param Name
+     * @param Type
+     * @param LevelPlayer
+     * */
     public static ObjectBase CreateObject(String Name, String Type, int LevelPlayer) {
         ObjectBase obj;
 
@@ -113,6 +126,102 @@ public class ObjectFactory {
         return obj;
     }
 
+    /**
+     * @param Name
+     * @param Type
+     * */
+    public static ObjectBase CreateObjectSansVerification(String Name, String Type) {
+        ObjectBase obj;
+
+        switch (Name.toLowerCase()) {
+            case "epee en bois":
+                obj = new Weapon("Epee en bois", 50, 1, 5, 4);
+                break;
+            case "couteau en bois":
+                obj = new Weapon("Couteau en bois", 50, 1, 5, 4);
+                break;
+            case "hache en bois":
+                obj = new Weapon("Hache en bois", 50, 1, 5, 4);
+                break;
+
+            case "epee en fer":
+                obj = new Weapon("Epee en fer", 70, 3, 10, 8);
+                break;
+            case "couteau en fer":
+                obj = new Weapon("Couteau en fer", 70, 3, 10, 6);
+                break;
+            case "hache en fer":
+                obj = new Weapon("Hache en fer", 70, 3, 10, 10);
+                break;
+
+            case "epee en diamant":
+                obj = new Weapon("Epee en diamant", 150, 5, 20, 13);
+                break;
+            case "couteau en diamant":
+                obj = new Weapon("Couteau en diamant", 150, 5, 20, 10);
+                break;
+            case "hache en diamant":
+                obj = new Weapon("Hache en diamant", 150, 5, 20, 15);
+                break;
+
+            case "fusil":
+                obj = new Weapon("Fusil", 150, 7, 5, 10);
+                break;
+            case "bazooka":
+                obj = new Weapon("Bazooka", 350, 7, 1, 70);
+                break;
+            case "arme de poing":
+                obj = new Weapon("Arme de poing", 175, 7, 3, 20);
+                break;
+            case "ak-47":
+                obj = new Weapon("AK-47", 275, 7, 1, 50);
+                break;
+
+            case "elixir d'aube":
+                obj = new HealingPotion("Elixir d'Aube", 20, 2, 15);
+                break;
+            case "larme de licorne":
+                obj = new HealingPotion("Larme de Licorne", 30, 4, 25);
+                break;
+            case "fluide du phenix":
+                obj = new HealingPotion("Fluide du Phénix", 60, 6, 50);
+                break;
+
+            case "venin d'ombre":
+                obj = new PotionOfStrenght("Venin d'Ombre", 25, 2, 5);
+                break;
+            case "fiole des abysses":
+                obj = new PotionOfStrenght("Fiole des Abysses", 35, 4, 10);
+                break;
+            case "colere du dragon":
+                obj = new PotionOfStrenght("Colere du Dragon", 40, 6, 20);
+                break;
+
+            case "ecaille du vent":
+                obj = new Armor("Écaille du Vent", 25, 2, 3, 10);
+                break;
+            case "cuirasse du colosse":
+                obj = new Armor("Cuirasse du Colosse", 35, 3, 6, 25);
+                break;
+            case "traqueur des ombres":
+                obj = new Armor("Traqueur des Ombres", 50, 5, 15, 35);
+                break;
+
+            case "coffre des joyaux":
+                obj = new CoffreDesJoyaux();
+                break;
+
+            default:
+                throw new IllegalArgumentException("Objet inconnu: " + Name);
+        }
+
+        obj.setType(obj.getClass().getSimpleName());
+        return obj;
+    }
+
+    /**
+     *Map pour lire tout les objets du jeu, de les indexers par le nom
+     * */
     public static Map<String, ObjectBase> getAllObjectsByName() {
         Map<String, ObjectBase> map = new HashMap<>();
 
@@ -133,11 +242,11 @@ public class ObjectFactory {
         map.put("arme de poing", new Weapon("Arme de poing", 175, 7, 3, 20));
         map.put("ak-47", new Weapon("Ak-47", 275, 7, 1, 50));
 
-        map.put("elixir daube", new HealingPotion("Elixir d'Aube", 20, 2, 15));
+        map.put("elixir d'aube", new HealingPotion("Elixir d'Aube", 20, 2, 15));
         map.put("larme de licorne", new HealingPotion("Larme de Licorne", 30, 4, 25));
         map.put("fluide du phenix", new HealingPotion("Fluide du Phenix", 60, 6, 50));
 
-        map.put("venin dombre", new PotionOfStrenght("Venin d'Ombre", 25, 2, 5));
+        map.put("venin d'ombre", new PotionOfStrenght("Venin d'Ombre", 25, 2, 5));
         map.put("fiole des abysses", new PotionOfStrenght("Fiole des Abysses", 35, 4, 10));
         map.put("colere du dragon", new PotionOfStrenght("Colere du Dragon", 40, 6, 20));
 

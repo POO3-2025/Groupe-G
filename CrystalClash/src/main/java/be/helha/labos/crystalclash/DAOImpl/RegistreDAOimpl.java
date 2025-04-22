@@ -12,8 +12,8 @@ import java.sql.ResultSet;
 @Repository
 public class RegistreDAOimpl implements RegistreDAO{
 
-    /*
-     * @Param username
+    /**
+     * @param username
      * Va dans la table users, select les users pour voir déjç ceux crées
      * */
     @Override
@@ -28,9 +28,9 @@ public class RegistreDAOimpl implements RegistreDAO{
     }
 
 
-    /*
-     * @Param username
-     * @Pram hashedPassword
+    /**
+     * @param username
+     * @param hashedPassword
      * Va ajouter le user inscrit dans la db avec son username et password haché
      * initialise le niveau a 1 et cristaux a 100
      * */

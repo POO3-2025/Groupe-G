@@ -25,7 +25,9 @@ public class RegistreController {
     @Autowired
     private InventoryService inventoryService;
 
-
+   /**
+    * @param request
+    * */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
         System.out.println("Tentative d'inscription de : " + request.getUsername());

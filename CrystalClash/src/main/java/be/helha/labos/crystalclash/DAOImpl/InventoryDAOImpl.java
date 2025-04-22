@@ -26,6 +26,10 @@ public class InventoryDAOImpl implements InventoryDAO {
     @Autowired
     private UserDAOImpl userDAOImpl;
 
+    /**
+     * @param username
+     * Crée l inventaire au moment de l'inscription
+     * **/
     @Override
     public void createInventoryForUser(String username) {
         try {
@@ -45,6 +49,13 @@ public class InventoryDAOImpl implements InventoryDAO {
         }
     }
 
+    /**
+     * @param username
+     * Recup l'inventaire du user
+     * si pas null ok, on retire id pour pas de confussion
+     * ensuite on appelle Gson qui permettra grace au deserialiseurCustom
+     * De déserialiser le doc mongo qui est un text json en soit en un objet java pour le monipuler
+     * */
     @Override
     public Inventory getInventoryForUser(String username) {
         try {
@@ -65,6 +76,12 @@ public class InventoryDAOImpl implements InventoryDAO {
         return new Inventory();
     }
 
+    /**
+     * @param username
+     * @param inventory
+     * Permet de sauvegarde l inventaire du user apres toute modif
+     * Gson va recup l'objet jave va le sérialiser et puis le mettre ds mongo
+     * */
     @Override
     public void saveInventoryForUser(String username, Inventory inventory) {
         try {
@@ -84,9 +101,12 @@ public class InventoryDAOImpl implements InventoryDAO {
     }
 
 
-    /*
+    /**
+     * @param username
+     * @param name nom de l'objet
+     * @param type type de lobjet
      * Retire l'objet de l(inventaire
-     * Donne le crustaux
+     * Donne le cristaux
      * Map parce que ça renvoie plusieurs infos voulues
      *Prend le usernamen, name de l'objet et son type
      * */

@@ -21,12 +21,19 @@ public class ShopController {
 
     //Get shop
 
+    /**
+     * Get pour obtenir le shop garnit
+     * **/
     @GetMapping
     public List<Map<String, Object>> getShops() {
         return shopService.getShopItems();
     }
 
 
+    /**
+     * Acheter un objet en POST
+     * passe dans le json le type et nom de l'objet
+     * */
     @PostMapping("/buy")
     public ResponseEntity<Map<String, Object>> buyItem(
         @RequestBody Map<String, String> payload
@@ -36,8 +43,8 @@ public class ShopController {
 
         //Va récupe l objet Authentication mis dans JwUtils
         //appelle de GetName sur l'objet Authentication qui retourne par defaut le subject du token JWT
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName(); // ici Spring récupère le subject du JWT
+        ; Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();// ici Spring récupère le subject du JWT
 
         boolean success = shopService.buyItem(username, name, type);
 

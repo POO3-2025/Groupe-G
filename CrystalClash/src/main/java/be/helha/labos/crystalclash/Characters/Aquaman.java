@@ -6,6 +6,9 @@ public class Aquaman extends Personnage {
         super("Aquaman",85,10,"Lancer de poison ",30,"Tsunami",5);
     }
 
+    /**
+     * @param target
+     * */
     @Override
     public void AttackSpecial(Personnage target){
         if(CanUseSpecialAttack()) target.receiveDamage(30);
