@@ -12,4 +12,5 @@ public interface CharacterDAO {
     void saveBackPackForCharacter(String username, BackPack backPack);
     ApiReponse addObjectToBackPack(String username, String name, String type);
     void setSelectedCharacter(String username, String character);
+    ApiReponse removeObjectFromBackPack(String username, String name);
 }

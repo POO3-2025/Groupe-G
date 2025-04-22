@@ -33,11 +33,11 @@ public class HttpService {
     public static String login(String username, String password) throws Exception {
         String json = String.format("{\"username\":\"%s\", \"password\":\"%s\"}", username, password);
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/login"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
-            .build();
+                .uri(URI.create(BASE_URL + "/login"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -54,11 +54,11 @@ public class HttpService {
     public static String register(String username, String password) throws Exception {
         String json = String.format("{\"username\":\"%s\", \"password\":\"%s\"}", username, password);
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/register"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
-            .build();
+                .uri(URI.create(BASE_URL + "/register"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -81,6 +81,7 @@ public class HttpService {
             return content.toString();
         }
     }
+
     public static String getInventory(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/inventory/" + username))
@@ -96,11 +97,11 @@ public class HttpService {
 
     public static String getUserInfo(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/user/" + username))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token) // Envoie le token JWT dans l'en-tête
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/user/" + username))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token) // Envoie le token JWT dans l'en-tête
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -110,6 +111,7 @@ public class HttpService {
 
     /**
      * Envoie une requête pour sélectionner un personnage
+     *
      * @param username
      * @param characterType
      * @param token
@@ -117,18 +119,18 @@ public class HttpService {
      */
     public static void selectCharacter(String username, String characterType, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/characters/select"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(
-                new Gson().toJson(Map.of(
-                    "username", username,
-                    "characterType", characterType,
-                    "token", token
+                .uri(URI.create(BASE_URL + "/characters/select"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(
+                        new Gson().toJson(Map.of(
+                                "username", username,
+                                "characterType", characterType,
+                                "token", token
+                        ))
                 ))
-            ))
-            .build();
+                .build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
@@ -137,8 +139,10 @@ public class HttpService {
             throw new RuntimeException(message);
         }
     }
+
     /**
      * Envoie une requête pour récupérer le personnage d'un utilisateur
+     *
      * @param username
      * @param token
      * @return
@@ -146,11 +150,11 @@ public class HttpService {
      */
     public static String getCharacter(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/characters/" + username))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/characters/" + username))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -159,18 +163,19 @@ public class HttpService {
 
     /**
      * Récupère le backpack du personnage d'un utilisateur
+     *
      * @param username nom de l'utilisateur
-     * @param token JWT d'authentification
+     * @param token    JWT d'authentification
      * @return JSON brut contenant la liste des objets dans le backpack
      * @throws Exception en cas d'erreur réseau
      */
     public static String getBackpack(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -199,6 +204,7 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body(); // {"success":true,"message":"Epée achetée avec succès !"}
     }
+
     public static String getShops(String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/shop"))
@@ -265,5 +271,4 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
     }
-
 }
