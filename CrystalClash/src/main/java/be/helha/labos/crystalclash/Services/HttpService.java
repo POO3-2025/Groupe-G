@@ -28,7 +28,8 @@ import java.util.Map;
  * */
 public class HttpService {
     //  private static final String BASE_URL = "http://192.168.28.146:8080/";
-    private static final String BASE_URL = "http://localhost:8080";
+    private static final String BASE_URL = "https://0d00-94-109-72-32.ngrok-free.app";
+
 
     /**
      * Envoie requete pour login user

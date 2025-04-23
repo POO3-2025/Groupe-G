@@ -254,7 +254,7 @@ public class LanternaApp {
 
         mainPanel.addComponent(new Button("6. Voir joueurs connectés", () -> DesplayUserConnected(gui)));
         mainPanel.addComponent(new Button("7. Accéder à la boutique", () -> DisplayShop(gui)));
-        mainPanel.addComponent(new Button("8. Jouer a la roulette", () -> PLayRoulette(gui)));
+        mainPanel.addComponent(new Button("8. Jouer a la roulette (25 cristaux)", () -> PLayRoulette(gui)));
 
         mainPanel.addComponent(new Button("9. Se déconnecter", () -> {
             Session.clear();
