@@ -37,7 +37,9 @@ public class Personnage {
         this.AttackSpecial = AttackSpecial;
         this.NameAttaqueSpecial = NameAttaqueSpecial;
         this.RestrictionAttackSpecial = RestrictionAttackSpecial;
-    }public void tackle(Personnage target) {
+    }
+
+    public void tackle(Personnage target) {
     System.out.println(this.Name + " attaque " + target.getName() + " avec une attaque normale !");
     target.receiveDamage(AttackBase);
     CompteurAttack++;

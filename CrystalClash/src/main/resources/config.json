@@ -3,9 +3,9 @@
     "mysqlproduction":{
       "BDCredentials": {
         "DBType": "mysql",
-        "HostName": "0d00-94-109-72-32.ngrok-free.app",
+        "HostName": "127.0.0.1",
         "UserName": "root",
-        "Port": "443",
+        "Port": "3306",
         "Password": "",
         "DBName": "mysqlproduction"
       }

@@ -41,8 +41,13 @@ public class RouletteController {
                         "message", "object gangé bien joué",
                     "data", data));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiReponse("Erreur lors du tirage de la roulette : " + e.getMessage(), null));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(
+                            Map.of(
+                                    "success", false,
+                                    "message", e.getMessage()
+                            )
+                    );
         }
     }
 }
