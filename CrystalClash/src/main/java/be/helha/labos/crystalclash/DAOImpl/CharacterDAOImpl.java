@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -34,8 +35,19 @@ public class CharacterDAOImpl implements CharacterDAO {
     public String getCharacterForUser(String username) {
         MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
         MongoCollection<Document> collection = mongoDB.getCollection("Characters");
-        Document doc = collection.find(new Document("username", username)).first();
-        return (doc != null) ? doc.getString("type") : null;
+        // Cherche le personnage sélectionné pour cet utilisateur
+        Document result = collection.find(
+                //eq = equivalent à, comme un where en sql
+                Filters.and(
+                        Filters.eq("username", username),
+                        Filters.eq("selected", true)
+                )
+        ).first(); //retourne le premier touvé
+
+        if (result != null) {
+            return result.getString("type");
+        }
+        return null;
     }
 
 
@@ -308,8 +320,7 @@ public class CharacterDAOImpl implements CharacterDAO {
         } catch (Exception e) {
             return new ApiReponse("Erreur lors de la suppression de l'objet du backpack : " + e.getMessage(), null);
         }
-    }
-}
+    }}
 
 
 

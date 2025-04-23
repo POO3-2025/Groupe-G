@@ -347,6 +347,9 @@ public class LanternaApp {
         return () -> {
             try {
                 HttpService.selectCharacter(Session.getUsername(), personnage, Session.getToken());
+                String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+                UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
+                Session.setUserInfo(updatedInfo);
                 MessageDialog.showMessageDialog(gui, "Succès", "Personnage sélectionné : " + personnage);
                 currentWindow.close(); //Ferme fenetre apres choix
                 afficherMenuPrincipal(gui);
@@ -509,10 +512,9 @@ public class LanternaApp {
 
 
     /**
-     * Affiche le profil de l'utilisateur
-     *
-     * @param gui => pour afficher les messages
-     */
+
+     Affiche le profil de l'utilisateur
+     @param gui => pour afficher les messages*/
     public static void afficherMonProfil(WindowBasedTextGUI gui) {
         BasicWindow profileWindow = new BasicWindow("Mon Profil");
         profileWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -523,6 +525,8 @@ public class LanternaApp {
         try {
             String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
             UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
+            System.out.println("DEBUG SELECTED CHAR: " + updatedInfo.getSelectedCharacter()); // Ajoute ceci
+
             Session.setUserInfo(updatedInfo);
         } catch (Exception e) {
             System.out.println("Impossible de rafraîchir les infos du joueur : " + e.getMessage());
@@ -533,7 +537,8 @@ public class LanternaApp {
             panel.addComponent(new Label("Niveau : " + info.getLevel()));
             panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
             panel.addComponent(new Label("Personnage choisi : " + info.getSelectedCharacter()));
-        } else {
+        }
+        else {
             panel.addComponent(new Label("Aucune information disponible."));
         }
 
