@@ -21,12 +21,12 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-
+import be.helha.labos.crystalclash.Combat.CombatManager;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Random;
 
 
 public class LanternaApp {
@@ -255,8 +255,8 @@ public class LanternaApp {
         mainPanel.addComponent(new Button("6. Voir joueurs connectés", () -> DesplayUserConnected(gui)));
         mainPanel.addComponent(new Button("7. Accéder à la boutique", () -> DisplayShop(gui)));
         mainPanel.addComponent(new Button("8. Jouer a la roulette (25 cristaux)", () -> PLayRoulette(gui)));
-
-        mainPanel.addComponent(new Button("9. Se déconnecter", () -> {
+        mainPanel.addComponent(new Button("9. Lancer un combat", () -> lancerCombat(gui)));
+        mainPanel.addComponent(new Button("10. Se déconnecter", () -> {
             Session.clear();
             MessageDialog.showMessageDialog(gui, "Déconnexion", "Vous avez été déconnecté !");
             gui.getActiveWindow().close();
@@ -699,6 +699,90 @@ public class LanternaApp {
 
         }
     }
+
+
+
+
+    public static void lancerCombat(WindowBasedTextGUI gui) {
+        BasicWindow combatWindow = new BasicWindow("Lancer un combat");
+        combatWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label("Recherche d'un adversaire..."));
+
+        // Récupère la liste des utilisateurs connectés
+        Set<String> connectedUsers = UserManger.getConnectedUsers();
+        System.out.println("Utilisateurs connectés : " + connectedUsers);
+
+        boolean opponentFound = false;
+
+        // On filtre les utilisateurs connectés pour ne pas inclure le joueur actuel
+        List<String> otherPlayers = new ArrayList<>();
+        for (String username : connectedUsers) {
+            if (!username.equals(Session.getUsername())) { // Ne pas se battre contre soi-même
+                otherPlayers.add(username);
+            }
+        }
+
+        if (otherPlayers.isEmpty()) {
+            panel.addComponent(new Label("Aucun autre joueur connecté."));
+        } else {
+            // Sélectionner un joueur aléatoire
+            Random rand = new Random();
+            String opponent = otherPlayers.get(rand.nextInt(otherPlayers.size()));
+
+            try {
+                // Lancer le combat côté serveur
+                String resultJson = HttpService.startCombat(Session.getUsername(), Session.getToken());
+                JsonObject result = JsonParser.parseString(resultJson).getAsJsonObject();
+                String message = result.get("message").getAsString();
+
+                // Afficher le message + lancer la fenêtre de combat
+                panel.addComponent(new Label("Combat lancé contre : " + opponent));
+                MessageDialog.showMessageDialog(gui, "Combat", message);
+
+                // Enregistrer le combat avec le gestionnaire
+                CombatManager.enregistrerCombat(opponent, Session.getUsername());
+
+                // Ouvrir la fenêtre de combat avec l'adversaire
+                openCombatWindow(gui, opponent);  // Cette fonction ouvre la fenêtre de combat
+
+                opponentFound = true;
+            } catch (Exception e) {
+                MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de lancer le combat contre " + opponent + " : " + e.getMessage());
+            }
+        }
+
+        if (!opponentFound) {
+            panel.addComponent(new Label("Aucun adversaire disponible pour le moment."));
+        }
+
+        panel.addComponent(new Button("Retour", combatWindow::close));
+        combatWindow.setComponent(panel);
+        gui.addWindowAndWait(combatWindow);
+    }
+
+    /**
+     * Ouvre la fenêtre de combat
+     * @param gui
+     * @param opponent
+     */
+    public static void openCombatWindow(WindowBasedTextGUI gui, String opponent) {
+        BasicWindow combatWindow = new BasicWindow("Combat contre " + opponent);
+        combatWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+        // Crée une nouvelle interface pour le combat
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label("Combat en cours contre " + opponent + "..."));
+
+        // Ajouter ici les composants du combat, comme des boutons pour attaquer, défendre, etc.
+
+        panel.addComponent(new Button("Quitter", combatWindow::close));  // Permet à l'utilisateur de quitter le combat
+        combatWindow.setComponent(panel);
+        gui.addWindowAndWait(combatWindow);  // Affiche la fenêtre de combat
+    }
+
+
 
 }
 
