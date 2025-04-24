@@ -255,8 +255,8 @@ public class LanternaApp {
         mainPanel.addComponent(new Button("6. Voir joueurs connectés", () -> DesplayUserConnected(gui)));
         mainPanel.addComponent(new Button("7. Accéder à la boutique", () -> DisplayShop(gui)));
         mainPanel.addComponent(new Button("8. Jouer a la roulette (25 cristaux)", () -> PLayRoulette(gui)));
-
-        mainPanel.addComponent(new Button("9. Se déconnecter", () -> {
+        mainPanel.addComponent(new Button("9. Lancer un combat", () -> lancerCombat(gui)));
+        mainPanel.addComponent(new Button("10. Se déconnecter", () -> {
             Session.clear();
             MessageDialog.showMessageDialog(gui, "Déconnexion", "Vous avez été déconnecté !");
             gui.getActiveWindow().close();
@@ -699,6 +699,23 @@ public class LanternaApp {
 
         }
     }
+
+
+    private static void lancerCombat(WindowBasedTextGUI gui) {
+        try {
+            String json = HttpService.lancerCombat(Session.getUsername(), Session.getToken());
+            JsonObject result = JsonParser.parseString(json).getAsJsonObject();
+
+            if (result.has("message")) {
+                MessageDialog.showMessageDialog(gui, "Combat", result.get("message").getAsString());
+            } else {
+                MessageDialog.showMessageDialog(gui, "Combat", "Réponse inattendue du serveur.");
+            }
+        } catch (Exception e) {
+            MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de lancer le combat : " + e.getMessage());
+        }
+    }
+
 
 }
 

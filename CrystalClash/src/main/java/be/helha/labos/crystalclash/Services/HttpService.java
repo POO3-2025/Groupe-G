@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * */
 public class HttpService {
-    //  private static final String BASE_URL = "http://192.168.28.146:8080/";
+  //   private static final String BASE_URL = "https://bf8e-94-109-202-55.ngrok-free.app";
     private static final String BASE_URL = "http://localhost:8080";
 
 
@@ -349,6 +349,31 @@ public class HttpService {
         }
 
         return response.body();
+    }
+
+    public static String lancerCombat(String username, String token) throws IOException {
+        String jsonBody = new Gson().toJson(Map.of("username", username));
+
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/combat/start"))
+                    .timeout(Duration.ofSeconds(5))
+                    .header("Authorization", "Bearer " + token)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new RuntimeException("Erreur HTTP " + response.statusCode() + " : " + response.body());
+            }
+
+            return response.body();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Requête interrompue", e);
+        }
     }
 
 
