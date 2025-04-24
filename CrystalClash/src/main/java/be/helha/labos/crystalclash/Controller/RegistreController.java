@@ -25,14 +25,25 @@ public class RegistreController {
     @Autowired
     private InventoryService inventoryService;
 
-   /**
-    * @param request
-    * */
+    /**
+     * @param request
+     * */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
         System.out.println("Tentative d'inscription de : " + request.getUsername());
 
         try {
+            if(request.getUsername() == null || request.getUsername().equals("")) {
+                return ResponseEntity.badRequest().body("Nom d'utilisateur est requis.");
+            }
+            if(request.getPassword() == null || request.getPassword().equals("")) {
+                return ResponseEntity.badRequest().body("Password d'utilisateur est requis.");
+            }
+            if (request.getPassword().length() < 4){
+                return ResponseEntity.badRequest().body("Password doit contenir au moins 4 caracteres.");
+
+            }
+
             if (registreService.userExists(request.getUsername())) {
                 return ResponseEntity.badRequest().body("Nom d'utilisateur déjà utilisé.");
             }
