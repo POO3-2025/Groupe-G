@@ -50,4 +50,8 @@ public class InventoryService {
         return inventoryDAO.SellObject(username, name, type);
     }
 
+    public ApiReponse addObjectToCoffre(String username, String name, String type) {
+        return inventoryDAO.addObjectToCoffre(username, name, type);
+    }
+
 }

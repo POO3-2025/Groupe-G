@@ -245,7 +245,7 @@ public class CharacterDAOImpl implements CharacterDAO {
     public ApiReponse addObjectToBackPack(String username, String name, String type) {
         try {
             Inventory inventory = inventoryService.getInventoryForUser(username);
-            BackPack backpack = getBackPackForCharacter(username); // remplacement ici
+            BackPack backpack = getBackPackForCharacter(username);
 
             if (backpack.getObjets().size() >= 10) {
                 return new ApiReponse("Backpack plein !", null);

@@ -26,4 +26,6 @@ public interface InventoryDAO {
      * */
     public ApiReponse SellObject(String username, String name, String type);
 
+    public ApiReponse addObjectToCoffre(String username, String name, String type);
+
 }
