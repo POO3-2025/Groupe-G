@@ -45,4 +45,20 @@ public class InventoryController {
         ApiReponse response = inventoryService.SellObject(username, name, type);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/{username}/coffre/add")
+    public ResponseEntity<ApiReponse> addObjectToCoffre(
+            @PathVariable String username,
+            @RequestBody Map<String, String> payload) {
+
+        String name = payload.get("name");
+        String type = payload.get("type");
+
+        if (name == null || type == null) {
+            return ResponseEntity.badRequest().body(new ApiReponse("Nom et type sont requis.", null));
+        }
+
+        ApiReponse response = inventoryService.addObjectToCoffre(username, name, type);
+        return ResponseEntity.ok(response);
+    }
 }

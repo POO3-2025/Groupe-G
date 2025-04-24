@@ -6,6 +6,7 @@ import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Services.HttpService;
 import be.helha.labos.crystalclash.User.UserInfo;
@@ -416,9 +417,6 @@ public class LanternaApp {
             String username = Session.getUsername();
             String json = HttpService.getInventory(username, Session.getToken());
 
-            // Niveau du joueur pour filtrer les objets disponibles
-            int levelPlayer = Session.getUserInfo().getLevel();
-
             // Création de Gson avec désérialiseur custom
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
@@ -436,7 +434,9 @@ public class LanternaApp {
                 panel.addComponent(new Label("Votre inventaire est vide."));
             } else {
                 panel.addComponent(new Label("Objets dans l'inventaire :"));
-
+                // Sert a voir si le joueur a un coffre
+                boolean hasCoffre = inventory.getObjets().stream()
+                        .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
                 //Parcour liste objets de l'inventaire
                 //obj représente object du joueur
                 // Personnalisation selon le type
@@ -447,7 +447,7 @@ public class LanternaApp {
                         afficherDetailsObjet(gui, obj, () -> {
                             inventoryWindow.close();
                             displayInventory(gui);
-                        });
+                        }, hasCoffre);
                     }));
                 }
             }
@@ -469,7 +469,7 @@ public class LanternaApp {
      * @param obj              => l'objet à afficher
      * @param refreshInventory => pour rafraîchir l'inventaire après une action
      */
-    private static void afficherDetailsObjet(WindowBasedTextGUI gui, ObjectBase obj, Runnable refreshInventory) {
+    private static void afficherDetailsObjet(WindowBasedTextGUI gui, ObjectBase obj, Runnable refreshInventory,Boolean hasCoffre) {
         BasicWindow window = new BasicWindow("Détails de l'objet");
         window.setHints(Arrays.asList(Hint.CENTERED));
 
@@ -501,6 +501,20 @@ public class LanternaApp {
                 MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le BackPack : " + e.getMessage());
             }
         }));
+        if (hasCoffre){
+            panel.addComponent(new Button("Mettre dans le coffre", () -> {
+                try {
+                    String result = HttpService.putInCoffre(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                    JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
+                    String message = resultJson.get("message").getAsString();
+                    MessageDialog.showMessageDialog(gui, "Coffre", message);
+                    window.close();
+                    refreshInventory.run();
+                } catch (Exception e) {
+                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le coffre : " + e.getMessage());
+                }
+            }));
+        }
 
         panel.addComponent(new Button("Retour", window::close));
         window.setComponent(panel);
