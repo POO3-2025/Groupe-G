@@ -180,6 +180,27 @@ public class InventoryDAOImpl implements InventoryDAO {
 
     }
 
+    public CoffreDesJoyaux getCoffreDesJoyauxForUser(String username) {
+        try {
+            Inventory inventory = getInventoryForUser(username);
+            if (inventory == null || inventory.getObjets() == null) {
+                System.err.println("Inventaire introuvable ou vide pour : " + username);
+                return null;
+            }
+            for (ObjectBase obj : inventory.getObjets()) {
+                if (obj instanceof CoffreDesJoyaux) {
+                    return (CoffreDesJoyaux) obj;
+                }
+            }
+            System.err.println("Aucun CoffreDesJoyaux trouvé pour : " + username);
+            return null;
+        } catch (Exception e) {
+            System.err.println("Erreur dans getCoffreDesJoyauxForUser : " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public ApiReponse addObjectToCoffre(String username, String name, String type) {
         try {
             Inventory inventory = getInventoryForUser(username);

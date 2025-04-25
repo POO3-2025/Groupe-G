@@ -4,6 +4,7 @@ package be.helha.labos.crystalclash.Service;
 import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.DAO.InventoryDAO;
 import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,4 +55,7 @@ public class InventoryService {
         return inventoryDAO.addObjectToCoffre(username, name, type);
     }
 
+    public CoffreDesJoyaux getCoffreDesJoyauxForUser(String username) {
+        return inventoryDAO.getCoffreDesJoyauxForUser(username);
+    }
 }
