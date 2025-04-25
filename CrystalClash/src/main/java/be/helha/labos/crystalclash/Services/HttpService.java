@@ -1,6 +1,7 @@
 package be.helha.labos.crystalclash.Services;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -15,10 +16,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.Map;
 
 
-
+import java.util.Set;
 /*
  * CLeint http qui permet au jeu d'
  * envoyer des requetes d'inscription/connexion au /login, /register
@@ -30,7 +32,7 @@ import java.util.Map;
  * */
 public class HttpService {
   //   private static final String BASE_URL = "https://bf8e-94-109-202-55.ngrok-free.app";
-    private static final String BASE_URL = "http://localhost:8080";
+    private static final String BASE_URL = "https://ee9e-94-109-202-55.ngrok-free.app";
 
 
     /**
@@ -50,6 +52,30 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
         return response.body();
+    }
+
+
+    // Méthode pour obtenir la liste des utilisateurs connectés
+    public static Set<String> getConnectedUsers() throws Exception {
+        Set<String> connectedUsers = new HashSet<>();
+        String urlString = "https://ee9e-94-109-202-55.ngrok-free.app/connected-users";
+
+        // Créer une connexion HTTP pour accéder à l'API
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        // Lire la réponse
+        InputStreamReader reader = new InputStreamReader(connection.getInputStream());
+        JsonObject responseJson = JsonParser.parseReader(reader).getAsJsonObject();
+        JsonArray usersArray = responseJson.getAsJsonArray("connectedUsers");
+
+        // Extraire les noms des utilisateurs connectés
+        for (int i = 0; i < usersArray.size(); i++) {
+            connectedUsers.add(usersArray.get(i).getAsString());
+        }
+
+        return connectedUsers;
     }
 
     /**
