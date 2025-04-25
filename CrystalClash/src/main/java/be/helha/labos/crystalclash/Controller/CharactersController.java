@@ -111,12 +111,10 @@ public class CharactersController {
     public ResponseEntity<ApiReponse> addObjectToBackpack(@PathVariable String username, @RequestBody Map<String, String> payload) {
         String name = payload.get("name");
         String type = payload.get("type");
-
         if (name == null || type == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiReponse("Name et type sont requis.", null));
         }
-
         ApiReponse response = characterService.addObjectToBackPack(username, name, type);
         return ResponseEntity.ok(response);
     }
@@ -127,13 +125,10 @@ public class CharactersController {
     @PostMapping("/{username}/backpack/remove")
     public ResponseEntity<ApiReponse> removeObjectFromBackpack(@PathVariable String username, @RequestBody Map<String, String> payload) {
         String name = payload.get("name");
-
-
         if (name == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiReponse("Name est requis.", null));
         }
-
         ApiReponse response = characterService.removeObjectFromBackPack(username, name);
         return ResponseEntity.ok(response);
     }
