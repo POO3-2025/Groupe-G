@@ -250,14 +250,35 @@ public class CharacterDAOImpl implements CharacterDAO {
             if (backpack.getObjets().size() >= 10) {
                 return new ApiReponse("Backpack plein !", null);
             }
+            ObjectBase objectToAdd = null;
 
-            ObjectBase objectToAdd = inventory.getObjets().stream()
+            // 1. Rechercher l'objet dans l'inventaire direct
+            objectToAdd = inventory.getObjets().stream()
                     .filter(obj -> obj.getName().equals(name) && obj.getType().equals(type))
                     .findFirst()
                     .orElse(null);
 
+            if (objectToAdd != null) {
+                inventory.retirerObjet(objectToAdd); // le retirer de l'inventaire
+            } else {
+                // 2. Rechercher dans les coffres
+                for (ObjectBase obj : inventory.getObjets()) {
+                    if (obj instanceof CoffreDesJoyaux) {
+                        CoffreDesJoyaux coffre = (CoffreDesJoyaux) obj;
+                        objectToAdd = coffre.getContenu().stream()
+                                .filter(o -> o.getName().equals(name) && o.getType().equals(type))
+                                .findFirst()
+                                .orElse(null);
+                        if (objectToAdd != null) {
+                            coffre.getContenu().remove(objectToAdd); // retirer du coffre
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (objectToAdd == null) {
-                return new ApiReponse("Objet non trouvé dans l'inventaire.", null);
+                return new ApiReponse("Objet non trouvé dans l'inventaire ni dans un coffre.", null);
             }
 
             if (!backpack.ajouterObjet(objectToAdd)) {
