@@ -2,6 +2,7 @@ package be.helha.labos.crystalclash.DAO;
 
 import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 
 import java.util.Map;
 
@@ -25,5 +26,8 @@ public interface InventoryDAO {
      * @param type
      * */
     public ApiReponse SellObject(String username, String name, String type);
+
+    public ApiReponse addObjectToCoffre(String username, String name, String type);
+    public CoffreDesJoyaux getCoffreDesJoyauxForUser(String username);
 
 }

@@ -5,8 +5,8 @@
         "DBType": "mysql",
         "HostName": "https://ee9e-94-109-202-55.ngrok-free.app",
         "UserName": "root",
-        "Port": "3306",
-        "Password": "",
+        "Port": "8889",
+        "Password": "root",
         "DBName": "mysqlproduction"
       }
     },

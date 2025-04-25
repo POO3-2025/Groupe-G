@@ -5,7 +5,7 @@ import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAO.InventoryDAO;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Inventory.Inventory;
-import be.helha.labos.crystalclash.Object.ObjectBase;
+import be.helha.labos.crystalclash.Object.*;
 import be.helha.labos.crystalclash.Service.UserService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -15,7 +15,9 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -177,5 +179,82 @@ public class InventoryDAOImpl implements InventoryDAO {
         }
 
     }
+
+    public CoffreDesJoyaux getCoffreDesJoyauxForUser(String username) {
+        try {
+            Inventory inventory = getInventoryForUser(username);
+            if (inventory == null || inventory.getObjets() == null) {
+                System.err.println("Inventaire introuvable ou vide pour : " + username);
+                return null;
+            }
+            for (ObjectBase obj : inventory.getObjets()) {
+                if (obj instanceof CoffreDesJoyaux) {
+                    return (CoffreDesJoyaux) obj;
+                }
+            }
+            System.err.println("Aucun CoffreDesJoyaux trouvé pour : " + username);
+            return null;
+        } catch (Exception e) {
+            System.err.println("Erreur dans getCoffreDesJoyauxForUser : " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public ApiReponse addObjectToCoffre(String username, String name, String type) {
+        try {
+            Inventory inventory = getInventoryForUser(username);
+            if (inventory == null) {
+                return new ApiReponse("Inventaire introuvable.", null);
+            }
+
+            ObjectBase objectToAdd = null;
+            CoffreDesJoyaux coffre = null;
+
+            // Parcours des objets pour chercher l'objet ciblé et le coffre
+            for (ObjectBase obj : inventory.getObjets()) {
+                if (obj.getName().equalsIgnoreCase(name) && obj.getType().equalsIgnoreCase(type)) {
+                    objectToAdd = obj;
+                }
+
+                if (obj instanceof CoffreDesJoyaux) {
+                    coffre = (CoffreDesJoyaux) obj;
+                }
+            }
+            if (objectToAdd == null) {
+                return new ApiReponse("Objet non trouvé dans l'inventaire.", null);
+            }
+
+            if (coffre == null) {
+                return new ApiReponse("Aucun Coffre des Joyaux trouvé dans votre inventaire.", null);
+            }
+
+            // Optionnel : simuler une fiabilité qui diminue à chaque ajout
+            if (coffre.getReliability() <= 0) {
+                return new ApiReponse("Le coffre est brisé et ne peut plus être utilisé.", null);
+            }
+
+            // Check de capacité
+            if (coffre.getContenu().size() >= coffre.getMaxCapacity()) {
+                return new ApiReponse("Le coffre est plein.", null);
+            }
+
+            // Suppression de l’objet de l’inventaire
+            inventory.getObjets().remove(objectToAdd);
+
+            // Ajout dans le coffre
+            coffre.getContenu().add(objectToAdd);
+
+            // Sauvegarde finale
+            saveInventoryForUser(username, inventory);
+
+            return new ApiReponse("Objet ajouté au Coffre des Joyaux avec succès.", null);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ApiReponse("Erreur lors de l'ajout au coffre : " + e.getMessage(), null);
+        }
+    }
+
 
 }

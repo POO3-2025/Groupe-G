@@ -103,21 +103,6 @@ public class HttpService {
     }
 
 
-    public static String get(String endpoint, String token) throws IOException {
-        URL url = new URL(BASE_URL + endpoint);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("Authorization", "Bearer " + token);
-
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-            String inputLine;
-            StringBuilder content = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            return content.toString();
-        }
-    }
 
 
     /**
@@ -316,11 +301,11 @@ public class HttpService {
         ));
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/add")) // on utilise le bon endpoint
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/add"))
                 .timeout(Duration.ofSeconds(5))
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json)) // POST car tu fais une action qui modifie
+                .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -379,6 +364,34 @@ public class HttpService {
         return response.body();
     }
 
+    public static String getCoffre(String username, String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/inventory/" + username + "/coffre"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    public static String putInCoffre(String username, String name, String type, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+                "name", name,
+                "type", type
+        ));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/inventory/" + username + "/coffre/add"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
 
 
         /**

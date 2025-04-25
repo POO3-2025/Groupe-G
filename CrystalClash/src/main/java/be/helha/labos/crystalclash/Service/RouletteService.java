@@ -45,7 +45,7 @@ public class RouletteService {
 
         userService.updateCristaux(username, user.getCristaux() - COUT_PARTICIPATION);
 
-        ObjectBase loot = pullObject(user.getLevel());
+        ObjectBase loot = pullObject();
 
         //On recup inven du user
         Inventory inven = inventoryService.getInventoryForUser(username);
@@ -68,7 +68,7 @@ public class RouletteService {
         return LastPlay == null || !LastPlay.equals(LocalDate.now());
     }
 
-    public ObjectBase pullObject (int level){
+    public ObjectBase pullObject (){
         //STacker les objets
         List<ObjectBase> objets = new ArrayList<>(ObjectFactory.getAllObjectsByName().values());
         //Stcke plusieur fois chaque objet en fct de leur risk
