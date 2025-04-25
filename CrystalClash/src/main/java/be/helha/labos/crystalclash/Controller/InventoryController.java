@@ -1,6 +1,7 @@
 package be.helha.labos.crystalclash.Controller;
 
 import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +45,15 @@ public class InventoryController {
 
         ApiReponse response = inventoryService.SellObject(username, name, type);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{username}/coffre")
+    public ResponseEntity<CoffreDesJoyaux> getCoffre(@PathVariable String username) {
+        CoffreDesJoyaux coffre = inventoryService.getCoffreDesJoyauxForUser(username);
+        if (coffre == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(coffre);
     }
 
     @PostMapping("/{username}/coffre/add")

@@ -242,22 +242,21 @@ public class LanternaApp {
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
         mainPanel.addComponent(new Button("1. Voir profil", () -> afficherMonProfil(gui)));
-
-
-        mainPanel.addComponent(new Button("2. Changer de personnage", () -> afficherChoixPersonnage(gui)));
-        mainPanel.addComponent(new Button("3. Voir BackPack", () -> afficherBackPack(gui, () -> {
+        mainPanel.addComponent(new Button("2. Voir BackPack", () -> afficherBackPack(gui, () -> {
             afficherBackPack(gui, () -> {}); // on relance une fois pour rafraîchir le contenu
         })));
-        mainPanel.addComponent(new Button("4. Voir personnage", () -> afficherPersonnage(gui)));
-        mainPanel.addComponent(new Button("5. Voir mon inventaire", () -> {
+        mainPanel.addComponent(new Button("3. Voir personnage", () -> afficherPersonnage(gui)));
+        mainPanel.addComponent(new Button("4. Voir mon inventaire", () -> {
             displayInventory(gui);
         }));
+        mainPanel.addComponent(new Button("5. Accéder à la boutique", () -> DisplayShop(gui)));
+        mainPanel.addComponent(new Button("6. Voir mon coffre", () -> afficherCoffre(gui)));
 
-        mainPanel.addComponent(new Button("6. Voir joueurs connectés", () -> DesplayUserConnected(gui)));
-        mainPanel.addComponent(new Button("7. Accéder à la boutique", () -> DisplayShop(gui)));
+        mainPanel.addComponent(new Button("7. Voir joueurs connectés", () -> DesplayUserConnected(gui)));
         mainPanel.addComponent(new Button("8. Jouer a la roulette (25 cristaux)", () -> PLayRoulette(gui)));
         mainPanel.addComponent(new Button("9. Lancer un combat", () -> lancerCombat(gui)));
-        mainPanel.addComponent(new Button("10. Se déconnecter", () -> {
+        mainPanel.addComponent(new Button("10. Changer de personnage", () -> afficherChoixPersonnage(gui)));
+        mainPanel.addComponent(new Button("11. Se déconnecter", () -> {
             Session.clear();
             MessageDialog.showMessageDialog(gui, "Déconnexion", "Vous avez été déconnecté !");
             gui.getActiveWindow().close();
@@ -714,7 +713,48 @@ public class LanternaApp {
         }
     }
 
+    /**
+     * Affiche le coffre du joueur
+     *
+     * @param gui => pour afficher les messages
+     */
+    private static void afficherCoffre(WindowBasedTextGUI gui) {
+        BasicWindow coffreWindow = new BasicWindow("Mon Coffre");
+        coffreWindow.setHints(Arrays.asList(Hint.CENTERED));
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label("Coffre de " + Session.getUsername()));
 
+        try {
+            String json = HttpService.getCoffre(Session.getUsername(), Session.getToken());
+            // Tentative de désérialisation
+            CoffreDesJoyaux coffre = new Gson().fromJson(json, CoffreDesJoyaux.class);
+
+            if (coffre == null) {
+                panel.addComponent(new Label("Vous ne possédez pas encore de Coffre des Joyaux."));
+            } else if (coffre.getContenu() == null || coffre.getContenu().isEmpty()) {
+                panel.addComponent(new Label("Votre coffre est vide."));
+            } else {
+                panel.addComponent(new Label("Contenu du coffre :"));
+                for (ObjectBase obj : coffre.getContenu()) {
+                    String label = obj.getName() + " (" + obj.getType() + ")";
+                    panel.addComponent(new Button(label, () -> {
+                        afficherDetailsObjet(gui, obj, () -> {
+                            coffreWindow.close();
+                            afficherCoffre(gui);
+                        }, false);
+                    }));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace(); // log pour console
+            panel.addComponent(new Label("Erreur lors du chargement du coffre : " + e.getMessage()));
+        }
+
+        panel.addComponent(new Button("Retour", coffreWindow::close));
+        coffreWindow.setComponent(panel);
+        gui.addWindowAndWait(coffreWindow);
+    }
 
 
     public static void lancerCombat(WindowBasedTextGUI gui) {

@@ -338,6 +338,18 @@ public class HttpService {
         return response.body();
     }
 
+    public static String getCoffre(String username, String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/inventory/" + username + "/coffre"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
     public static String putInCoffre(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,
@@ -354,6 +366,7 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
     }
+
 
         /**
          * Démarre un combat en envoyant une requête au serveur.
