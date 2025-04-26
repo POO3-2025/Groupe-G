@@ -278,25 +278,25 @@ public class LanternaApp {
 
         Panel panel = new Panel(new GridLayout(1));
         panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
+        try{
+            Set<String> connectedUsers = HttpService.getConnectedUsers();
 
-        // Récupérer la liste des utilisateurs connectés
-        Set<String> connectedUsers = UserManger.getConnectedUsers();
-        System.out.println("Utilisateurs connectés : " + connectedUsers);
-
-        if (connectedUsers.isEmpty()) {
-            panel.addComponent(new Label("Aucun joueur connecté."));
-        } else {
-            panel.addComponent(new Label("Joueurs connectés :"));
-            for (String username : connectedUsers) {
-                panel.addComponent(new Label(username));
+            if (connectedUsers.isEmpty()) {
+                panel.addComponent(new Label("Aucun joueur connecté."));
+            } else {
+                panel.addComponent(new Label("Joueurs connectés :"));
+                for (String username : connectedUsers) {
+                    panel.addComponent(new Label(username));
+                }
             }
+
+            panel.addComponent(new Button("Retour", connectedUsersWindow::close));
+            connectedUsersWindow.setComponent(panel);
+            gui.addWindowAndWait(connectedUsersWindow);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        panel.addComponent(new Button("Retour", connectedUsersWindow::close));
-        connectedUsersWindow.setComponent(panel);
-        gui.addWindowAndWait(connectedUsersWindow);
     }
-
     /**
      * Affiche la fenêtre de choix de personnage
      *
