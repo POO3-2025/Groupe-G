@@ -25,6 +25,7 @@ public class CoffreDesJoyaux extends ObjectBase {
         return true;
     }
 
+
     public List<ObjectBase> getContenu() {
         return contenu;
     }
@@ -32,4 +33,12 @@ public class CoffreDesJoyaux extends ObjectBase {
     public int getMaxCapacity() {
         return CAPACITE_MAX;
     }
+    public int setCapaciteMax(int maxCapacity) {
+        return this.CAPACITE_MAX;
+    }
+
+    public void setContenu(List<ObjectBase> contenu) {
+        this.contenu = contenu;
+    }
+
 }
