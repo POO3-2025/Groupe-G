@@ -73,5 +73,8 @@ public class CharacterService {
         return characterDAO.removeObjectFromBackPack(username, name);
     }
 
+    public ApiReponse addObjectToCoffre(String username, String name, String type){
+        return characterDAO.addObjectToCoffre(username, name, type);
+    }
 
 }
