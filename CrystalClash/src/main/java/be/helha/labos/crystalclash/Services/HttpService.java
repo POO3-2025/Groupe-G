@@ -33,7 +33,7 @@ import java.util.Set;
  * */
 public class HttpService {
     //   private static final String BASE_URL = "https://bf8e-94-109-202-55.ngrok-free.app";
-    private static final String BASE_URL = "http://192.168.68.53:8080";
+    private static final String BASE_URL = "http://localhost:8080";
 
 
     /**
@@ -454,5 +454,20 @@ public class HttpService {
         return connectedUsers;
     }
 
+    public static void logoutUser (String username) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username));
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/users/logout"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build();
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur déconnexion du user: " + response.body());
+        }
+    }
 }
 

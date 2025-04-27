@@ -257,6 +257,12 @@ public class LanternaApp {
         mainPanel.addComponent(new Button("9.  Lancer un combat", () -> lancerCombat(gui)));
         mainPanel.addComponent(new Button("10. Changer de personnage", () -> afficherChoixPersonnage(gui)));
         mainPanel.addComponent(new Button("11. Se déconnecter", () -> {
+            try{
+
+                HttpService.logoutUser(Session.getUsername());
+            } catch (Exception e) {
+                System.out.println("Erreur lors de la déconnexion");
+            }
             Session.clear();
             MessageDialog.showMessageDialog(gui, "Déconnexion", "Vous avez été déconnecté !");
             gui.getActiveWindow().close();
