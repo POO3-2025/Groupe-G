@@ -133,5 +133,25 @@ public class CharactersController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * @param username
+     * @return
+     * @throws Exception
+     * Récupérer le personnage sélectionné pour l'utilisateur
+     * */
+    @PostMapping("/{username}/backpack/coffre/add")
+    public ResponseEntity<ApiReponse> addObjectToCoffreInBackPack(@PathVariable String username, @RequestBody Map<String, String> payload) { {
+            String name = payload.get("name");
+            String type = payload.get("type");
+
+            if (name == null || type == null) {
+                return ResponseEntity.badRequest().body(new ApiReponse("Nom et type sont requis.", null));
+            }
+
+            ApiReponse response = characterService.addObjectToCoffre(username, name, type);
+            return ResponseEntity.ok(response);
+        }
+    }
+
 
 }

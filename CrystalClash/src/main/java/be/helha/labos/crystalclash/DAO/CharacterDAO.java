@@ -41,6 +41,7 @@ public interface CharacterDAO {
     void setSelectedCharacter(String username, String character);
     ApiReponse removeObjectFromBackPack(String username, String name);
 
+    ApiReponse addObjectToCoffre(String username, String name, String type);
 }
 
 

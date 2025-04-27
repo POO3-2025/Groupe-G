@@ -621,7 +621,7 @@ public class LanternaApp {
      *
      * @param gui => pour afficher les messages
      */
-    private static void afficherBackPack(WindowBasedTextGUI gui, Runnable refreshBackpack ) {
+    private static void afficherBackPack(WindowBasedTextGUI gui, Runnable refreshBackpack) {
         BasicWindow window = new BasicWindow("Mon BackPack");
         window.setHints(Arrays.asList(Hint.CENTERED));
 
@@ -630,7 +630,13 @@ public class LanternaApp {
 
         try {
             String json = HttpService.getBackpack(username, Session.getToken());
-            ObjectBase[] objets = new Gson().fromJson(json, ObjectBase[].class);
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
+            ObjectBase[] objets = gson.fromJson(json, ObjectBase[].class);
+
+            boolean hasCoffre = Arrays.stream(objets)
+                    .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
 
             if (objets.length == 0) {
                 panel.addComponent(new Label("Votre BackPack est vide."));
@@ -648,7 +654,6 @@ public class LanternaApp {
                         detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
                             try {
                                 String reponse = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
-
                                 JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
                                 String message = result.get("message").getAsString();
                                 MessageDialog.showMessageDialog(gui, "Retrait", message);
@@ -659,11 +664,24 @@ public class LanternaApp {
                                 MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer du backPack : " + e.getMessage());
                             }
                         }));
+                        if (hasCoffre) {
+                            detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
+                                try {
+                                    String result = HttpService.putInCoffreBackPack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                    JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
+                                    String message = resultJson.get("message").getAsString();
+                                    MessageDialog.showMessageDialog(gui, "Coffre", message);
+                                    detailsWindow.close();
+                                    refreshBackpack.run();
+                                } catch (Exception e) {
+                                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le coffre : " + e.getMessage());
+                                }
+                            }));
+                        }
                         detailsPanel.addComponent(new Button("Retour", detailsWindow::close));
                         detailsWindow.setComponent(detailsPanel);
                         gui.addWindowAndWait(detailsWindow);
                     }));
-
                 }
             }
         } catch (Exception e) {
@@ -674,7 +692,6 @@ public class LanternaApp {
         window.setComponent(panel);
         gui.addWindowAndWait(window);
     }
-
 
     private static void PLayRoulette (WindowBasedTextGUI gui){
         try{

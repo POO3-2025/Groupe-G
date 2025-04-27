@@ -402,7 +402,59 @@ public class CharacterDAOImpl implements CharacterDAO {
         } catch (Exception e) {
             return new ApiReponse("Erreur lors de la suppression de l'objet du backpack : " + e.getMessage(), null);
         }
-    }}
+    }
+
+    @Override
+    public ApiReponse addObjectToCoffre(String username, String name, String type) {
+        try {
+             BackPack backPack = getBackPackForCharacter(username);
+            if (backPack == null) {
+                return new ApiReponse("BackPack introuvable.", null);
+            }
+
+            ObjectBase objectToAdd = null;
+            CoffreDesJoyaux coffre = null;
+
+            // Parcours des objets pour chercher l'objet ciblé et le coffre
+            for (ObjectBase obj : backPack.getObjets()) {
+                if (obj.getName().equalsIgnoreCase(name) && obj.getType().equalsIgnoreCase(type)) {
+                    objectToAdd = obj;
+                }
+
+                if (obj instanceof CoffreDesJoyaux) {
+                    coffre = (CoffreDesJoyaux) obj;
+                }
+            }
+            if (objectToAdd == null) {
+                return new ApiReponse("Objet non trouvé dans le BackPack.", null);
+            }
+
+            if (coffre == null) {
+                return new ApiReponse("Aucun Coffre des Joyaux trouvé dans votre BackPack.", null);
+            }
+
+            if (coffre.getReliability() <= 0) {
+                return new ApiReponse("Le coffre est brisé et ne peut plus être utilisé.", null);
+            }
+
+            if (coffre.getContenu().size() >= coffre.getMaxCapacity()) {
+                return new ApiReponse("Le coffre est plein.", null);
+            }
+
+            backPack.getObjets().remove(objectToAdd);
+
+            coffre.getContenu().add(objectToAdd);
+
+            saveBackPackForCharacter(username, backPack);
+
+            return new ApiReponse("Objet ajouté au BackPack des Joyaux avec succès.", null);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ApiReponse("Erreur lors de l'ajout au coffre : " + e.getMessage(), null);
+        }
+    }
+}
 
 
 
