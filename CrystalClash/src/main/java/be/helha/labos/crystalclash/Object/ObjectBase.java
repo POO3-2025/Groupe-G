@@ -75,6 +75,9 @@ public class ObjectBase {
     public int getReliability() {
         return reliability;
     }
+    public void setReliability(int reliability) {
+        this.reliability = reliability;
+    }
     public String getDetails() {
         return "Nom : " + name + "\n"
             + "Type : " + type + "\n"
