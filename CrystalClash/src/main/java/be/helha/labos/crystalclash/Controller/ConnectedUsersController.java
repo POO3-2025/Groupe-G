@@ -1,5 +1,6 @@
 package be.helha.labos.crystalclash.Controller;
 
+import be.helha.labos.crystalclash.DTO.LogoutRequest;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,14 +27,6 @@ public class ConnectedUsersController {
     public ResponseEntity<String> logoutUser(@RequestBody LogoutRequest request) {
         ConnectedUsers.removeUser(request.getUsername());
         return ResponseEntity.ok("Déconnecté avec succès");
-    }
-
-    // DTO pour lire le JSON { "username": "..." }
-    public static class LogoutRequest {
-        private String username;
-
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
     }
 
 }
