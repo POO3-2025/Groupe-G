@@ -1,5 +1,6 @@
 package be.helha.labos.crystalclash.server_auth;
 
+import be.helha.labos.crystalclash.User.ConnectedUsers;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,6 +53,10 @@ public class AuthController {
 
             // Génération du token JWT
             String jwtToken = jwtUtils.generateToken(authentication);
+
+            //Ajoute user a chaque co
+            ConnectedUsers.addUser(loginRequest.getUsername());
+
             return ResponseEntity.ok(new AuthResponse(jwtToken, "Authentification réussie !"));
         }catch (AuthenticationException e) {
             e.printStackTrace();

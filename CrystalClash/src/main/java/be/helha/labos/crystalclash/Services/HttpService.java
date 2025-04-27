@@ -454,20 +454,5 @@ public class HttpService {
         return connectedUsers;
     }
 
-    public static void logoutUser (String username) throws Exception {
-        String json = new Gson().toJson(Map.of("username", username));
-
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/users/logout"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (response.statusCode() != 200) {
-            throw new RuntimeException("Erreur déconnexion du user: " + response.body());
-        }
-    }
 }
 

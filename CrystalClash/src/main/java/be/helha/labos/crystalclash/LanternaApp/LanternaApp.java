@@ -259,7 +259,7 @@ public class LanternaApp {
         mainPanel.addComponent(new Button("11. Se déconnecter", () -> {
             try{
 
-                HttpService.logoutUser(Session.getUsername());
+                HttpService.logout(Session.getUsername());
             } catch (Exception e) {
                 System.out.println("Erreur lors de la déconnexion");
             }
