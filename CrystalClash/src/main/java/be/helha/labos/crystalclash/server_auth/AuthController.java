@@ -1,5 +1,6 @@
 package be.helha.labos.crystalclash.server_auth;
 
+import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import be.helha.labos.crystalclash.Service.UserService;
 
 
 @RestController
 public class AuthController {
-
+    @Autowired
+    private UserService userService;
     @Autowired
     private JwtUtils jwtUtils; //Gere la generation du token
 
@@ -57,6 +60,13 @@ public class AuthController {
             //Ajoute user a chaque co
             ConnectedUsers.addUser(loginRequest.getUsername());
 
+            //Try obligé car throw exception
+            try {
+                //  met à jour en base qu'il est connecté
+                userService.updateIsConnected(loginRequest.getUsername(), true);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             return ResponseEntity.ok(new AuthResponse(jwtToken, "Authentification réussie !"));
         }catch (AuthenticationException e) {
             e.printStackTrace();

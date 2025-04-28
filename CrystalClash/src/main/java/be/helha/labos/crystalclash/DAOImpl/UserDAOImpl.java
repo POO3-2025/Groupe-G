@@ -55,4 +55,36 @@ public class UserDAOImpl implements UserDAO {
             e.printStackTrace();
         }
     }
+
+    /*
+    * Va check si le user est deja co dans la db.
+    * */
+    @Override
+    public boolean isAlreadyConnected(String username) throws Exception {
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
+            PreparedStatement stmt = conn.prepareStatement(
+                "SELECT is_connected FROM users WHERE username = ?");
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBoolean("is_connected");
+            }
+            return false;
+        }
+    }
+
+    //Va mettre a jour le boolean de is_connected
+    @Override
+    public void updateIsConnected(String username, boolean isConnected)throws Exception{
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
+            PreparedStatement stmt = conn.prepareStatement(
+                "UPDATE users SET is_connected = ? WHERE username = ?"
+            );
+            stmt.setBoolean(1, isConnected);
+            stmt.setString(2, username);
+            stmt.executeUpdate();
+        }
+    }
+
+
 }

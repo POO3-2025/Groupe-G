@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 //Simple pour le moment
 public class ConnectedUsers {
+    //Ici le set est un thread-safe -> pas de probleme pour plusieurs co et déco
     private static final Set<String> connectedUsers = ConcurrentHashMap.newKeySet();
 
     public static void addUser(String username) {

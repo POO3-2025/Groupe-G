@@ -833,24 +833,33 @@ public class LanternaApp {
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
 
         Panel panel = new Panel(new GridLayout(1));
+        Label loadingLabel = new Label("Recherche d'un adversaire...");
+        panel.addComponent(loadingLabel);
 
-        try {
-            // Appelle le serveur pour trouver un adversaire
-            String opponent = HttpService.matcjmaking(Session.getUsername(), Session.getToken());
-
-            panel.addComponent(new Label("Adversaire trouvé : " + opponent));
-            panel.addComponent(new Button("Lancer le combat contre " + opponent, () -> {
-                // Ici tu peux ajouter la logique pour démarrer le vrai combat
-                MessageDialog.showMessageDialog(gui, "Combat", "Combat contre " + opponent + " lancé !");
-                combatWindow.close();
-            }));
-        } catch (Exception e) {
-            panel.addComponent(new Label("Erreur : " + e.getMessage()));
-        }
-
-        panel.addComponent(new Button("Retour", combatWindow::close));
         combatWindow.setComponent(panel);
-        gui.addWindowAndWait(combatWindow);
+        gui.addWindow(combatWindow);
+       //lancage en arriere plan pour evite de figer
+        //Thread normal quoi ca lance un new processus en arriere plan
+        new Thread(() -> {
+            try {
+                Thread.sleep(2000); //  pause pour simuler un chargement
+
+                //Thread secondaire
+                String opponent = HttpService.matcjmaking(Session.getUsername(), Session.getToken());
+
+                //Une fois trouver ici il aura la modif de linterface graphique
+                //Car le thread secondaire(fait la recherche) ne peut pas modif de lui meme
+                gui.getGUIThread().invokeLater(() -> {
+                    combatWindow.close();
+                    openCombatWindow(gui, opponent); // demarre directement le combat  encore rien la
+                });
+            } catch (Exception e) {
+                gui.getGUIThread().invokeLater(() -> { //Serveur repond
+                    MessageDialog.showMessageDialog(gui, "Erreur", "Adversaire introuvable " + e.getMessage());
+                    combatWindow.close();
+                });
+            }
+        }).start();
     }
 
 

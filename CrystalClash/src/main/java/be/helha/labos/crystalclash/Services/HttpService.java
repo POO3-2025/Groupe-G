@@ -470,9 +470,9 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
-            throw new RuntimeException("Erreur Matchmaking: " + response.body());
+            throw new RuntimeException(" " + response.body());
         }
-        return json;
+        return response.body();
     }
 
 }
