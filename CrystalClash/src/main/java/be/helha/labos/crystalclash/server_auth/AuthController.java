@@ -48,8 +48,9 @@ public class AuthController {
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
              //On check avant si le user est deja co .
-            Optional<UserInfo> optionalInfo = userService.getUserInfo(loginRequest.getUsername());
-           if (optionalInfo.isPresent() && optionalInfo.get().isConnected()) {
+            //ce que ça retourne ça peut etre vide ou pas
+            Optional<UserInfo> optionalInfo = userService.getUserInfo(loginRequest.getUsername()); //chercher le user en base
+           if (optionalInfo.isPresent() && optionalInfo.get().isConnected()) { //si present ds la DBB et regarde le champ is_connected
                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                    .body("{\"message\":\"Ce compte est déjà connecté.\"}");
            }
