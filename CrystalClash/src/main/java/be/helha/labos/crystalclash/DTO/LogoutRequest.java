@@ -3,8 +3,7 @@ package be.helha.labos.crystalclash.DTO;
 public class LogoutRequest {
     private String username;
 
-    public LogoutRequest() {
-    }
+    public LogoutRequest() { }
 
     public LogoutRequest(String username) {
         this.username = username;

@@ -25,6 +25,10 @@ public class ConnectedUsersController {
 
     @PostMapping("/users/logout")
     public ResponseEntity<String> logoutUser(@RequestBody LogoutRequest request) {
+        System.out.println("Réception de /users/logout avec username = " + request.getUsername());
+        if (request.getUsername() == null || request.getUsername().isEmpty()) {
+            return ResponseEntity.badRequest().body("Erreur : username vide");
+        }
         ConnectedUsers.removeUser(request.getUsername());
         return ResponseEntity.ok("Déconnecté avec succès");
     }

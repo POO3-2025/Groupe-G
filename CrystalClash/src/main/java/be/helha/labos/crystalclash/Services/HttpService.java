@@ -1,5 +1,6 @@
 package be.helha.labos.crystalclash.Services;
 
+import be.helha.labos.crystalclash.DTO.LogoutRequest;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
@@ -413,24 +414,52 @@ public class HttpService {
 
 
     /**********************Logout****************/
-    public static void logout(String username) throws Exception {
-        String json = new Gson().toJson(Map.of("username", username));
+  /*  public static void logout(String username, String token) throws Exception {
+        //Crée l ojbet logoutRequest avec username
+        LogoutRequest logoutRequest = new LogoutRequest(username);
+        //Crée Gson transform l objet java en une vrai chaine Json
+        //Sérialise
+        Gson gson = new Gson();
+        //COnvertir cette chaine en Json
+        String requestBody = gson.toJson(logoutRequest);
 
+        //Création de la requete avec de bons headers
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/users/logout"))
             .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .POST(HttpRequest.BodyPublishers.ofString(requestBody)) //Recoit la réponse en string
             .build();
+        System.out.println("Envoi de logout pour JSON: " + requestBody);
+        //Envoie de la requete
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur déconnexion du user: " + response.body());
+        }
+    }*/
+    public static void logout(String username, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username));
+
+        //Création de la requete avec de bons headers
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/users/logout"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json)) //Recoit la réponse en string
+            .build();
+        System.out.println("Envoi de logout pour JSON: " + json);
+        //Envoie de la requete
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
             throw new RuntimeException("Erreur déconnexion du user: " + response.body());
         }
     }
-
     public static Set<String> getConnectedUsers() throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/users/connected/list"))
