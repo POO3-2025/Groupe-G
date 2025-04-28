@@ -254,7 +254,7 @@ public class LanternaApp {
         })));
         mainPanel.addComponent(new Button("7.  Voir joueurs connectés", () -> DesplayUserConnected(gui)));
         mainPanel.addComponent(new Button("8.  Jouer a la roulette (25 cristaux)", () -> PLayRoulette(gui)));
-        mainPanel.addComponent(new Button("9.  Lancer un combat", () -> lancerCombat(gui)));
+        mainPanel.addComponent(new Button("9.  Lancer un matchMaking", () -> MatchMaking(gui)));
         mainPanel.addComponent(new Button("10. Changer de personnage", () -> afficherChoixPersonnage(gui)));
         mainPanel.addComponent(new Button("11. Se déconnecter", () -> {
             try{
@@ -845,64 +845,40 @@ public class LanternaApp {
     }
 
 
-    public static void lancerCombat(WindowBasedTextGUI gui) {
-        BasicWindow combatWindow = new BasicWindow("Lancer un combat");
+    public static void MatchMaking(WindowBasedTextGUI gui) {
+        BasicWindow combatWindow = new BasicWindow("Matchmaking");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
 
         Panel panel = new Panel(new GridLayout(1));
-        panel.addComponent(new Label("Recherche d'un adversaire..."));
+        Label loadingLabel = new Label("Recherche d'un adversaire...");
+        panel.addComponent(loadingLabel);
 
-        // Récupère la liste des utilisateurs connectés
-        Set<String> connectedUsers = UserManger.getConnectedUsers();
-        System.out.println("Utilisateurs connectés : " + connectedUsers);
-
-        boolean opponentFound = false;
-
-        // On filtre les utilisateurs connectés pour ne pas inclure le joueur actuel
-        List<String> otherPlayers = new ArrayList<>();
-        for (String username : connectedUsers) {
-            if (!username.equals(Session.getUsername())) { // Ne pas se battre contre soi-même
-                otherPlayers.add(username);
-            }
-        }
-
-        if (otherPlayers.isEmpty()) {
-            panel.addComponent(new Label("Aucun autre joueur connecté."));
-        } else {
-            // Sélectionner un joueur aléatoire
-            Random rand = new Random();
-            String opponent = otherPlayers.get(rand.nextInt(otherPlayers.size()));
-
-            try {
-                // Lancer le combat côté serveur
-                String resultJson = HttpService.startCombat(Session.getUsername(), Session.getToken());
-                JsonObject result = JsonParser.parseString(resultJson).getAsJsonObject();
-                String message = result.get("message").getAsString();
-
-                // Afficher le message + lancer la fenêtre de combat
-                panel.addComponent(new Label("Combat lancé contre : " + opponent));
-                MessageDialog.showMessageDialog(gui, "Combat", message);
-
-                // Enregistrer le combat avec le gestionnaire
-                CombatManager.enregistrerCombat(opponent, Session.getUsername());
-
-                // Ouvrir la fenêtre de combat avec l'adversaire
-                openCombatWindow(gui, opponent);  // Cette fonction ouvre la fenêtre de combat
-
-                opponentFound = true;
-            } catch (Exception e) {
-                MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de lancer le combat contre " + opponent + " : " + e.getMessage());
-            }
-        }
-
-        if (!opponentFound) {
-            panel.addComponent(new Label("Aucun adversaire disponible pour le moment."));
-        }
-
-        panel.addComponent(new Button("Retour", combatWindow::close));
         combatWindow.setComponent(panel);
-        gui.addWindowAndWait(combatWindow);
+        gui.addWindow(combatWindow);
+       //lancage en arriere plan pour evite de figer
+        //Thread normal quoi ca lance un new processus en arriere plan
+        new Thread(() -> {
+            try {
+                Thread.sleep(2000); //  pause pour simuler un chargement
+
+                //Thread secondaire
+                String opponent = HttpService.matcjmaking(Session.getUsername(), Session.getToken());
+
+                //Une fois trouver ici il aura la modif de linterface graphique
+                //Car le thread secondaire(fait la recherche) ne peut pas modif de lui meme
+                gui.getGUIThread().invokeLater(() -> {
+                    combatWindow.close();
+                    openCombatWindow(gui, opponent); // demarre directement le combat  encore rien la
+                });
+            } catch (Exception e) {
+                gui.getGUIThread().invokeLater(() -> { //Serveur repond
+                    MessageDialog.showMessageDialog(gui, "Erreur", "Adversaire introuvable " + e.getMessage());
+                    combatWindow.close();
+                });
+            }
+        }).start();
     }
+
 
     /**
      * Ouvre la fenêtre de combat

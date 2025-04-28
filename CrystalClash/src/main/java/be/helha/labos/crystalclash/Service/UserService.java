@@ -36,5 +36,13 @@ public class UserService {
         userDAO.updateCristaux(username, newCristaux);
     }
 
+     public boolean isAlreadyConnected(String username) throws Exception{
+        return userDAO.isAlreadyConnected(username);
+     }
+
+     public void updateIsConnected(String username, boolean isConnected)throws Exception{
+        userDAO.updateIsConnected(username, isConnected);
+     }
+
 
 }
