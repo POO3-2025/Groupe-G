@@ -2,6 +2,7 @@ package be.helha.labos.crystalclash.server_auth;
 
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
+import be.helha.labos.crystalclash.User.UserInfo;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import be.helha.labos.crystalclash.Service.UserService;
+
+import java.util.Optional;
 
 
 @RestController
@@ -44,6 +47,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
+             //On check avant si le user est deja co .
+            Optional<UserInfo> optionalInfo = userService.getUserInfo(loginRequest.getUsername());
+           if (optionalInfo.isPresent() && optionalInfo.get().isConnected()) {
+               return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                   .body("{\"message\":\"Ce compte est déjà connecté.\"}");
+           }
+
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getUsername(),

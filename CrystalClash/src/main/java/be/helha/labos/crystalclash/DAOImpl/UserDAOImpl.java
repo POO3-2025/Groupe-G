@@ -22,7 +22,7 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<UserInfo> getUserByUsername(String username) {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
-            PreparedStatement stmt = conn.prepareStatement("SELECT username, level, cristaux FROM users WHERE username = ?");
+            PreparedStatement stmt = conn.prepareStatement("SELECT username, level, cristaux,is_connected FROM users WHERE username = ?");
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
 
@@ -31,6 +31,7 @@ public class UserDAOImpl implements UserDAO {
                 user.setUsername(rs.getString("username"));
                 user.setLevel(rs.getInt("level"));
                 user.setCristaux(rs.getInt("cristaux"));
+                user.setConnected(rs.getBoolean("is_connected"));
                 return Optional.of(user);
             }
         } catch (Exception e) {
