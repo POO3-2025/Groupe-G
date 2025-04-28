@@ -257,7 +257,12 @@ public class LanternaApp {
         mainPanel.addComponent(new Button("9.  Lancer un combat", () -> lancerCombat(gui)));
         mainPanel.addComponent(new Button("10. Changer de personnage", () -> afficherChoixPersonnage(gui)));
         mainPanel.addComponent(new Button("11. Se déconnecter", () -> {
-            Session.clear();
+            try{
+                HttpService.logout(Session.getUsername(), Session.getToken());
+            } catch (Exception e) {
+                System.out.println("Erreur lors de la déconnexion");
+            }
+
             MessageDialog.showMessageDialog(gui, "Déconnexion", "Vous avez été déconnecté !");
             gui.getActiveWindow().close();
             afficherEcranAccueil(gui, gui.getScreen());
@@ -278,25 +283,25 @@ public class LanternaApp {
 
         Panel panel = new Panel(new GridLayout(1));
         panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
+        try{
+            Set<String> connectedUsers = HttpService.getConnectedUsers();
 
-        // Récupérer la liste des utilisateurs connectés
-        Set<String> connectedUsers = UserManger.getConnectedUsers();
-        System.out.println("Utilisateurs connectés : " + connectedUsers);
-
-        if (connectedUsers.isEmpty()) {
-            panel.addComponent(new Label("Aucun joueur connecté."));
-        } else {
-            panel.addComponent(new Label("Joueurs connectés :"));
-            for (String username : connectedUsers) {
-                panel.addComponent(new Label(username));
+            if (connectedUsers.isEmpty()) {
+                panel.addComponent(new Label("Aucun joueur connecté."));
+            } else {
+                panel.addComponent(new Label("Joueurs connectés :"));
+                for (String username : connectedUsers) {
+                    panel.addComponent(new Label(username));
+                }
             }
+
+            panel.addComponent(new Button("Retour", connectedUsersWindow::close));
+            connectedUsersWindow.setComponent(panel);
+            gui.addWindowAndWait(connectedUsersWindow);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        panel.addComponent(new Button("Retour", connectedUsersWindow::close));
-        connectedUsersWindow.setComponent(panel);
-        gui.addWindowAndWait(connectedUsersWindow);
     }
-
     /**
      * Affiche la fenêtre de choix de personnage
      *
