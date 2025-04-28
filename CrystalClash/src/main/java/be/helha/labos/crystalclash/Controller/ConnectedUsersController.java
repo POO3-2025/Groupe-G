@@ -32,5 +32,17 @@ public class ConnectedUsersController {
         ConnectedUsers.removeUser(request.getUsername());
         return ResponseEntity.ok("Déconnecté avec succès");
     }
-
+    /*Style de matchmaking simple test
+     *on va recup les joueurs co ensuite on s'ejecte de la liste car null de se battre contre sois meme
+     *  */
+    @PostMapping("/matchmaking/find")
+    public ResponseEntity<String> matchmaking(@RequestBody String username){
+        Set<String> users = ConnectedUsers.getConnectedUsers();
+        users.remove(username);
+        if (users.isEmpty()) {
+            return ResponseEntity.badRequest().body("Erreur : username vide");
+        }
+        String hasard = users.stream().findAny().get();
+        return ResponseEntity.ok("hasard");
+    }
 }

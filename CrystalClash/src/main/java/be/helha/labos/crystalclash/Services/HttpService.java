@@ -1,18 +1,12 @@
 package be.helha.labos.crystalclash.Services;
 
-import be.helha.labos.crystalclash.DTO.LogoutRequest;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.server_auth.Session;
 import com.google.gson.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -34,7 +28,7 @@ import java.util.Set;
  * */
 public class HttpService {
     //   private static final String BASE_URL = "https://bf8e-94-109-202-55.ngrok-free.app";
-    private static final String BASE_URL = "http://localhost:8080";
+    private static final String BASE_URL = "http://192.168.68.56:8080";
 
 
     /**
@@ -457,6 +451,28 @@ public class HttpService {
         }
 
         return connectedUsers;
+    }
+
+    public static String matcjmaking(String username, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username));
+
+        //Création de la requete avec de bons headers
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/matchmaking/find"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json)) //Recoit la réponse en string
+            .build();
+        System.out.println("Envoi de logout pour JSON: " + json);
+        //Envoie de la requete
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur Matchmaking: " + response.body());
+        }
+        return json;
     }
 
 }
