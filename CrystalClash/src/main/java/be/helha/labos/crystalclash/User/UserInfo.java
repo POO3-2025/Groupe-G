@@ -2,7 +2,7 @@ package be.helha.labos.crystalclash.User;
 
 public class UserInfo {
     private String username;
-    private boolean isConnected;
+    private boolean isConnected; //Rajout pour le boolean
     private int level;
     private int cristaux;
     private String selectedCharacter;

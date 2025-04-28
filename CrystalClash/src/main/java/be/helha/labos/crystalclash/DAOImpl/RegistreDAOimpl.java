@@ -43,7 +43,7 @@ public class RegistreDAOimpl implements RegistreDAO{
             stmt.setString(2, hashedPassword);
             stmt.setInt(3, 1);
             stmt.setInt(4, 100);
-            stmt.setBoolean(5, true);//True direct car a l'inscription le user est co instante
+            stmt.setBoolean(5, false);//false direct car a l'inscription le user est co instante
             stmt.executeUpdate();
         }
     }
