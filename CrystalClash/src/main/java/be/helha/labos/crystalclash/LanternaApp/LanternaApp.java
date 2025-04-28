@@ -10,7 +10,7 @@ import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Services.HttpService;
 import be.helha.labos.crystalclash.User.UserInfo;
-import be.helha.labos.crystalclash.User.UserManger;
+import be.helha.labos.crystalclash.User.ConnectedUsers;
 import be.helha.labos.crystalclash.server_auth.Session;
 import com.google.gson.*;
 import com.googlecode.lanterna.SGR;
@@ -121,7 +121,7 @@ public class LanternaApp {
                     Session.setUsername(usernameBox.getText());
                     // Ajout de l'utilisateur dans la liste des connectés après une connexion réussie
                     String username = usernameBox.getText();
-                    UserManger.addUser(username);  // Ajoute le joueur à la liste des utilisateurs connectés
+                    ConnectedUsers.addUser(username);  // Ajoute le joueur à la liste des utilisateurs connectés
                     try {
                         //recoit un {"username":"toto","level":1,"cristaux":100}
                         //Gson pour le déserialiser en insatnce de userInfo
@@ -225,38 +225,60 @@ public class LanternaApp {
      * @param gui
      */
     private static void afficherMenuPrincipal(WindowBasedTextGUI gui) {
-        BasicWindow menuWindow = new BasicWindow("Menu Principal");
+        BasicWindow menuWindow = new BasicWindow();
         menuWindow.setHints(Arrays.asList(Hint.CENTERED));
 
         Panel mainPanel = new Panel(new GridLayout(1));
         mainPanel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
 
-        mainPanel.addComponent(new Label(" Bienvenue dans Crystal Clash, " + Session.getUsername() + " !"));
-        UserInfo info = Session.getUserInfo();
-        //if (info != null) {
-        //mainPanel.addComponent(new Label(" Niveau : " + info.getLevel()));
-        //mainPanel.addComponent(new Label(" Cristaux : " + info.getCristaux()));
-        // }
+        Label welcomeLabel = new Label(" Bienvenue dans Crystal Clash, " + Session.getUsername() + " !");
+        welcomeLabel.setForegroundColor(new TextColor.RGB(0, 128, 128));
+        welcomeLabel.addStyle(SGR.BOLD);
+        mainPanel.addComponent(welcomeLabel);
+
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
-        mainPanel.addComponent(new Button("1.  Voir profil", () -> afficherMonProfil(gui)));
-        mainPanel.addComponent(new Button("2.  Voir BackPack", () -> afficherBackPack(gui, () -> {
+        // Section Profil
+        mainPanel.addComponent(createSectionLabel("Profil"));
+        mainPanel.addComponent(new Button("Voir profil", () -> afficherMonProfil(gui)));
+        mainPanel.addComponent(new Button("Voir BackPack", () -> afficherBackPack(gui, () -> {
             afficherBackPack(gui, () -> {}); // on relance une fois pour rafraîchir le contenu
         })));
-        mainPanel.addComponent(new Button("3.  Voir personnage", () -> afficherPersonnage(gui)));
-        mainPanel.addComponent(new Button("4.  Voir mon inventaire", () -> {
+        mainPanel.addComponent(new Button("Voir personnage", () -> afficherPersonnage(gui)));
+        mainPanel.addComponent(new Button("Voir mon inventaire", () -> {
             displayInventory(gui);
-        }));
-        mainPanel.addComponent(new Button("5.  Accéder à la boutique", () -> DisplayShop(gui)));
-        mainPanel.addComponent(new Button("6.  Voir mon coffre", () -> afficherCoffre(gui,()-> {
+        }));;
+        mainPanel.addComponent(new Button("Voir mon coffre", () -> afficherCoffre(gui,()-> {
             afficherCoffre(gui, () -> {});
         })));
-        mainPanel.addComponent(new Button("7.  Voir joueurs connectés", () -> DesplayUserConnected(gui)));
-        mainPanel.addComponent(new Button("8.  Jouer a la roulette (25 cristaux)", () -> PLayRoulette(gui)));
-        mainPanel.addComponent(new Button("9.  Lancer un matchMaking", () -> MatchMaking(gui)));
-        mainPanel.addComponent(new Button("10. Changer de personnage", () -> afficherChoixPersonnage(gui)));
-        mainPanel.addComponent(new Button("11. Se déconnecter", () -> {
+
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
+
+        // Section Boutique
+        mainPanel.addComponent(createSectionLabel("Boutique"));
+        mainPanel.addComponent(new Button("Accéder à la boutique", () -> DisplayShop(gui)));
+        mainPanel.addComponent(new Button("Jouer à la roulette (25 cristaux)", () -> PLayRoulette(gui)));
+
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
+        // Section Communauté
+        mainPanel.addComponent(createSectionLabel("Communauté"));
+        mainPanel.addComponent(new Button("Voir joueurs connectés", () -> DesplayUserConnected(gui)));
+        mainPanel.addComponent(new Button("Lancer un matchMaking", () -> MatchMaking(gui)));
+
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
+        // Section Combat
+        mainPanel.addComponent(createSectionLabel("Combat"));
+        //mainPanel.addComponent(new Button("Lancer un combat", () -> lancerCombat(gui)));
+        mainPanel.addComponent(new Button("Changer de personnage", () -> afficherChoixPersonnage(gui)));
+
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
+
+        mainPanel.addComponent(new Button("Se déconnecter", () -> {
             try{
                 HttpService.logout(Session.getUsername(), Session.getToken());
             } catch (Exception e) {
@@ -270,6 +292,17 @@ public class LanternaApp {
 
         menuWindow.setComponent(mainPanel);
         gui.addWindowAndWait(menuWindow);
+    }
+    /**
+     * Affiche les section du menu
+     * avec le style et la couleur
+     * @param text => le texte de la section
+     */
+    private static Label createSectionLabel(String text) {
+        Label label = new Label("─ " + text + " ─");
+        label.setForegroundColor(new TextColor.RGB(50, 50, 50));
+        label.addStyle(SGR.BOLD);
+        return label;
     }
 
     /**

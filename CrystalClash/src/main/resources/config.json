@@ -3,7 +3,7 @@
     "mysqlproduction":{
       "BDCredentials": {
         "DBType": "mysql",
-        "HostName": "192.168.68.56",
+        "HostName": "127.0.0.1",
         "UserName": "root",
         "Port": "3306",
         "Password": "",
