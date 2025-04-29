@@ -59,6 +59,9 @@ public class ConfigManager {
         try {
             JsonObject db = config.getAsJsonObject("db");
             JsonObject section = db.getAsJsonObject(dbKey);
+            if (section == null) {
+                throw new SQLException("Clé de base inconnue dans config.json : " + dbKey);
+            }
             JsonObject creds = section.getAsJsonObject("BDCredentials");
 
             String dbType = creds.get("DBType").getAsString();
@@ -73,35 +76,46 @@ public class ConfigManager {
             return DriverManager.getConnection(dbUrl, user, password);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new SQLException("Erreur de connexion à SQL !");
+            // juste un message utile
+            throw new SQLException("Clé de base inconnue dans config.json : " + dbKey);
         }
     }
 
     /**
      * Vérifie si une base MongoDB existe et la crée si elle est absente
+     * Modif pour permettre un affichage moins brute lors de test
      */
     public MongoDatabase getMongoDatabase(String dbKey) {
         try {
-            JsonObject dbConfig = config.getAsJsonObject("db").getAsJsonObject(dbKey).getAsJsonObject("BDCredentials");
+            //Ajout cérif de clé, si dbKey pas ds le .json retourne null et appelle getAsJsonObject("BDCredentials"); pour un NullPointerException        try {
+            JsonObject db = config.getAsJsonObject("db");
+            JsonObject section = db.getAsJsonObject(dbKey);
+            if (section == null) {
+                throw new RuntimeException("Clé de base inconnue dans config.json : " + dbKey);
+            }
+
+            JsonObject dbConfig = section.getAsJsonObject("BDCredentials");
+
             String uri = "mongodb://" + dbConfig.get("UserName").getAsString() + ":" +
                 dbConfig.get("Password").getAsString() + "@" +
                 dbConfig.get("HostName").getAsString() + ":" +
                 dbConfig.get("Port").getAsString();
+
+
             String dbName = dbConfig.get("DBName").getAsString();
 
             MongoClient mongoClient = MongoClients.create(uri);
             MongoDatabase database = mongoClient.getDatabase(dbName);
 
-            // Vérifier si la base existe en listant les bases
             boolean exists = mongoClient.listDatabaseNames().into(new java.util.ArrayList<>()).contains(dbName);
             if (!exists) {
                 System.out.println("La base MongoDB " + dbName + " n'existe pas, elle sera créée à la première insertion.");
             }
+
             return database;
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Erreur de connexion à MongoDB !");
+            throw new RuntimeException("Erreur de connexion à MongoDB ! " + e.getMessage());
+        }
         }
     }
-}
+
