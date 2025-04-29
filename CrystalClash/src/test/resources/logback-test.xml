@@ -1,0 +1,18 @@
+<configuration>
+    <!-- Réduire les logs du driver MongoDB pendant les tests -->
+    <logger name="org.mongodb.driver" level="ERROR"/>
+
+    <!-- Réduction des logs Spring  -->
+    <logger name="org.springframework" level="WARN"/>
+
+    <!-- Console log format -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

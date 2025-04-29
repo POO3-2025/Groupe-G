@@ -75,11 +75,35 @@ public class RegistreControllerTest {
     }
 
 
+    @BeforeEach
+    public void cleanMySQLTest() throws Exception {
+        Connection conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
+        var stmt = conn.createStatement();
+        // delete juste ce qu'il y dans user
+        stmt.executeUpdate("DELETE FROM users");
+    }
+
+    @BeforeEach
+    public void cleanMongoDBTest() {
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Inventory").deleteMany(new org.bson.Document()); // Vide tout
+    }
+
+    /**
+     * Affiche le nom du test en cours d'exécution.
+     *
+     * @param testInfo Informations sur le test en cours.
+     */
+    @BeforeEach
+    public void displayTestName(TestInfo testInfo) {
+        System.out.println("Exécution du test : " + testInfo.getDisplayName());
+    }
 
     @Test
     @Order(1)
+    @DisplayName("Test inscription réussie")
     public void testRegisterUser_success() {
-        RegisterRequest request = new RegisterRequest("testuser3", "testpass");
+        RegisterRequest request = new RegisterRequest("testuser", "testpass");
 
         ResponseEntity<?> response = registreController.registerUser(request);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -93,4 +117,48 @@ public class RegistreControllerTest {
     }
 
 
+    @Test
+    @Order(2)
+    @DisplayName("Test inscription username manquant")
+    public void testRegisterUser_usernameManquant() {
+        RegisterRequest request = new RegisterRequest("", "testpass");
+        ResponseEntity<?> response = registreController.registerUser(request);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Nom d'utilisateur est requis.", response.getBody());
+    }
+    @Test
+    @Order(3)
+    @DisplayName("Test inscription password manquant")
+    public void testRegisterUser_passwordManquant() {
+        RegisterRequest request = new RegisterRequest("userSansMotDePasse", "");
+        ResponseEntity<?> response = registreController.registerUser(request);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Password d'utilisateur est requis.", response.getBody());
+    }
+    @Test
+    @Order(4)
+    @DisplayName("Test inscription password trop court")
+    public void testRegisterUser_passwordTropCourt() {
+        RegisterRequest request = new RegisterRequest("userCourt", "123");
+        ResponseEntity<?> response = registreController.registerUser(request);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Password doit contenir au moins 4 caracteres.", response.getBody());
+    }
+
+    //Test de double création de deux users avec même nom
+    @Test
+    @Order(5)
+    @DisplayName("Test inscription username déjà la")
+    public void testRegisterUser_dejaExistant() {
+        // D'abord une inscription
+        RegisterRequest request1 = new RegisterRequest("userExiste", "validpass");
+        registreController.registerUser(request1);
+
+        // Puis un doublon
+        RegisterRequest request2 = new RegisterRequest("userExiste", "validpass");
+        ResponseEntity<?> response = registreController.registerUser(request2);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Nom d'utilisateur déjà utilisé.", response.getBody());
+    }
 }
