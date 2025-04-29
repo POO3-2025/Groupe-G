@@ -11,14 +11,14 @@
       }
     },
 
-    "MySqlTest":{
-      "ConnectionType": "DB",
-      "DBType": "mysql",
+    "mysqltest": {
       "BDCredentials": {
+        "DBType": "mysql",
         "HostName": "127.0.0.1",
+        "Port": "3306",
         "UserName": "root",
         "Password": "",
-        "DBName": "MySqlTest"
+        "DBName": "mysqltest"
       }
     },
 
