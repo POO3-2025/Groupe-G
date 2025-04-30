@@ -1,6 +1,7 @@
 package be.helha.labos.crystalclash.DAOImpl;
 
 import be.helha.labos.crystalclash.DAO.RouletteDAO;
+import be.helha.labos.crystalclash.Service.UserService;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.UpdateOptions;
@@ -19,7 +20,7 @@ public class RouletteDAOImpl implements RouletteDAO{
     //Format la date actuelle formt iso sans l'heure.
     //Juste formate la date correctement
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
-
+    private UserService userService;
     /**
      * Sauvegarde le personnage pour un utilisateur
      * @param username Nom d'utilisateur
@@ -57,5 +58,10 @@ public class RouletteDAOImpl implements RouletteDAO{
         //si pas null ou diff alors date dernier partie jouée
         return LocalDate.parse(doc.getString("lastPlay"), FORMATTER);
     }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
 
 }
