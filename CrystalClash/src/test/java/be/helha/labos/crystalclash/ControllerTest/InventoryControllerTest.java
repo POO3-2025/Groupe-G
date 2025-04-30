@@ -171,6 +171,84 @@ public class InventoryControllerTest {  // <- ici "Test" !
         assertEquals("medium", dataMap.get("rarity")); // car prix = 100
     }
 
+    @Test
+    @Order(3)
+    @DisplayName("Test vendre un objet qui n'est pas dans l'inventaire")
+    public void testSellObject_objectNotFound() {
+        String username = "inventoryTestUser";
+
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, null);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Inventory").deleteMany(new org.bson.Document("username", username));
+
+        // Créer un inventaire vide
+        inventoryDAO.createInventoryForUser(username);
+
+        // Appeler le contrôleur avec un objet qui n'existe pas
+        Map<String, String> payload = Map.of(
+            "name", "ObjetInexistant",
+            "type", "Weapon"
+        );
+
+        var response = inventoryController.sellObject(payload);
+        System.out.println("Réponse (objet manquant) : " + response.getBody().getMessage());
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals("Objet non trouvé dans l'inventaire.", response.getBody().getMessage());
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Test vendre un objet avec utilisateur inexistant")
+    public void testSellObject_userNotFound() {
+        String username = "userInexistant";
+
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, null);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        // Supprimer l’utilisateur s’il existe
+        try {
+            var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
+            var stmt = conn.prepareStatement("DELETE FROM users WHERE username = ?");
+            stmt.setString(1, username);
+            stmt.executeUpdate();
+            stmt.close();
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("Impossible de supprimer l'utilisateur de test");
+        }
+
+        // Créer inventaire avec l’objet
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Inventory").deleteMany(new org.bson.Document("username", username));
+        inventoryDAO.createInventoryForUser(username);
+
+        var inventory = inventoryDAO.getInventoryForUser(username);
+        var objet = new be.helha.labos.crystalclash.Object.Weapon("Épée de test", 100, 5, 5, 5);
+        objet.setType("Weapon");
+        inventory.ajouterObjet(objet);
+        inventoryDAO.saveInventoryForUser(username, inventory);
+
+        // Appeler avec un vrai objet mais faux user
+        Map<String, String> payload = Map.of(
+            "name", "Épée de test",
+            "type", "Weapon"
+        );
+
+        var response = inventoryController.sellObject(payload);
+        System.out.println("Réponse (user inexistant) : " + response.getBody().getMessage());
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals("Utilisateur introuvable.", response.getBody().getMessage());
+    }
+
+
+    /**Test Estelle*/
 
     @AfterEach
     public void cleanUp() {
