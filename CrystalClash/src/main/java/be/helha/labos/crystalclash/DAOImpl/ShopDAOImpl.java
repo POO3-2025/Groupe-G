@@ -61,13 +61,12 @@ public class ShopDAOImpl implements ShopDAO{
      * il faut récup les infos du joueur avant pour savoir sont level et affiher ce qu il faut dans le shop
      * */
     @Override
-    public boolean buyItem(String username, String itemName, String type) {
+    public String  buyItem(String username, String itemName, String type) {
         try {
             // Récupère les infos du joueur (niveau et cristaux)
             Optional<UserInfo> userOpt = userService.getUserInfo(username);
             if (userOpt.isEmpty()) {
-                System.out.println("Utilisateur introuvable !");
-                return false;
+                return "Utilisateur introuvable.";
             }
 
             //Extration du niveau et cristaux, serivira pour voir  si le joueur pourra acheter l'objet et faire la soustraction des cristaux
@@ -81,6 +80,7 @@ public class ShopDAOImpl implements ShopDAO{
 
             // Récupère l'inventaire du joueur
             Inventory inventory = inventoryService.getInventoryForUser(username);
+
             if (item.getName().equalsIgnoreCase("Coffre des Joyaux")){
                 boolean alreadyBuy = inventory.getObjets().stream().anyMatch(obj -> obj.getName().equalsIgnoreCase("Coffre des Joyaux"));
                 if (alreadyBuy){
@@ -88,14 +88,29 @@ public class ShopDAOImpl implements ShopDAO{
                     return false;
                 }
             }
+
+
+            // Vérifie si déjà possédé
+            if (item.getName().equalsIgnoreCase("Coffre des Joyaux")) {
+                boolean alreadyOwned = inventory.getObjets().stream()
+                    .anyMatch(obj -> obj.getName().equalsIgnoreCase("Coffre des Joyaux"));
+                if (alreadyOwned) return "Tu possèdes déjà un Coffre des Joyaux !";
+            }
+
             if (inventory.getObjets().size() >= 30) {
-                System.out.println("Inventaire plein !");
-                return false;
+                return "Inventaire plein !";
+
             }
 
             if (playerCrystals < item.getPrice()) {
-                System.out.println("Pas assez de cristaux !");
-                return false;
+                return "Pas assez de cristaux !";
+            }
+
+            // Vérifie si déjà possédé
+            if (item.getName().equalsIgnoreCase("Coffre des Joyaux")) {
+                boolean alreadyOwned = inventory.getObjets().stream()
+                    .anyMatch(obj -> obj.getName().equalsIgnoreCase("Coffre des Joyaux"));
+                if (alreadyOwned) return "Tu possèdes déjà un Coffre des Joyaux !";
             }
 
             // Achat validé
@@ -103,12 +118,11 @@ public class ShopDAOImpl implements ShopDAO{
             inventoryService.saveInventoryForUser(username, inventory);
             userService.updateCristaux(username, playerCrystals - item.getPrice());
 
-            System.out.println("Achat réussi de " + item.getName() + " par " + username);
-            return true;
+            return item.getName() + " acheté avec succès !";
 
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return "Erreur inattendue lors de l'achat.";
         }
     }
 

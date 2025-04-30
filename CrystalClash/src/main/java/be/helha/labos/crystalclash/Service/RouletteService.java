@@ -100,4 +100,16 @@ public class RouletteService {
 
 
     }
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
+    public void setRouletteDAO(RouletteDAO rouletteDAO) {
+        this.rouletteDAO = rouletteDAO;
+    }
+
 }

@@ -6,7 +6,7 @@ import java.util.Map;
 public interface ShopDAO {
 
     List<Map<String, Object>> getShopItems();
-    boolean buyItem(String username, String itemName, String type);
+    String  buyItem(String username, String itemName, String type);
 
 
 }
