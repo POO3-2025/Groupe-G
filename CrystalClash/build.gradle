@@ -9,7 +9,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(23)
 	}
 }
 
@@ -55,6 +55,9 @@ dependencies {
 }
 tasks.named('test') {
 	useJUnitPlatform()
+}
+springBoot {
+	mainClass = 'be.helha.labos.crystalclash.server_auth.CrystalClashApplication'
 }
 springBoot {
   mainClass = 'be.helha.labos.crystalclash.server_auth.CrystalClashApplication'
