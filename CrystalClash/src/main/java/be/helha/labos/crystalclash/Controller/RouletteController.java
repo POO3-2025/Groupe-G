@@ -50,4 +50,8 @@ public class RouletteController {
                     );
         }
     }
+
+    public void setRouletteService(RouletteService rouletteService) {
+        this.rouletteService = rouletteService;
+    }
 }

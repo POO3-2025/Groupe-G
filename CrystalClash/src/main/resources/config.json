@@ -5,8 +5,8 @@
         "DBType": "mysql",
         "HostName": "127.0.0.1",
         "UserName": "root",
-        "Port": "8889",
-        "Password": "root",
+        "Port": "3306",
+        "Password": "",
         "DBName": "mysqlproduction"
       }
     },
@@ -15,9 +15,9 @@
       "BDCredentials": {
         "DBType": "mysql",
         "HostName": "127.0.0.1",
-        "Port": "8889",
+        "Port": "3306",
         "UserName": "root",
-        "Password": "root",
+        "Password": "",
         "DBName": "mysqltest"
       }
     },
