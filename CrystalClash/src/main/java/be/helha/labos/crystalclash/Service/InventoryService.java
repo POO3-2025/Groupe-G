@@ -5,15 +5,18 @@ import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.DAO.InventoryDAO;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
+import be.helha.labos.crystalclash.User.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 
 public class InventoryService {
 
+    private UserService userService;
     private InventoryDAO inventoryDAO;
 
     /**
@@ -52,7 +55,32 @@ public class InventoryService {
     }
 
     public ApiReponse addObjectToCoffre(String username, String name, String type) {
-        return inventoryDAO.addObjectToCoffre(username, name, type);
+            Optional<UserInfo> userOpt = userService.getUserInfo(username);
+            if (userOpt.isEmpty()) {
+                return new ApiReponse("Utilisateur introuvable.", null);
+            }
+            // Vérifier si l'inventaire existe (en MongoDB)
+            Inventory inventory = inventoryDAO.getInventoryForUser(username);
+            if (inventory == null || inventory.getObjets() == null || inventory.getObjets().isEmpty()) {
+                return new ApiReponse("Inventaire introuvable ou vide.", null);
+            }
+
+            // Vérifier la présence d'au moins un coffre dans l'inventaire
+            boolean hasCoffre = inventory.getObjets().stream()
+                    .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
+
+            if (!hasCoffre) {
+                return new ApiReponse("Aucun Coffre des Joyaux trouvé dans l'inventaire.", null);
+            }
+
+            // Déléguer si tout est OK
+            return inventoryDAO.addObjectToCoffre(username, name, type);
+    }
+
+    //pour test
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     public CoffreDesJoyaux getCoffreDesJoyauxForUser(String username) {
