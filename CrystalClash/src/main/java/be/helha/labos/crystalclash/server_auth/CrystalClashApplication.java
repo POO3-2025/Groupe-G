@@ -12,8 +12,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         "be.helha.labos.crystalclash.DAOImpl",
         "be.helha.labos.crystalclash.Service",
 })
-public class CrystalClashServerApplication {
+public class CrystalClashApplication {
     public static void main(String[] args) {
-        SpringApplication.run(CrystalClashServerApplication.class, args);
+        SpringApplication.run(CrystalClashApplication.class, args);
     }
 }

@@ -81,12 +81,11 @@ public class ShopDAOImpl implements ShopDAO{
             // Récupère l'inventaire du joueur
             Inventory inventory = inventoryService.getInventoryForUser(username);
 
-            if (item.getName().equalsIgnoreCase("Coffre des Joyaux")){
-                boolean alreadyBuy = inventory.getObjets().stream().anyMatch(obj -> obj.getName().equalsIgnoreCase("Coffre des Joyaux"));
-                if (alreadyBuy){
-                    System.out.println("Coffre déja acheté !");
-                    return false;
-                }
+            // Vérifie si déjà possédé
+            if (item.getName().equalsIgnoreCase("Coffre des Joyaux")) {
+                boolean alreadyOwned = inventory.getObjets().stream()
+                        .anyMatch(obj -> obj.getName().equalsIgnoreCase("Coffre des Joyaux"));
+                if (alreadyOwned) return "Tu possèdes déjà un Coffre des Joyaux !";
             }
 
 
@@ -106,12 +105,7 @@ public class ShopDAOImpl implements ShopDAO{
                 return "Pas assez de cristaux !";
             }
 
-            // Vérifie si déjà possédé
-            if (item.getName().equalsIgnoreCase("Coffre des Joyaux")) {
-                boolean alreadyOwned = inventory.getObjets().stream()
-                    .anyMatch(obj -> obj.getName().equalsIgnoreCase("Coffre des Joyaux"));
-                if (alreadyOwned) return "Tu possèdes déjà un Coffre des Joyaux !";
-            }
+
 
             // Achat validé
             inventory.ajouterObjet(item);

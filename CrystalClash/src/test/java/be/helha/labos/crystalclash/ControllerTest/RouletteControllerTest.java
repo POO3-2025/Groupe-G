@@ -2,6 +2,7 @@ package be.helha.labos.crystalclash.ControllerTest;
 
 
 import be.helha.labos.crystalclash.Controller.InventoryController;
+import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.server_auth.*;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
@@ -36,6 +37,8 @@ public class RouletteControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private InventoryService inventoryService;
     /*
     *¨Rediriger les co de prod vers les bases des test
     * Ici on va leurer la connection
@@ -71,15 +74,16 @@ public class RouletteControllerTest {
                             .add(key, mysqlTestConfig.getAsJsonObject("BDCredentials").get(key));
                 });
     }
-    //Clean la roulette avant
+    //Clean la roulette avant pour certains tests
     @BeforeEach
     public void cleanupMongoRoulette() {
         MongoDatabase db = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
         db.getCollection("Roulette").deleteMany(new Document()); // supprime tout
     }
 
-
-
+/*
+* Crée le user dans mysql et vider son inventaire
+* */
     @BeforeEach
     public void ensureUserExists() {
         try {
@@ -102,7 +106,23 @@ public class RouletteControllerTest {
             e.printStackTrace();
             fail("Impossible d'insérer l'utilisateur de test en base MySQL");
         }
+
     }
+
+    /*
+     *Crée un inventaire au user avec les tests
+     * */
+    @BeforeEach
+    public void EnsureInventoryMongo() throws Exception {
+        // Crée un inventaire
+        // Créer inventaire avec l’objet
+        String username = "RouletteTestUser10";
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Inventory").deleteMany(new org.bson.Document("username", username));
+        inventoryService.createInventoryForUser(username);
+
+    }
+
 
     @BeforeEach
     public void displayTestName(TestInfo testInfo) {
@@ -177,6 +197,24 @@ public class RouletteControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Déjà joué aujourd'hui gourmand va !"));
+    }
+
+    @AfterAll
+    public void resetMySQLUsers_AND_Mongo() throws Exception {
+        var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
+        var stmt = conn.prepareStatement("DELETE FROM users");
+        stmt.executeUpdate();
+        stmt.close();
+        conn.close();
+        System.out.println("Tous les utilisateurs MySQL ont été supprimés.");
+
+        MongoDatabase db = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        db.getCollection("inventory").deleteMany(new Document());
+        db.getCollection("Roulette").deleteMany(new Document());
+        // Ajoute d'autres collections si besoin
+
+        System.out.println("Toutes les données Mongo ont été supprimées.");
     }
 
 }

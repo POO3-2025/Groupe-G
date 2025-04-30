@@ -10,7 +10,6 @@ public class CoffreDesJoyaux extends ObjectBase {
     public CoffreDesJoyaux() {
         super("Coffre des Joyaux", 25, 1, 1);
 
-        super("Coffre des Joyaux", 50, 1, 1);
 
         this.contenu = new ArrayList<>();
     }
