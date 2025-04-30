@@ -3,6 +3,7 @@ package be.helha.labos.crystalclash.Controller;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Service.InventoryService;
+import be.helha.labos.crystalclash.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +15,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/inventory")
 public class InventoryController {
+
+
 
     @Autowired
     private InventoryService inventoryService;
@@ -37,7 +40,7 @@ public class InventoryController {
         //charge nom et type
         String name = payload.get("name");
         String type = payload.get("type");
-// Récupère le nom d'utilisateur (subject du token JWT) via le contexte de sécurité
+        // Récupère le nom d'utilisateur (subject du token JWT) via le contexte de sécurité
         //SecurityContextHolder accede a la secu lié a la requete
         //recup l'authentification
         //retourne le subject du JWT, le nom de l uti
@@ -58,8 +61,8 @@ public class InventoryController {
 
     @PostMapping("/{username}/coffre/add")
     public ResponseEntity<ApiReponse> addObjectToCoffre(
-            @PathVariable String username,
-            @RequestBody Map<String, String> payload) {
+        @PathVariable String username,
+        @RequestBody Map<String, String> payload) {
 
         String name = payload.get("name");
         String type = payload.get("type");
@@ -71,4 +74,10 @@ public class InventoryController {
         ApiReponse response = inventoryService.addObjectToCoffre(username, name, type);
         return ResponseEntity.ok(response);
     }
+
+    //Pour le test
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
 }

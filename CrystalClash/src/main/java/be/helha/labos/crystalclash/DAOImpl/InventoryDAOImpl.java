@@ -256,5 +256,8 @@ public class InventoryDAOImpl implements InventoryDAO {
         }
     }
 
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
 }
