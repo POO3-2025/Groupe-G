@@ -81,6 +81,13 @@ public class ShopDAOImpl implements ShopDAO{
 
             // Récupère l'inventaire du joueur
             Inventory inventory = inventoryService.getInventoryForUser(username);
+            if (item.getName().equalsIgnoreCase("Coffre des Joyaux")){
+                boolean alreadyBuy = inventory.getObjets().stream().anyMatch(obj -> obj.getName().equalsIgnoreCase("Coffre des Joyaux"));
+                if (alreadyBuy){
+                    System.out.println("Coffre déja acheté !");
+                    return false;
+                }
+            }
             if (inventory.getObjets().size() >= 30) {
                 System.out.println("Inventaire plein !");
                 return false;
