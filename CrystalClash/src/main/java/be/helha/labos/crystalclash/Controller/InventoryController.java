@@ -72,6 +72,16 @@ public class InventoryController {
         }
 
         ApiReponse response = inventoryService.addObjectToCoffre(username, name, type);
+        String msg = response.getMessage().toLowerCase();
+
+        if (msg.contains("utilisateur introuvable")) return ResponseEntity.status(404).body(response);
+        if (msg.contains("inventaire")) return ResponseEntity.status(404).body(response);
+        if (msg.contains("aucun coffre")) return ResponseEntity.status(404).body(response);
+        if (msg.contains("objet non trouvé")) return ResponseEntity.status(404).body(response);
+        if (msg.contains("plein") || msg.contains("brisé")) return ResponseEntity.status(409).body(response);
+        if (msg.contains("erreur")) return ResponseEntity.status(500).body(response);
+
+
         return ResponseEntity.ok(response);
     }
 
