@@ -69,7 +69,8 @@ public class AuthController {
             String jwtToken = jwtUtils.generateToken(authentication);
 
             //Ajoute user a chaque co
-            ConnectedUsers.addUser(loginRequest.getUsername());
+            //Jjuste un optionalInfo maintenant car plus haut il stock deja les infos du user
+            ConnectedUsers.addUser(optionalInfo.get());
 
             //Try obligé car throw exception
             try {

@@ -3,6 +3,7 @@ package be.helha.labos.crystalclash.Controller;
 import be.helha.labos.crystalclash.DTO.LogoutRequest;
 import be.helha.labos.crystalclash.Service.UserService;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
+import be.helha.labos.crystalclash.User.UserInfo;
 import com.mysql.cj.x.protobuf.MysqlxDatatypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +27,8 @@ public class ConnectedUsersController {
     }
 
     @GetMapping("/users/connected/list")
-    public Set<String> getConnectedUsernames() {
-        return ConnectedUsers.getConnectedUsers();
+    public Collection<UserInfo> getConnectedUsernames() {
+        return ConnectedUsers.getConnectedUsers().values();
     }
 
     @PostMapping("/users/logout")
@@ -71,7 +72,8 @@ public class ConnectedUsersController {
     @PostMapping("/matchmaking/find")
     public ResponseEntity<String> matchmaking(@RequestBody Map<String, String> request){
         String username = request.get("username");
-        Set<String> users =new HashSet<>( ConnectedUsers.getConnectedUsers());
+        //New Haset = pour travailler sur une copie
+        Set<String> users =new HashSet<>( ConnectedUsers.getConnectedUsers().keySet()); // Keyset pour prendre que les noms
         users.remove(username);
 
         if (users.isEmpty()) {

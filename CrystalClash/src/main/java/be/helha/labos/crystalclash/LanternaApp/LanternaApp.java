@@ -122,7 +122,6 @@ public class LanternaApp {
                     Session.setUsername(usernameBox.getText());
                     // Ajout de l'utilisateur dans la liste des connectés après une connexion réussie
                     String username = usernameBox.getText();
-                    ConnectedUsers.addUser(username);  // Ajoute le joueur à la liste des utilisateurs connectés
                     try {
                         //recoit un {"username":"toto","level":1,"cristaux":100}
                         //Gson pour le déserialiser en insatnce de userInfo
@@ -130,6 +129,8 @@ public class LanternaApp {
                         String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
                         UserInfo info = new Gson().fromJson(userJson, UserInfo.class);
                         Session.setUserInfo(info); // stocke les infos dans la session
+                        //Ajoute l'utilisateur dans la liste des connectés
+                        ConnectedUsers.addUser(info);
                     } catch (Exception ex) {
                         MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de récupérer les infos joueur : " + ex.getMessage());
                     }
@@ -318,14 +319,15 @@ public class LanternaApp {
         Panel panel = new Panel(new GridLayout(1));
         panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
         try{
-            Set<String> connectedUsers = HttpService.getConnectedUsers();
+            List<UserInfo> connectedUsers = HttpService.getConnectedUsers();
 
             if (connectedUsers.isEmpty()) {
                 panel.addComponent(new Label("Aucun joueur connecté."));
             } else {
                 panel.addComponent(new Label("Joueurs connectés :"));
-                for (String username : connectedUsers) {
-                    panel.addComponent(new Label(username));
+                for (UserInfo user : connectedUsers) {
+                    String line = user.getUsername() + " | Niveau : " + user.getLevel();
+                    panel.addComponent(new Label(line));
                 }
             }
 

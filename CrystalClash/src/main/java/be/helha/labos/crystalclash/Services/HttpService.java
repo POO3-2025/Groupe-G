@@ -3,6 +3,7 @@ package be.helha.labos.crystalclash.Services;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
+import be.helha.labos.crystalclash.User.UserInfo;
 import be.helha.labos.crystalclash.server_auth.Session;
 import com.google.gson.*;
 
@@ -12,9 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 /*
@@ -445,7 +444,7 @@ public class HttpService {
             throw new RuntimeException("Erreur déconnexion du user: " + response.body());
         }
     }
-    public static Set<String> getConnectedUsers() throws Exception {
+    public static List<UserInfo> getConnectedUsers() throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/users/connected/list"))
             .timeout(Duration.ofSeconds(5))
@@ -459,18 +458,17 @@ public class HttpService {
             throw new RuntimeException("Erreur récupération utilisateurs connectés : " + response.body());
         }
 
-        // La réponse est un JSON type ["user1", "user2", ...]
-        String responseBody = response.body();
-        Set<String> connectedUsers = new HashSet<>();
-        JsonArray jsonArray = JsonParser.parseString(responseBody).getAsJsonArray();
-        for (JsonElement element : jsonArray) {
-            connectedUsers.add(element.getAsString());
-        }
-
-        return connectedUsers;
+        //Récup la reponse du Htpp (en json brute)
+        String json = response.body();
+        Gson gson = new Gson(); //Instancie Gson
+        //juste prendre le json, le convertir en tb de userInfo, ici chaque objet J ds le tb sont mappés auto sur UserInfo (username,level,..)
+        UserInfo[] users = gson.fromJson(json, UserInfo[].class);
+        return Arrays.asList(users); //retourne le tb en liste modifiable si y a besoin
     }
 
     public static String matcjmaking(String username, String token) throws Exception {
+        //crée chaine json avec le username a partir d une map
+        //Map.of juste une map qui ne peut etre modifiée apres, apres on seriale (objet java vers text json)
         String json = new Gson().toJson(Map.of("username", username));
 
         //Création de la requete avec de bons headers
