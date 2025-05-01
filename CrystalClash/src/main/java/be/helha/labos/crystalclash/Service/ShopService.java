@@ -28,7 +28,7 @@ public class ShopService {
      * @param itemName
      * @param type
      * **/
-    public boolean buyItem(String username, String itemName, String type){
+    public String  buyItem(String username, String itemName, String type){
         return shopDAO.buyItem(username, itemName, type);
     }
 

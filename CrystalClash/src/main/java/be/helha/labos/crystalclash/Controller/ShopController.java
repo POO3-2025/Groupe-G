@@ -46,13 +46,12 @@ public class ShopController {
         ; Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();// ici Spring récupère le subject du JWT
 
-        boolean success = shopService.buyItem(username, name, type);
+        String resultMessage = shopService.buyItem(username, name, type);
+        boolean success = resultMessage.contains("acheté avec succès");
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", success);
-        response.put("message", success
-            ? name + " acheté avec succès !"
-            : "Achat échoué. Vérifie ton niveau, tes cristaux ou ton inventaire.");
+        response.put("message", resultMessage);
         return ResponseEntity.ok(response);
     }
 

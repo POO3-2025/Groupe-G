@@ -60,11 +60,11 @@ public class InventoryControllerTest {  // <- ici "Test" !
         userService = new UserService(userDAO);
 
         inventoryDAO = new InventoryDAOImpl();
-        inventoryDAO.setUserService(userService);
+        inventoryDAO.setUserService(userService); //injection manuelle
 
         // Service
         inventoryService = new InventoryService(inventoryDAO);
-        inventoryService.setUserService(userService);
+        inventoryService.setUserService(userService); //injection manuelle
 
         // Controller
         inventoryController = new InventoryController();

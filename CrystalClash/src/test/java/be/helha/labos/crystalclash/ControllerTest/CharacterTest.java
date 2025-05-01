@@ -17,11 +17,15 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
 import static  org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.mockito.MockedStatic;
 
 import java.util.List;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.mockito.MockedStatic;
 
 import static org.mockito.Mockito.*;
 
@@ -66,11 +70,10 @@ public class CharacterTest {
 
     }
 
-    //Clean la roulette avant
     @BeforeEach
-    public void cleanupMongoRoulette() {
+    public void cleanupMongo() {
         MongoDatabase db = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
-        db.getCollection("Characters").deleteMany(new Document()); // supprime tout
+        db.getCollection("Characters").deleteMany(new Document());
     }
 
 
@@ -98,18 +101,10 @@ public class CharacterTest {
         System.out.println("Exécution du test : " + testInfo.getDisplayName());
     }
 
-    /*
-     * Ici faut mocker le HttpService pour le token et autre
-     *Ouverture de Mock pour simuler le HttpService qui est une méthoe statique et fait appel a un Http d'authentification
-     *  mockedStatic.when(() -> et tout le tralala = on dit ce que l'on veut mocker ici c est HttpService.getUserInfo
-     *et toi Estelle tu dis ce que tu veux renvoyer donc la c le user créé en haut la (tu retournes juste le json quoi)
-     * Juste mit aussi un @Component au dessus public class HttpService de HttpServices
-     * Try pour isoler le mock et encapsuler quoi
-     *
-     * */
+
     @Test
     @Order(1)
-    @DisplayName("Test de la création d'un personnage et recuperation de celui ci")
+    @DisplayName("Test de la création d'un personnage")
     @WithMockUser(username = "CharacterTestUser")
     public void testSelectCharacter() throws Exception {
         try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
