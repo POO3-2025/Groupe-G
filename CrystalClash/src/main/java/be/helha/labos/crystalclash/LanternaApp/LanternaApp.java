@@ -416,10 +416,6 @@ public class LanternaApp {
             if (element.isJsonObject()) {
                 JsonObject obj = element.getAsJsonObject();
 
-                if (obj.has("message")) {
-                    panel.addComponent(new Label(obj.get("message").getAsString()));
-                }
-
                 if (obj.has("data") && !obj.get("data").isJsonNull()) {
                     panel.addComponent(new Label("Type : " + obj.get("data").getAsString()));
                 }
