@@ -1,0 +1,27 @@
+[33m033e93d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/combatOmar[m[33m)[m HEAD@{0}: checkout: moving from develop to feature/combatOmar
+[33mf78bc88[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{1}: checkout: moving from main to develop
+[33meeb95f2[m[33m ([m[1;32mmain[m[33m)[m HEAD@{2}: checkout: moving from develop to main
+[33mf78bc88[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{3}: merge origin/develop: Fast-forward
+[33m41bc388[m HEAD@{4}: checkout: moving from feature/combatOmar to develop
+[33m033e93d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/combatOmar[m[33m)[m HEAD@{5}: merge origin/develop: Merge made by the 'ort' strategy.
+[33m72ea3c3[m HEAD@{6}: commit: Sauvegarde des modifs
+[33m5720e4d[m[33m ([m[1;31morigin/feature/combatOmar[m[33m)[m HEAD@{7}: checkout: moving from develop to feature/combatOmar
+[33m41bc388[m HEAD@{8}: merge origin/develop: Fast-forward
+[33m5aa5c92[m HEAD@{9}: checkout: moving from feature/combatOmar to develop
+[33m5720e4d[m[33m ([m[1;31morigin/feature/combatOmar[m[33m)[m HEAD@{10}: commit: Correction des combat service et controller
+[33mae23141[m HEAD@{11}: commit: Ajout des controller et service pour les combats
+[33m307ee31[m HEAD@{12}: checkout: moving from develop to feature/combatOmar
+[33m5aa5c92[m HEAD@{13}: commit: Correction du parametre de roulette
+[33m307ee31[m HEAD@{14}: checkout: moving from feature/combatOmar to develop
+[33m307ee31[m HEAD@{15}: checkout: moving from develop to feature/combatOmar
+[33m307ee31[m HEAD@{16}: checkout: moving from feature/combatOmar to develop
+[33m307ee31[m HEAD@{17}: checkout: moving from develop to feature/combatOmar
+[33m307ee31[m HEAD@{18}: commit: Changement dans le commentaire d'erreur de roulette
+[33m01c865a[m HEAD@{19}: merge origin/develop: Fast-forward
+[33mec73817[m HEAD@{20}: merge origin/develop: Fast-forward
+[33m2e6121c[m HEAD@{21}: merge origin/develop: Fast-forward
+[33m0a05f78[m HEAD@{22}: merge origin/develop: Fast-forward
+[33m192d377[m HEAD@{23}: checkout: moving from develop to develop
+[33m192d377[m HEAD@{24}: branch: Reset to origin/develop
+[33m192d377[m HEAD@{25}: checkout: moving from main to develop
+[33meeb95f2[m[33m ([m[1;32mmain[m[33m)[m HEAD@{26}: clone: from https://github.com/POO3-2025/Groupe-G.git
