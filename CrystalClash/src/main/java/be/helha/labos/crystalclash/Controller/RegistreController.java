@@ -60,5 +60,18 @@ public class RegistreController {
         }
     }
 
+    //Ajout de ces setters pour les tests.
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public void setRegistreService(RegistreService registreService) {
+        this.registreService = registreService;
+    }
+
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
 }
 

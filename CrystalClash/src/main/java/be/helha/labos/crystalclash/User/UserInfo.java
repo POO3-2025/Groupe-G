@@ -2,6 +2,7 @@ package be.helha.labos.crystalclash.User;
 
 public class UserInfo {
     private String username;
+    private boolean isConnected; //Rajout pour le boolean
     private int level;
     private int cristaux;
     private String selectedCharacter;
@@ -13,5 +14,7 @@ public class UserInfo {
     public void setLevel(int level) { this.level = level; }
     public void setCristaux(int cristaux) { this.cristaux = cristaux; }
     public void setSelectedCharacter(String selectedCharacter) { this.selectedCharacter = selectedCharacter; }
+    public boolean isConnected() {   return isConnected; }
+    public void setConnected(boolean connected) { this.isConnected = connected;}
 
 }

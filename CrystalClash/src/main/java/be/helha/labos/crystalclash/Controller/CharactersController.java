@@ -73,35 +73,44 @@ public class CharactersController {
     }
 
 
-    /**
-     * @param username
-     * Obtenir le perso du user
-     * */
     @GetMapping("/{username}")
-    public ResponseEntity<String> getCharacter(@PathVariable String username) {
+    public ResponseEntity<Map<String, Object>> getCharacter(@PathVariable String username) {
         String characterType = characterService.getCharacterForUser(username);
+
         if (characterType == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Aucun personnage trouvé pour l'utilisateur : " + username);
+                    .body(Map.of("message", "Aucun personnage trouvé", "data", null));
         }
-        return ResponseEntity.ok(characterType);
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Personnage récupéré avec succès !",
+                "data", characterType
+        ));
     }
 
     /**
      * @param username
-     *  recup le backPack du perso avec le username
+     * @return
+     * @throws Exception
+     * Récupérer le backpack du personnage
      * */
     @GetMapping("/{username}/backpack")
-    public ResponseEntity<?> getBackpack(@PathVariable String username) {
+    public ResponseEntity<Map<String, Object>> getBackpack(@PathVariable String username) {
         try {
             BackPack backpack = characterService.getBackPackForCharacter(username);
-            return ResponseEntity.ok(backpack.getObjets()); // retourne la liste d'objets
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Backpack récupéré avec succès",
+                    "data", backpack.getObjets()
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erreur lors de la récupération du backpack : " + e.getMessage());
+                    .body(Map.of(
+                            "message", "Erreur lors de la récupération du backpack : " + e.getMessage(),
+                            "data", null
+                    ));
         }
     }
-
 
     /**
      * @param username
@@ -111,12 +120,10 @@ public class CharactersController {
     public ResponseEntity<ApiReponse> addObjectToBackpack(@PathVariable String username, @RequestBody Map<String, String> payload) {
         String name = payload.get("name");
         String type = payload.get("type");
-
         if (name == null || type == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiReponse("Name et type sont requis.", null));
         }
-
         ApiReponse response = characterService.addObjectToBackPack(username, name, type);
         return ResponseEntity.ok(response);
     }
@@ -127,15 +134,32 @@ public class CharactersController {
     @PostMapping("/{username}/backpack/remove")
     public ResponseEntity<ApiReponse> removeObjectFromBackpack(@PathVariable String username, @RequestBody Map<String, String> payload) {
         String name = payload.get("name");
-
-
         if (name == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiReponse("Name est requis.", null));
         }
-
         ApiReponse response = characterService.removeObjectFromBackPack(username, name);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * @param username
+     * @return
+     * @throws Exception
+     * Récupérer le personnage sélectionné pour l'utilisateur
+     * */
+    @PostMapping("/{username}/backpack/coffre/add")
+    public ResponseEntity<ApiReponse> addObjectToCoffreInBackPack(@PathVariable String username, @RequestBody Map<String, String> payload) { {
+            String name = payload.get("name");
+            String type = payload.get("type");
+
+            if (name == null || type == null) {
+                return ResponseEntity.badRequest().body(new ApiReponse("Nom et type sont requis.", null));
+            }
+
+            ApiReponse response = characterService.addObjectToCoffre(username, name, type);
+            return ResponseEntity.ok(response);
+        }
     }
 
 

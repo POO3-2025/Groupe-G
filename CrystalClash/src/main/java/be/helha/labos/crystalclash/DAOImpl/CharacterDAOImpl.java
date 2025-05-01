@@ -19,6 +19,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class CharacterDAOImpl implements CharacterDAO {
@@ -210,10 +211,43 @@ public class CharacterDAOImpl implements CharacterDAO {
                         doc.append("bonusATK", potion.getBonusATK());
                     }
                     case "coffredesjoyaux" -> {
-                        // Pas de champs supplémentaires pour l’instant
+                        CoffreDesJoyaux coffre = (CoffreDesJoyaux) obj;
+                        List<Document> contenuDocs = new ArrayList<>();
+                        for (ObjectBase item : coffre.getContenu()) {
+                            Document itemDoc = new Document()
+                                    .append("name", item.getName())
+                                    .append("type", item.getType())
+                                    .append("price", item.getPrice())
+                                    .append("requiredLevel", item.getRequiredLevel());
+
+                            // Ajouter les champs spécifiques selon le type
+                            switch (item.getType().toLowerCase()) {
+                                case "weapon" -> {
+                                    Weapon weapon = (Weapon) item;
+                                    itemDoc.append("reliability", weapon.getReliability())
+                                            .append("damage", weapon.getDamage());
+                                }
+                                case "armor" -> {
+                                    Armor armor = (Armor) item;
+                                    itemDoc.append("reliability", armor.getReliability())
+                                            .append("bonusPV", armor.getBonusPV());
+                                }
+                                case "healingpotion" -> {
+                                    HealingPotion potion = (HealingPotion) item;
+                                    itemDoc.append("heal", potion.getHeal());
+                                }
+                                case "potionofstrenght" -> {
+                                    PotionOfStrenght potion = (PotionOfStrenght) item;
+                                    itemDoc.append("bonusATK", potion.getBonusATK());
+                                }
+                            }
+
+                            contenuDocs.add(itemDoc);
+                        }
+                        doc.append("contenu", contenuDocs);
                     }
                     default -> {
-                        System.err.println("⚠️ Type d'objet inconnu : " + obj.getType());
+                        System.err.println("Type d'objet inconnu : " + obj.getType());
                     }
                 }
 
@@ -251,23 +285,71 @@ public class CharacterDAOImpl implements CharacterDAO {
                 return new ApiReponse("Backpack plein !", null);
             }
 
-            ObjectBase objectToAdd = inventory.getObjets().stream()
+            ObjectBase objectToAdd = null;
+            boolean isCoffre = false; // Pour savoir si c'était un coffre ou un simple objet
+
+            // Chercher directement dans l'inventaire
+            objectToAdd = inventory.getObjets().stream()
                     .filter(obj -> obj.getName().equals(name) && obj.getType().equals(type))
                     .findFirst()
                     .orElse(null);
 
+            // 2. Si pas trouvé directement => chercher dans les coffres
             if (objectToAdd == null) {
-                return new ApiReponse("Objet non trouvé dans l'inventaire.", null);
+                for (ObjectBase obj : inventory.getObjets()) {
+                    if (obj instanceof CoffreDesJoyaux) {
+                        CoffreDesJoyaux coffre = (CoffreDesJoyaux) obj;
+
+                        ObjectBase foundInCoffre = coffre.getContenu().stream()
+                                .filter(o -> o.getName().equals(name) && o.getType().equals(type))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (foundInCoffre != null) {
+                            coffre.getContenu().remove(foundInCoffre); // Retire de l'intérieur du coffre
+                            objectToAdd = foundInCoffre;
+                            break;
+                        }
+
+                        // Si le coffre lui-même correspond
+                        if (coffre.getName().equals(name) && coffre.getType().equals(type)) {
+                            CoffreDesJoyaux copie = new CoffreDesJoyaux();
+                            copie.setName(coffre.getName());
+                            copie.setType(coffre.getType());
+                            copie.setPrice(coffre.getPrice());
+                            copie.setRequiredLevel(coffre.getRequiredLevel());
+                            copie.setReliability(coffre.getReliability());
+                            copie.setContenu(new ArrayList<>(coffre.getContenu())); // Deep copy du contenu
+
+                            objectToAdd = copie;
+                            isCoffre = true;
+                            break;
+                        }
+                    }
+                }
             }
 
+            if (objectToAdd == null) {
+                return new ApiReponse("Objet non trouvé dans l'inventaire ni dans un coffre.", null);
+            }
+
+            // 3. Ajouter au backpack
             if (!backpack.ajouterObjet(objectToAdd)) {
                 return new ApiReponse("Erreur lors de l'ajout de l'objet au backpack.", null);
             }
 
-            inventory.retirerObjet(objectToAdd);
+            // 4. Retirer de l'inventaire uniquement si ce n'était pas un objet du coffre
+            if (!isCoffre) {
+                inventory.retirerObjet(objectToAdd);
+            } else {
+                // Si c'était un coffre, retirer l'original
+                inventory.getObjets().removeIf(obj -> obj instanceof CoffreDesJoyaux && obj.getName().equals(name));
+            }
+
+            // 5. Sauvegarder
             inventoryService.saveInventoryForUser(username, inventory);
             saveBackPackForCharacter(username, backpack);
-            System.out.println("Objet ajouté au backpack : " + objectToAdd.getName());
+
             return new ApiReponse("Objet ajouté au backpack avec succès !", backpack);
 
         } catch (Exception e) {
@@ -320,7 +402,59 @@ public class CharacterDAOImpl implements CharacterDAO {
         } catch (Exception e) {
             return new ApiReponse("Erreur lors de la suppression de l'objet du backpack : " + e.getMessage(), null);
         }
-    }}
+    }
+
+    @Override
+    public ApiReponse addObjectToCoffre(String username, String name, String type) {
+        try {
+             BackPack backPack = getBackPackForCharacter(username);
+            if (backPack == null) {
+                return new ApiReponse("BackPack introuvable.", null);
+            }
+
+            ObjectBase objectToAdd = null;
+            CoffreDesJoyaux coffre = null;
+
+            // Parcours des objets pour chercher l'objet ciblé et le coffre
+            for (ObjectBase obj : backPack.getObjets()) {
+                if (obj.getName().equalsIgnoreCase(name) && obj.getType().equalsIgnoreCase(type)) {
+                    objectToAdd = obj;
+                }
+
+                if (obj instanceof CoffreDesJoyaux) {
+                    coffre = (CoffreDesJoyaux) obj;
+                }
+            }
+            if (objectToAdd == null) {
+                return new ApiReponse("Objet non trouvé dans le BackPack.", null);
+            }
+
+            if (coffre == null) {
+                return new ApiReponse("Aucun Coffre des Joyaux trouvé dans votre BackPack.", null);
+            }
+
+            if (coffre.getReliability() <= 0) {
+                return new ApiReponse("Le coffre est brisé et ne peut plus être utilisé.", null);
+            }
+
+            if (coffre.getContenu().size() >= coffre.getMaxCapacity()) {
+                return new ApiReponse("Le coffre est plein.", null);
+            }
+
+            backPack.getObjets().remove(objectToAdd);
+
+            coffre.getContenu().add(objectToAdd);
+
+            saveBackPackForCharacter(username, backPack);
+
+            return new ApiReponse("Objet ajouté au BackPack des Joyaux avec succès.", null);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ApiReponse("Erreur lors de l'ajout au coffre : " + e.getMessage(), null);
+        }
+    }
+}
 
 
 

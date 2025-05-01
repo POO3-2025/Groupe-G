@@ -37,7 +37,7 @@ public class RouletteService {
             .orElseThrow(() -> new RuntimeException("User pas trouvé"));
 
         if (!CanPlayToDay(username)) {
-            throw new RuntimeException ("Déjà joué aujourd'hui coquin");
+            throw new RuntimeException ("Déjà joué aujourd'hui gourmand va !");
         }
         if (user.getCristaux() < COUT_PARTICIPATION) {
             throw new RuntimeException ("Pas assez de cristaux");
@@ -100,4 +100,16 @@ public class RouletteService {
 
 
     }
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
+    public void setRouletteDAO(RouletteDAO rouletteDAO) {
+        this.rouletteDAO = rouletteDAO;
+    }
+
 }

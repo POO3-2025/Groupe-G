@@ -8,7 +8,9 @@ public class CoffreDesJoyaux extends ObjectBase {
     private final int CAPACITE_MAX = 10;
 
     public CoffreDesJoyaux() {
-        super("Coffre des Joyaux", 250, 1, 1);
+        super("Coffre des Joyaux", 25, 1, 1);
+
+
         this.contenu = new ArrayList<>();
     }
 
@@ -25,6 +27,7 @@ public class CoffreDesJoyaux extends ObjectBase {
         return true;
     }
 
+
     public List<ObjectBase> getContenu() {
         return contenu;
     }
@@ -32,4 +35,12 @@ public class CoffreDesJoyaux extends ObjectBase {
     public int getMaxCapacity() {
         return CAPACITE_MAX;
     }
+    public int setCapaciteMax(int maxCapacity) {
+        return this.CAPACITE_MAX;
+    }
+
+    public void setContenu(List<ObjectBase> contenu) {
+        this.contenu = contenu;
+    }
+
 }

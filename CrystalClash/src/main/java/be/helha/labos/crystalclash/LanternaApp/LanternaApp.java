@@ -10,7 +10,7 @@ import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Services.HttpService;
 import be.helha.labos.crystalclash.User.UserInfo;
-import be.helha.labos.crystalclash.User.UserManger;
+import be.helha.labos.crystalclash.User.ConnectedUsers;
 import be.helha.labos.crystalclash.server_auth.Session;
 import com.google.gson.*;
 import com.googlecode.lanterna.SGR;
@@ -19,7 +19,6 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.Window.Hint;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
-import com.googlecode.lanterna.gui2.dialogs.MessageDialogButton;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import be.helha.labos.crystalclash.Combat.CombatManager;
@@ -122,7 +121,7 @@ public class LanternaApp {
                     Session.setUsername(usernameBox.getText());
                     // Ajout de l'utilisateur dans la liste des connectés après une connexion réussie
                     String username = usernameBox.getText();
-                    UserManger.addUser(username);  // Ajoute le joueur à la liste des utilisateurs connectés
+                    ConnectedUsers.addUser(username);  // Ajoute le joueur à la liste des utilisateurs connectés
                     try {
                         //recoit un {"username":"toto","level":1,"cristaux":100}
                         //Gson pour le déserialiser en insatnce de userInfo
@@ -226,38 +225,66 @@ public class LanternaApp {
      * @param gui
      */
     private static void afficherMenuPrincipal(WindowBasedTextGUI gui) {
-        BasicWindow menuWindow = new BasicWindow("Menu Principal");
+        BasicWindow menuWindow = new BasicWindow();
         menuWindow.setHints(Arrays.asList(Hint.CENTERED));
 
         Panel mainPanel = new Panel(new GridLayout(1));
         mainPanel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
 
-        mainPanel.addComponent(new Label(" Bienvenue dans Crystal Clash, " + Session.getUsername() + " !"));
-        UserInfo info = Session.getUserInfo();
-        //if (info != null) {
-        //mainPanel.addComponent(new Label(" Niveau : " + info.getLevel()));
-        //mainPanel.addComponent(new Label(" Cristaux : " + info.getCristaux()));
-        // }
+        Label welcomeLabel = new Label(" Bienvenue dans Crystal Clash, " + Session.getUsername() + " !");
+        welcomeLabel.setForegroundColor(new TextColor.RGB(0, 128, 128));
+        welcomeLabel.addStyle(SGR.BOLD);
+        mainPanel.addComponent(welcomeLabel);
+
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
-        mainPanel.addComponent(new Button("1. Voir profil", () -> afficherMonProfil(gui)));
-        mainPanel.addComponent(new Button("2. Voir BackPack", () -> afficherBackPack(gui, () -> {
+        // Section Profil
+        mainPanel.addComponent(createSectionLabel("Profil"));
+        mainPanel.addComponent(new Button("Voir profil", () -> afficherMonProfil(gui)));
+        mainPanel.addComponent(new Button("Voir BackPack", () -> afficherBackPack(gui, () -> {
             afficherBackPack(gui, () -> {}); // on relance une fois pour rafraîchir le contenu
         })));
-        mainPanel.addComponent(new Button("3. Voir personnage", () -> afficherPersonnage(gui)));
-        mainPanel.addComponent(new Button("4. Voir mon inventaire", () -> {
+        mainPanel.addComponent(new Button("Voir personnage", () -> afficherPersonnage(gui)));
+        mainPanel.addComponent(new Button("Voir mon inventaire", () -> {
             displayInventory(gui);
-        }));
-        mainPanel.addComponent(new Button("5. Accéder à la boutique", () -> DisplayShop(gui)));
-        mainPanel.addComponent(new Button("6. Voir mon coffre", () -> afficherCoffre(gui)));
+        }));;
+        mainPanel.addComponent(new Button("Voir mon coffre", () -> afficherCoffre(gui,()-> {
+            afficherCoffre(gui, () -> {});
+        })));
 
-        mainPanel.addComponent(new Button("7. Voir joueurs connectés", () -> DesplayUserConnected(gui)));
-        mainPanel.addComponent(new Button("8. Jouer a la roulette (25 cristaux)", () -> PLayRoulette(gui)));
-        mainPanel.addComponent(new Button("9. Lancer un combat", () -> lancerCombat(gui)));
-        mainPanel.addComponent(new Button("10. Changer de personnage", () -> afficherChoixPersonnage(gui)));
-        mainPanel.addComponent(new Button("11. Se déconnecter", () -> {
-            Session.clear();
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
+
+        // Section Boutique
+        mainPanel.addComponent(createSectionLabel("Boutique"));
+        mainPanel.addComponent(new Button("Accéder à la boutique", () -> DisplayShop(gui)));
+        mainPanel.addComponent(new Button("Jouer à la roulette (25 cristaux)", () -> PLayRoulette(gui)));
+
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
+        // Section Communauté
+        mainPanel.addComponent(createSectionLabel("Communauté"));
+        mainPanel.addComponent(new Button("Voir joueurs connectés", () -> DesplayUserConnected(gui)));
+        mainPanel.addComponent(new Button("Lancer un matchMaking", () -> MatchMaking(gui)));
+
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
+        // Section Combat
+        mainPanel.addComponent(createSectionLabel("Combat"));
+        //mainPanel.addComponent(new Button("Lancer un combat", () -> lancerCombat(gui)));
+        mainPanel.addComponent(new Button("Changer de personnage", () -> afficherChoixPersonnage(gui)));
+
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
+
+        mainPanel.addComponent(new Button("Se déconnecter", () -> {
+            try{
+                HttpService.logout(Session.getUsername(), Session.getToken());
+            } catch (Exception e) {
+                System.out.println("Erreur lors de la déconnexion");
+            }
+
             MessageDialog.showMessageDialog(gui, "Déconnexion", "Vous avez été déconnecté !");
             gui.getActiveWindow().close();
             afficherEcranAccueil(gui, gui.getScreen());
@@ -265,6 +292,17 @@ public class LanternaApp {
 
         menuWindow.setComponent(mainPanel);
         gui.addWindowAndWait(menuWindow);
+    }
+    /**
+     * Affiche les section du menu
+     * avec le style et la couleur
+     * @param text => le texte de la section
+     */
+    private static Label createSectionLabel(String text) {
+        Label label = new Label("─ " + text + " ─");
+        label.setForegroundColor(new TextColor.RGB(50, 50, 50));
+        label.addStyle(SGR.BOLD);
+        return label;
     }
 
     /**
@@ -278,25 +316,25 @@ public class LanternaApp {
 
         Panel panel = new Panel(new GridLayout(1));
         panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
+        try{
+            Set<String> connectedUsers = HttpService.getConnectedUsers();
 
-        // Récupérer la liste des utilisateurs connectés
-        Set<String> connectedUsers = UserManger.getConnectedUsers();
-        System.out.println("Utilisateurs connectés : " + connectedUsers);
-
-        if (connectedUsers.isEmpty()) {
-            panel.addComponent(new Label("Aucun joueur connecté."));
-        } else {
-            panel.addComponent(new Label("Joueurs connectés :"));
-            for (String username : connectedUsers) {
-                panel.addComponent(new Label(username));
+            if (connectedUsers.isEmpty()) {
+                panel.addComponent(new Label("Aucun joueur connecté."));
+            } else {
+                panel.addComponent(new Label("Joueurs connectés :"));
+                for (String username : connectedUsers) {
+                    panel.addComponent(new Label(username));
+                }
             }
+
+            panel.addComponent(new Button("Retour", connectedUsersWindow::close));
+            connectedUsersWindow.setComponent(panel);
+            gui.addWindowAndWait(connectedUsersWindow);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        panel.addComponent(new Button("Retour", connectedUsersWindow::close));
-        connectedUsersWindow.setComponent(panel);
-        gui.addWindowAndWait(connectedUsersWindow);
     }
-
     /**
      * Affiche la fenêtre de choix de personnage
      *
@@ -364,11 +402,6 @@ public class LanternaApp {
         };
     }
 
-    /**
-     * Affiche le personnage du joueur
-     *
-     * @param gui => pour afficher les messages
-     */
     private static void afficherPersonnage(WindowBasedTextGUI gui) {
         BasicWindow persoWindow = new BasicWindow("Mon Personnage");
         persoWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -380,32 +413,25 @@ public class LanternaApp {
             String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
             JsonElement element = JsonParser.parseString(json);
 
-            if (element.isJsonPrimitive()) {
-                // On suppose que c'est juste un string comme "Troll"
-                String characterType = element.getAsString();
-                panel.addComponent(new Label("Type : " + characterType));
-
-            } else if (element.isJsonObject()) {
+            if (element.isJsonObject()) {
                 JsonObject obj = element.getAsJsonObject();
 
-                if (obj.has("message")) {
-                    panel.addComponent(new Label("Level insuffisant : " + obj.get("message").getAsString()));
-                } else {
-                    panel.addComponent(new Label("Personnage non trouvé."));
+                if (obj.has("data") && !obj.get("data").isJsonNull()) {
+                    panel.addComponent(new Label("Type : " + obj.get("data").getAsString()));
                 }
+
             } else {
-                panel.addComponent(new Label("Format de réponse inconnu."));
+                panel.addComponent(new Label("Réponse invalide du serveur."));
             }
+
         } catch (Exception e) {
             panel.addComponent(new Label("Erreur de communication : " + e.getMessage()));
         }
-
 
         panel.addComponent(new Button("Retour", persoWindow::close));
         persoWindow.setComponent(panel);
         gui.addWindowAndWait(persoWindow);
     }
-
     /**
      * Affiche l'inventaire du joueur
      *
@@ -621,7 +647,7 @@ public class LanternaApp {
      *
      * @param gui => pour afficher les messages
      */
-    private static void afficherBackPack(WindowBasedTextGUI gui, Runnable refreshBackpack ) {
+    private static void afficherBackPack(WindowBasedTextGUI gui, Runnable refreshBackpack) {
         BasicWindow window = new BasicWindow("Mon BackPack");
         window.setHints(Arrays.asList(Hint.CENTERED));
 
@@ -630,7 +656,19 @@ public class LanternaApp {
 
         try {
             String json = HttpService.getBackpack(username, Session.getToken());
-            ObjectBase[] objets = new Gson().fromJson(json, ObjectBase[].class);
+
+            // Parse le JSON pour extraire "data"
+            JsonObject response = JsonParser.parseString(json).getAsJsonObject();
+            JsonArray dataArray = response.getAsJsonArray("data");
+
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
+
+            ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
+
+            boolean hasCoffre = Arrays.stream(objets)
+                    .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
 
             if (objets.length == 0) {
                 panel.addComponent(new Label("Votre BackPack est vide."));
@@ -645,10 +683,10 @@ public class LanternaApp {
                         Panel detailsPanel = new Panel(new GridLayout(1));
                         detailsPanel.addComponent(new Label(obj.getDetails()));
                         detailsPanel.addComponent(new EmptySpace());
+
                         detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
                             try {
                                 String reponse = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
-
                                 JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
                                 String message = result.get("message").getAsString();
                                 MessageDialog.showMessageDialog(gui, "Retrait", message);
@@ -659,13 +697,29 @@ public class LanternaApp {
                                 MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer du backPack : " + e.getMessage());
                             }
                         }));
+
+                        if (hasCoffre) {
+                            detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
+                                try {
+                                    String result = HttpService.putInCoffreBackPack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                    JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
+                                    String message = resultJson.get("message").getAsString();
+                                    MessageDialog.showMessageDialog(gui, "Coffre", message);
+                                    detailsWindow.close();
+                                    refreshBackpack.run();
+                                } catch (Exception e) {
+                                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le coffre : " + e.getMessage());
+                                }
+                            }));
+                        }
+
                         detailsPanel.addComponent(new Button("Retour", detailsWindow::close));
                         detailsWindow.setComponent(detailsPanel);
                         gui.addWindowAndWait(detailsWindow);
                     }));
-
                 }
             }
+
         } catch (Exception e) {
             panel.addComponent(new Label("Erreur : " + e.getMessage()));
         }
@@ -674,8 +728,6 @@ public class LanternaApp {
         window.setComponent(panel);
         gui.addWindowAndWait(window);
     }
-
-
 
     private static void PLayRoulette (WindowBasedTextGUI gui){
         try{
@@ -718,36 +770,66 @@ public class LanternaApp {
      *
      * @param gui => pour afficher les messages
      */
-    private static void afficherCoffre(WindowBasedTextGUI gui) {
+    private static void afficherCoffre(WindowBasedTextGUI gui, Runnable refreshCoffre) {
         BasicWindow coffreWindow = new BasicWindow("Mon Coffre");
         coffreWindow.setHints(Arrays.asList(Hint.CENTERED));
+
         Panel panel = new Panel(new GridLayout(1));
         panel.addComponent(new Label("Coffre de " + Session.getUsername()));
 
         try {
-            String json = HttpService.getCoffre(Session.getUsername(), Session.getToken());
-            // Tentative de désérialisation
-            CoffreDesJoyaux coffre = new Gson().fromJson(json, CoffreDesJoyaux.class);
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
 
-            if (coffre == null) {
-                panel.addComponent(new Label("Vous ne possédez pas encore de Coffre des Joyaux."));
-            } else if (coffre.getContenu() == null || coffre.getContenu().isEmpty()) {
-                panel.addComponent(new Label("Votre coffre est vide."));
-            } else {
-                panel.addComponent(new Label("Contenu du coffre :"));
-                for (ObjectBase obj : coffre.getContenu()) {
-                    String label = obj.getName() + " (" + obj.getType() + ")";
-                    panel.addComponent(new Button(label, () -> {
-                        afficherDetailsObjet(gui, obj, () -> {
-                            coffreWindow.close();
-                            afficherCoffre(gui);
-                        }, false);
-                    }));
+            String jsonInventaire = HttpService.getInventory(Session.getUsername(), Session.getToken());
+            Inventory inventory = gson.fromJson(jsonInventaire, Inventory.class);
+
+            CoffreDesJoyaux coffre = null;
+            boolean depuisBackpack = false;
+
+            for (ObjectBase obj : inventory.getObjets()) {
+                if (obj instanceof CoffreDesJoyaux) {
+                    coffre = (CoffreDesJoyaux) obj;
+                    break;
                 }
             }
 
+            if (coffre == null) {
+                String jsonBackpack = HttpService.getBackpack(Session.getUsername(), Session.getToken());
+                ObjectBase[] objetsBackpack = gson.fromJson(jsonBackpack, ObjectBase[].class);
+                for (ObjectBase obj : objetsBackpack) {
+                    if (obj instanceof CoffreDesJoyaux) {
+                        coffre = (CoffreDesJoyaux) obj;
+                        depuisBackpack = true;
+                        break;
+                    }
+                }
+            }
+
+            if (coffre != null) {
+                List<ObjectBase> contenu = coffre.getContenu();
+                if (contenu == null || contenu.isEmpty()) {
+                    panel.addComponent(new Label("Le coffre est vide."));
+                } else {
+                    panel.addComponent(new Label("Contenu :"));
+                    panel.addComponent(new Label("Nombre de place : " + coffre.getContenu().size() + " / " + coffre.getMaxCapacity()));
+                    for (ObjectBase obj : contenu) {
+                        String label = obj.getName() + " (" + obj.getType() + ")";
+                        boolean finalDepuisBackpack = depuisBackpack;
+                        panel.addComponent(new Button(label, () -> {
+                            detailContenuCoffre(gui, obj, finalDepuisBackpack, () -> {
+                                coffreWindow.close();
+                                afficherCoffre(gui, refreshCoffre);
+                            });
+                        }));
+                    }
+                }
+            } else {
+                panel.addComponent(new Label("Vous ne possédez pas encore de Coffre des Joyaux."));
+            }
+
         } catch (Exception e) {
-            e.printStackTrace(); // log pour console
             panel.addComponent(new Label("Erreur lors du chargement du coffre : " + e.getMessage()));
         }
 
@@ -756,65 +838,78 @@ public class LanternaApp {
         gui.addWindowAndWait(coffreWindow);
     }
 
+    public static void detailContenuCoffre(WindowBasedTextGUI gui, ObjectBase obj, Boolean depuisBackpack, Runnable refreshCoffre) {
+        BasicWindow detailsWindow = new BasicWindow("Détails de l'objet dans le coffre");
+        detailsWindow.setHints(Arrays.asList(Hint.CENTERED));
 
-    public static void lancerCombat(WindowBasedTextGUI gui) {
-        BasicWindow combatWindow = new BasicWindow("Lancer un combat");
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label(obj.getDetails()));
+        panel.addComponent(new EmptySpace());
+        if (depuisBackpack) {
+            panel.addComponent(new Button("Mettre dans l'inventaire", () -> {
+                try {
+                    String result = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                    String message = JsonParser.parseString(result).getAsJsonObject().get("message").getAsString();
+                    MessageDialog.showMessageDialog(gui, "Info", message);
+                    detailsWindow.close();
+                    refreshCoffre.run();
+                } catch (Exception e) {
+                    MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                }
+            }));
+        } else {
+            panel.addComponent(new Button("Mettre dans le BackPack", () -> {
+                try {
+                    String result = HttpService.putInBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                    String message = JsonParser.parseString(result).getAsJsonObject().get("message").getAsString();
+                    MessageDialog.showMessageDialog(gui, "Info", message);
+                    detailsWindow.close();
+                    refreshCoffre.run();
+                } catch (Exception e) {
+                    MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                }
+            }));
+        }
+        panel.addComponent(new Button("Retour", detailsWindow::close));
+        detailsWindow.setComponent(panel);
+        gui.addWindowAndWait(detailsWindow);
+    }
+
+
+    public static void MatchMaking(WindowBasedTextGUI gui) {
+        BasicWindow combatWindow = new BasicWindow("Matchmaking");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
 
         Panel panel = new Panel(new GridLayout(1));
-        panel.addComponent(new Label("Recherche d'un adversaire..."));
+        Label loadingLabel = new Label("Recherche d'un adversaire...");
+        panel.addComponent(loadingLabel);
 
-        // Récupère la liste des utilisateurs connectés
-        Set<String> connectedUsers = UserManger.getConnectedUsers();
-        System.out.println("Utilisateurs connectés : " + connectedUsers);
-
-        boolean opponentFound = false;
-
-        // On filtre les utilisateurs connectés pour ne pas inclure le joueur actuel
-        List<String> otherPlayers = new ArrayList<>();
-        for (String username : connectedUsers) {
-            if (!username.equals(Session.getUsername())) { // Ne pas se battre contre soi-même
-                otherPlayers.add(username);
-            }
-        }
-
-        if (otherPlayers.isEmpty()) {
-            panel.addComponent(new Label("Aucun autre joueur connecté."));
-        } else {
-            // Sélectionner un joueur aléatoire
-            Random rand = new Random();
-            String opponent = otherPlayers.get(rand.nextInt(otherPlayers.size()));
-
-            try {
-                // Lancer le combat côté serveur
-                String resultJson = HttpService.startCombat(Session.getUsername(), Session.getToken());
-                JsonObject result = JsonParser.parseString(resultJson).getAsJsonObject();
-                String message = result.get("message").getAsString();
-
-                // Afficher le message + lancer la fenêtre de combat
-                panel.addComponent(new Label("Combat lancé contre : " + opponent));
-                MessageDialog.showMessageDialog(gui, "Combat", message);
-
-                // Enregistrer le combat avec le gestionnaire
-                CombatManager.enregistrerCombat(opponent, Session.getUsername());
-
-                // Ouvrir la fenêtre de combat avec l'adversaire
-                openCombatWindow(gui, opponent);  // Cette fonction ouvre la fenêtre de combat
-
-                opponentFound = true;
-            } catch (Exception e) {
-                MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de lancer le combat contre " + opponent + " : " + e.getMessage());
-            }
-        }
-
-        if (!opponentFound) {
-            panel.addComponent(new Label("Aucun adversaire disponible pour le moment."));
-        }
-
-        panel.addComponent(new Button("Retour", combatWindow::close));
         combatWindow.setComponent(panel);
-        gui.addWindowAndWait(combatWindow);
+        gui.addWindow(combatWindow);
+       //lancage en arriere plan pour evite de figer
+        //Thread normal quoi ca lance un new processus en arriere plan
+        new Thread(() -> {
+            try {
+                Thread.sleep(2000); //  pause pour simuler un chargement
+
+                //Thread secondaire
+                String opponent = HttpService.matcjmaking(Session.getUsername(), Session.getToken());
+
+                //Une fois trouver ici il aura la modif de linterface graphique
+                //Car le thread secondaire(fait la recherche) ne peut pas modif de lui meme
+                gui.getGUIThread().invokeLater(() -> {
+                    combatWindow.close();
+                    openCombatWindow(gui, opponent); // demarre directement le combat  encore rien la
+                });
+            } catch (Exception e) {
+                gui.getGUIThread().invokeLater(() -> { //Serveur repond
+                    MessageDialog.showMessageDialog(gui, "Erreur", "Adversaire introuvable " + e.getMessage());
+                    combatWindow.close();
+                });
+            }
+        }).start();
     }
+
 
     /**
      * Ouvre la fenêtre de combat
@@ -835,7 +930,6 @@ public class LanternaApp {
         combatWindow.setComponent(panel);
         gui.addWindowAndWait(combatWindow);  // Affiche la fenêtre de combat
     }
-
 
 
 }

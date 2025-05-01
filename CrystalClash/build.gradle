@@ -58,5 +58,8 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 springBoot {
+	mainClass = 'be.helha.labos.crystalclash.server_auth.CrystalClashApplication'
+}
+springBoot {
   mainClass = 'be.helha.labos.crystalclash.server_auth.CrystalClashApplication'
 }

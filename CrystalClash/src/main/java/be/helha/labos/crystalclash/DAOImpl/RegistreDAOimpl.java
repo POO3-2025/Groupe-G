@@ -38,11 +38,12 @@ public class RegistreDAOimpl implements RegistreDAO{
     public void insertUser(String username, String hashedPassword) throws Exception {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
             PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO users (username, password, level, cristaux) VALUES (?, ?, ?, ?)");
+                    "INSERT INTO users (username, password, level, cristaux,is_connected) VALUES (?, ?, ?, ?,?)");
             stmt.setString(1, username);
             stmt.setString(2, hashedPassword);
             stmt.setInt(3, 1);
             stmt.setInt(4, 100);
+            stmt.setBoolean(5, false);//false direct car a l'inscription le user est co instante
             stmt.executeUpdate();
         }
     }
