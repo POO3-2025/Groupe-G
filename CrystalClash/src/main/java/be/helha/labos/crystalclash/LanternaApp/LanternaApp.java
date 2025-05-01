@@ -402,11 +402,6 @@ public class LanternaApp {
         };
     }
 
-    /**
-     * Affiche le personnage du joueur
-     *
-     * @param gui => pour afficher les messages
-     */
     private static void afficherPersonnage(WindowBasedTextGUI gui) {
         BasicWindow persoWindow = new BasicWindow("Mon Personnage");
         persoWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -418,32 +413,29 @@ public class LanternaApp {
             String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
             JsonElement element = JsonParser.parseString(json);
 
-            if (element.isJsonPrimitive()) {
-                // On suppose que c'est juste un string comme "Troll"
-                String characterType = element.getAsString();
-                panel.addComponent(new Label("Type : " + characterType));
-
-            } else if (element.isJsonObject()) {
+            if (element.isJsonObject()) {
                 JsonObject obj = element.getAsJsonObject();
 
                 if (obj.has("message")) {
-                    panel.addComponent(new Label("Level insuffisant : " + obj.get("message").getAsString()));
-                } else {
-                    panel.addComponent(new Label("Personnage non trouvé."));
+                    panel.addComponent(new Label(obj.get("message").getAsString()));
                 }
+
+                if (obj.has("data") && !obj.get("data").isJsonNull()) {
+                    panel.addComponent(new Label("Type : " + obj.get("data").getAsString()));
+                }
+
             } else {
-                panel.addComponent(new Label("Format de réponse inconnu."));
+                panel.addComponent(new Label("Réponse invalide du serveur."));
             }
+
         } catch (Exception e) {
             panel.addComponent(new Label("Erreur de communication : " + e.getMessage()));
         }
-
 
         panel.addComponent(new Button("Retour", persoWindow::close));
         persoWindow.setComponent(panel);
         gui.addWindowAndWait(persoWindow);
     }
-
     /**
      * Affiche l'inventaire du joueur
      *
@@ -668,10 +660,16 @@ public class LanternaApp {
 
         try {
             String json = HttpService.getBackpack(username, Session.getToken());
+
+            // Parse le JSON pour extraire "data"
+            JsonObject response = JsonParser.parseString(json).getAsJsonObject();
+            JsonArray dataArray = response.getAsJsonArray("data");
+
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                     .create();
-            ObjectBase[] objets = gson.fromJson(json, ObjectBase[].class);
+
+            ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
 
             boolean hasCoffre = Arrays.stream(objets)
                     .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
@@ -689,6 +687,7 @@ public class LanternaApp {
                         Panel detailsPanel = new Panel(new GridLayout(1));
                         detailsPanel.addComponent(new Label(obj.getDetails()));
                         detailsPanel.addComponent(new EmptySpace());
+
                         detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
                             try {
                                 String reponse = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
@@ -702,6 +701,7 @@ public class LanternaApp {
                                 MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer du backPack : " + e.getMessage());
                             }
                         }));
+
                         if (hasCoffre) {
                             detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
                                 try {
@@ -716,12 +716,14 @@ public class LanternaApp {
                                 }
                             }));
                         }
+
                         detailsPanel.addComponent(new Button("Retour", detailsWindow::close));
                         detailsWindow.setComponent(detailsPanel);
                         gui.addWindowAndWait(detailsWindow);
                     }));
                 }
             }
+
         } catch (Exception e) {
             panel.addComponent(new Label("Erreur : " + e.getMessage()));
         }

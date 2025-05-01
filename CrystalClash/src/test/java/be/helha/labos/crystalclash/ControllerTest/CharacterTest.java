@@ -17,8 +17,16 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+import static  org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.mockito.MockedStatic;
+
+import java.util.List;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.mockito.MockedStatic;
+
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = CrystalClashApplication.class)
@@ -62,11 +70,10 @@ public class CharacterTest {
 
     }
 
-    //Clean la roulette avant
     @BeforeEach
-    public void cleanupMongoRoulette() {
+    public void cleanupMongo() {
         MongoDatabase db = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
-        db.getCollection("Character").deleteMany(new Document()); // supprime tout
+        db.getCollection("Characters").deleteMany(new Document());
     }
 
 
@@ -94,20 +101,11 @@ public class CharacterTest {
         System.out.println("Exécution du test : " + testInfo.getDisplayName());
     }
 
-    /*
-    * Ici faut mocker le HttpService pour le token et autre
-    *Ouverture de Mock pour simuler le HttpService qui est une méthoe statique et fait appel a un Http d'authentification
-    *  mockedStatic.when(() -> et tout le tralala = on dit ce que l'on veut mocker ici c est HttpService.getUserInfo
-    *et toi Estelle tu dis ce que tu veux renvoyer donc la c le user créé en haut la (tu retournes juste le json quoi)
-    * Juste mit aussi un @Component au dessus public class HttpService de HttpServices
-    * Try pour isoler le mock et encapsuler quoi
-    *
-    * */
+
     @Test
     @Order(1)
     @DisplayName("Test de la création d'un personnage")
     @WithMockUser(username = "CharacterTestUser")
-
     public void testSelectCharacter() throws Exception {
         try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
             // Simuler la réponse du service externe
@@ -136,6 +134,40 @@ public class CharacterTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("Personnage sélectionné avec succès !"))
                     .andExpect(jsonPath("$.data").value("Elf"));
+
+            mockMvc.perform(get("/characters/CharacterTestUser")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Personnage récupéré avec succès !"))
+                    .andExpect(jsonPath("$.data").value("Elf"));
+
         }
     }
+
+    @Test
+    @Order(2)
+    @DisplayName("Test de la recperation d'un backpack")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testGetBackpack() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+            // Simuler la réponse du service externe
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+                        {
+                          "username": "CharacterTestUser",
+                          "level": 3,
+                          "cristaux": 100,
+                          "connected": true
+                        }
+                    """);
+
+            mockMvc.perform(get("/characters/CharacterTestUser/backpack")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Backpack récupéré avec succès"))
+                    .andExpect(jsonPath("$.data").isArray());
+        }
+    }
+
 }
