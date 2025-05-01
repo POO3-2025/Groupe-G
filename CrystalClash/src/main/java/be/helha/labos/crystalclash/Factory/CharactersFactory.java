@@ -24,6 +24,17 @@ public class CharactersFactory {
         }
     }
 
+    /** Retourne une instance du personnage en fonction du type **/
+    public static Personnage getCharacterByType(String type) {
+        switch(type.toLowerCase().trim()) {
+            case "elf": return new Elf();
+            case "troll": return new Troll();
+            case "dragon": return new Dragon();  // Tu peux aussi vérifier le niveau ici si nécessaire
+            case "aquaman": return new Aquaman();
+            default: throw new IllegalArgumentException("Type de personnage inconnu: " + type);
+        }
+    }
+
     /*
     * Liste des persos dispo dans le factory
     * List pour parcourir les persos

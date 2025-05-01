@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class LanternaApp {
@@ -272,7 +273,7 @@ public class LanternaApp {
 
         // Section Combat
         mainPanel.addComponent(createSectionLabel("Combat"));
-        //mainPanel.addComponent(new Button("Lancer un combat", () -> lancerCombat(gui)));
+        mainPanel.addComponent(new Button("Lancer un combat", () -> openCombatWindow(gui,"testadversaire")));
         mainPanel.addComponent(new Button("Changer de personnage", () -> afficherChoixPersonnage(gui)));
 
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
@@ -418,6 +419,10 @@ public class LanternaApp {
 
                 if (obj.has("data") && !obj.get("data").isJsonNull()) {
                     panel.addComponent(new Label("Type : " + obj.get("data").getAsString()));
+                    Personnage perso = CharactersFactory.getCharacterByType(obj.get("data").getAsString());
+                    panel.addComponent(new Label("PV : " + perso.getPV()));
+                    panel.addComponent(new Label("Attaque Normale : " + perso.getNameAttackBase()));
+                    panel.addComponent(new Label("Attaque Spéciale : " + perso.getNameAttaqueSpecial()));
                 }
 
             } else {
@@ -914,22 +919,224 @@ public class LanternaApp {
     /**
      * Ouvre la fenêtre de combat
      * @param gui
-     * @param opponent
+     * @param adversaireNom
      */
-    public static void openCombatWindow(WindowBasedTextGUI gui, String opponent) {
-        BasicWindow combatWindow = new BasicWindow("Combat contre " + opponent);
+    private static void openCombatWindow(WindowBasedTextGUI gui, String adversaireNom) {
+        BasicWindow combatWindow = new BasicWindow("Combat");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
 
-        // Crée une nouvelle interface pour le combat
-        Panel panel = new Panel(new GridLayout(1));
-        panel.addComponent(new Label("Combat en cours contre " + opponent + "..."));
+        Panel combatPanel = new Panel(new GridLayout(2));
+        combatPanel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL));
 
-        // Ajouter ici les composants du combat, comme des boutons pour attaquer, défendre, etc.
+        // Panel historique (gauche)
+        Panel historyPanel = new Panel(new GridLayout(1));
+        historyPanel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.FILL));
+        Label historyLabel = new Label("Historique du Combat");
+        historyPanel.addComponent(historyLabel);
+        StringBuilder history = new StringBuilder();
 
-        panel.addComponent(new Button("Quitter", combatWindow::close));  // Permet à l'utilisateur de quitter le combat
-        combatWindow.setComponent(panel);
-        gui.addWindowAndWait(combatWindow);  // Affiche la fenêtre de combat
+        // Initialiser l'historique avec Tour 1
+        history.append("==== TOUR 1 ====\n");
+
+        // Panel stats et actions (droite)
+        Panel statsPanel = new Panel(new GridLayout(1));
+        statsPanel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL));
+
+        Label combatTitle = new Label("🔥 Combat contre " + adversaireNom + " 🔥");
+        combatTitle.setForegroundColor(TextColor.ANSI.RED);
+        combatTitle.addStyle(SGR.BOLD);
+        statsPanel.addComponent(combatTitle);
+
+        Label combatDescription = new Label("Votre adversaire : " + adversaireNom + " - Niveau 5");
+        combatDescription.setForegroundColor(TextColor.ANSI.YELLOW);
+        statsPanel.addComponent(combatDescription);
+
+        // Compteur de tours
+        AtomicInteger tourCounter = new AtomicInteger(1);
+        Label tourLabel = new Label("🕒 Tour : " + tourCounter.get());
+        tourLabel.setForegroundColor(TextColor.ANSI.CYAN);
+        tourLabel.addStyle(SGR.BOLD);
+        statsPanel.addComponent(tourLabel);
+
+        // Infos joueur
+        Panel playerInfoPanel = new Panel(new GridLayout(1));
+        playerInfoPanel.addComponent(new Label("Personnage de " + Session.getUsername()));
+        statsPanel.addComponent(playerInfoPanel);
+
+        AtomicInteger enemyHP = new AtomicInteger(100);
+        Label enemyHealth = new Label(adversaireNom + " santé : " + enemyHP.get() + " HP");
+
+        try {
+            String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
+            JsonElement element = JsonParser.parseString(json);
+
+            if (element.isJsonObject()) {
+                JsonObject obj = element.getAsJsonObject();
+
+                if (obj.has("data") && !obj.get("data").isJsonNull()) {
+                    String characterType = obj.get("data").getAsString();
+                    playerInfoPanel.addComponent(new Label("Type : " + characterType));
+
+                    Personnage perso = CharactersFactory.getCharacterByType(characterType);
+
+                    AtomicInteger playerHP = new AtomicInteger(perso.getPV());
+                    Label playerHealth = new Label("Votre santé : " + playerHP.get() + " HP");
+
+                    statsPanel.addComponent(playerHealth);
+                    statsPanel.addComponent(enemyHealth);
+
+                    String attaqueNormale = perso.getNameAttackBase();
+                    String attaqueSpeciale = perso.getNameAttaqueSpecial();
+
+                    // Panel des actions
+                    Panel actionsPanel = new Panel(new GridLayout(1));
+                    actionsPanel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL));
+                    statsPanel.addComponent(new Label("Actions :"));
+
+                    final Button[] showNormalAttacks = new Button[1];
+                    final Button[] showSpecialAttacks = new Button[1];
+
+                    // Attaque normale
+                    showNormalAttacks[0] = new Button("Attaque Normale", () -> {
+                        actionsPanel.removeAllComponents();
+
+                        Button attackButton = new Button(attaqueNormale, () -> {
+                            int playerDamage = perso.getAttackBase();
+                            enemyHP.addAndGet(-playerDamage);
+                            playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
+                            enemyHealth.setText(adversaireNom + " santé : " + enemyHP.get() + " HP");
+
+                            history.append("Vous avez infligé " + playerDamage + " PV avec " + attaqueNormale + ".\n");
+                            historyLabel.setText(history.toString());
+                            // INCRÉMENTATION DU COMPTEUR D'ATTAQUES NORMALES ICI
+                            perso.CompteurAttack(perso.getCompteurAttack() + 1);  // Incrémentation
+                            enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow, playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel);
+                        });
+
+                        Button backButton = new Button("Retour", () -> {
+                            actionsPanel.removeAllComponents();
+                            actionsPanel.addComponent(showNormalAttacks[0]);
+                            actionsPanel.addComponent(showSpecialAttacks[0]);
+                        });
+
+                        actionsPanel.addComponent(attackButton);
+                        actionsPanel.addComponent(backButton);
+                    });
+
+                    // Attaque spéciale, si autorisée
+                    showSpecialAttacks[0] = new Button("Attaque Spéciale", () -> {
+                        actionsPanel.removeAllComponents();
+
+                        // Vérification de la possibilité d'utiliser l'attaque spéciale
+                        if (perso.getCompteurAttack() >= perso.getRestrictionAttackSpecial()) {
+                            Button attackButton = new Button(attaqueSpeciale, () -> {
+                                int playerDamage = perso.getAttackSpecial();
+                                enemyHP.addAndGet(-playerDamage);
+                                playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
+                                enemyHealth.setText(adversaireNom + " santé : " + enemyHP.get() + " HP");
+
+                                history.append("Vous avez infligé " + playerDamage + " PV avec " + attaqueSpeciale + ".\n");
+                                historyLabel.setText(history.toString());
+
+                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow, playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel);
+                            });
+
+                            Button backButton = new Button("Retour", () -> {
+                                actionsPanel.removeAllComponents();
+                                actionsPanel.addComponent(showNormalAttacks[0]);
+                                actionsPanel.addComponent(showSpecialAttacks[0]);
+                            });
+
+                            actionsPanel.addComponent(attackButton);
+                            actionsPanel.addComponent(backButton);
+                        } else {
+                            history.append("Vous ne pouvez pas utiliser l'attaque spéciale car vous n'avez pas effectué assez d'attaques normales.\n");
+                            historyLabel.setText(history.toString());
+                            // Retour à l'interface de sélection d'attaque
+                            actionsPanel.removeAllComponents();
+                            actionsPanel.addComponent(showNormalAttacks[0]);
+                            actionsPanel.addComponent(showSpecialAttacks[0]);
+                        }
+                    });
+
+                    actionsPanel.addComponent(showNormalAttacks[0]);
+                    actionsPanel.addComponent(showSpecialAttacks[0]);
+                    statsPanel.addComponent(actionsPanel);
+
+                } else {
+                    playerInfoPanel.addComponent(new Label("Aucune donnée de personnage disponible."));
+                }
+            } else {
+                playerInfoPanel.addComponent(new Label("Réponse invalide du serveur."));
+            }
+
+        } catch (Exception e) {
+            playerInfoPanel.addComponent(new Label("Erreur de communication : " + e.getMessage()));
+        }
+
+        Button fleeButton = new Button("Fuir", () -> {
+            history.append("\nVous avez fui le combat.\n");
+            historyLabel.setText(history.toString());
+
+            MessageDialog.showMessageDialog(gui, "Fuite", "Vous avez choisi de fuir le combat.");
+            combatWindow.close();
+            afficherMenuPrincipal(gui);
+        });
+
+        statsPanel.addComponent(fleeButton);
+
+        combatPanel.addComponent(historyPanel);
+        combatPanel.addComponent(statsPanel);
+        combatWindow.setComponent(combatPanel);
+        gui.addWindowAndWait(combatWindow);
     }
+
+
+
+    private static void enemyTurn(WindowBasedTextGUI gui, String adversaireNom,
+                                  Label playerHealth, Label enemyHealth, BasicWindow combatWindow,
+                                  AtomicInteger playerHP, AtomicInteger enemyHP,
+                                  Label historyLabel, StringBuilder history,
+                                  AtomicInteger tourCounter, Label tourLabel) {
+
+        int enemyDamage = 12;
+        playerHP.addAndGet(-enemyDamage);
+        playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
+
+        history.append(adversaireNom + " a infligé " + enemyDamage + " PV.\n");
+        historyLabel.setText(history.toString());
+
+        if (playerHP.get() <= 0) {
+            history.append("\nVous avez été vaincu par " + adversaireNom + ".\n");
+            historyLabel.setText(history.toString());
+
+            MessageDialog.showMessageDialog(gui, "Défaite", "Vous avez été vaincu par " + adversaireNom + " !");
+            combatWindow.close();
+            afficherMenuPrincipal(gui);
+        } else if (enemyHP.get() <= 0) {
+            history.append("\nVous avez vaincu " + adversaireNom + " !\n");
+            historyLabel.setText(history.toString());
+
+            MessageDialog.showMessageDialog(gui, "Victoire", "Vous avez vaincu " + adversaireNom + " !");
+            combatWindow.close();
+            afficherMenuPrincipal(gui);
+        } else {
+            // Passer au tour suivant
+            tourCounter.incrementAndGet();
+            tourLabel.setText("🕒 Tour : " + tourCounter.get());
+
+            // Réinitialiser l'historique tous les 5 tours
+            if (tourCounter.get() % 5 == 0) {
+                history.setLength(0);  // Effacer l'historique
+                history.append("==== TOUR " + tourCounter.get() + " ====\n"); // Ajouter le premier tour du nouveau cycle
+            } else {
+                history.append("\n==== TOUR " + tourCounter.get() + " ====\n");
+            }
+            historyLabel.setText(history.toString());
+        }
+    }
+
+
 
 
 }
