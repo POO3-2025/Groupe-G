@@ -1,17 +1,21 @@
 package be.helha.labos.crystalclash.DaoImplTest;
 
+import be.helha.labos.crystalclash.DAO.UserDAO;
 import be.helha.labos.crystalclash.DAOImpl.CharacterDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
+import be.helha.labos.crystalclash.DAOImpl.UserDAOImpl;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Object.Weapon;
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
+import be.helha.labos.crystalclash.Service.UserService;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
 import static org.junit.jupiter.api.Assertions.*;
@@ -184,4 +188,43 @@ public class InventoryDaoImplTest {
         assertTrue(res.getMessage().contains("succès"));
 
     }
-}
+    //Test vendre objet
+    @Test
+    @Order(4)
+    @DisplayName("Test vente objet depuis inventaire")
+    public void testSellObject_success() throws Exception {
+        Inventory inventory = new Inventory();
+        inventory.setUsername("InventoryTestUser");
+
+        Weapon weapon = new Weapon("Epee en bois",23,1,2,5);
+        weapon.setName("Epee en bois");
+        weapon.setType("Weapon");
+
+
+        inventory.setUsername("InventoryTestUser");
+        inventory.ajouterObjet(weapon);
+
+        InventoryDAOImpl dao = new InventoryDAOImpl();
+        dao.saveInventoryForUser("InventoryTestUser", inventory);
+
+        // 3. Injecter UserService
+        UserDAO userDAO = new UserDAOImpl();
+        UserService userService = new UserService(userDAO);
+        dao.setUserService(userService);
+
+        //Appelle de la pthode pour vendre
+        var sell = dao.SellObject("InventoryTestUser","Epee en bois","Weapon");
+
+        //Verif aves asser
+        assertNotNull(sell);
+        assertNotNull(sell.getData());
+
+        //Naffiche pas d avertissement
+        @SuppressWarnings("unchecked")
+         //Map car retourne une APIReponse et permet d'acceder a gain et rareté
+        Map<String, Object> data = (Map<String, Object>) sell.getData(); //Type objet
+        assertEquals(11, data.get("gain")); //Moitié du prix (bizarre mais comme ça)
+        assertEquals(111, data.get("nouveau_solde")); //Ancien solde de crisatux
+        assertEquals("commun", data.get("rarity")); //La rareté de l'objet car prix entre 50
+    }
+    }
