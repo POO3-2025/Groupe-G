@@ -2,7 +2,11 @@ package be.helha.labos.crystalclash.ControllerTest;
 
 
 import be.helha.labos.crystalclash.Controller.InventoryController;
+import be.helha.labos.crystalclash.Controller.RouletteController;
+import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
+import be.helha.labos.crystalclash.DAOImpl.RouletteDAOImpl;
 import be.helha.labos.crystalclash.Service.InventoryService;
+import be.helha.labos.crystalclash.Service.RouletteService;
 import be.helha.labos.crystalclash.server_auth.*;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
@@ -36,6 +40,8 @@ public class RouletteControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    private RouletteController rouletteController;
 
     @Autowired
     private InventoryService inventoryService;
@@ -73,6 +79,7 @@ public class RouletteControllerTest {
                     mysqlProductionConfig.getAsJsonObject("BDCredentials")
                             .add(key, mysqlTestConfig.getAsJsonObject("BDCredentials").get(key));
                 });
+
     }
     //Clean la roulette avant pour certains tests
     @BeforeEach
