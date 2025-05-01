@@ -134,9 +134,10 @@ public class InventoryDaoImplTest {
         assertEquals(23,obj.getPrice());
     }
 
-
+//Test coffre en vif
     @Test
     @Order(3)
+    @DisplayName("Test ajout coffre et le recup")
     public void testGetCoffreDesJoyauxForUser() {
         Inventory inventory = new Inventory();
         inventory.setUsername("InventoryTestUser");
@@ -144,10 +145,43 @@ public class InventoryDaoImplTest {
         //Créa du coffre et mettre dans l'iventaire
         CoffreDesJoyaux coffre = new CoffreDesJoyaux();
         coffre.setName("Coffre test");
-        coffre.setType("coffredesjoyaux");
+        coffre.setType("CoffreDesJoyaux");
         coffre.setReliability(5);
         coffre.setRequiredLevel(1);
         inventory.ajouterObjet(coffre);
+
+        inventoryDAO.saveInventoryForUser("InventoryTestUser", inventory);
+        CoffreDesJoyaux found = inventoryDAO.getCoffreDesJoyauxForUser("InventoryTestUser");
+
+        assertNotNull(found);
+        assertEquals("Coffre test", found.getName());
+
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Test ajouté objet ds coffre")
+    public void testAddObjectToCoffre_success() {
+        Inventory inventory = new Inventory();
+        inventory.setUsername("InventoryTestUser");
+
+        //Créa du coffre et mettre dans l'iventaire
+        CoffreDesJoyaux coffre = new CoffreDesJoyaux();
+        coffre.setName("Coffre test");
+        coffre.setType("CoffreDesJoyaux");
+        coffre.setReliability(5);
+        coffre.setRequiredLevel(1);
+        inventory.ajouterObjet(coffre);
+
+        Weapon weapon = new Weapon("Epee en bois",23,1,2,5);
+        weapon.setName("Epee en bois");
+        weapon.setType("Weapon");
+        inventory.ajouterObjet(weapon);
+
+        inventoryDAO.saveInventoryForUser("InventoryTestUser", inventory);
+
+        var res = inventoryDAO.addObjectToCoffre("InventoryTestUser", "Epee en bois", "Weapon");
+        assertTrue(res.getMessage().contains("succès"));
 
     }
 }
