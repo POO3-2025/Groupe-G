@@ -13,6 +13,7 @@ public class UserService {
 
     private final UserDAO userDAO;
 
+
     /**
      * @param userDAO
      * **/
@@ -43,6 +44,7 @@ public class UserService {
      public void updateIsConnected(String username, boolean isConnected)throws Exception{
         userDAO.updateIsConnected(username, isConnected);
      }
+
 
 
 }
