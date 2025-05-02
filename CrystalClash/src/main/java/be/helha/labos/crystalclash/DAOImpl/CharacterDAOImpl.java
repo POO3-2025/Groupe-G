@@ -334,7 +334,7 @@ public class CharacterDAOImpl implements CharacterDAO {
             }
 
             // 3. Ajouter au backpack
-            if (!backpack.ajouterObjet(objectToAdd)) {
+            if (!backpack.AddObjects(objectToAdd)) {
                 return new ApiReponse("Erreur lors de l'ajout de l'objet au backpack.", null);
             }
 
@@ -387,7 +387,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                 return new ApiReponse("Objet non trouvé dans le backpack.", null);
             }
 
-            backpack.retirerObjet(objectToRemove);
+            backpack.removeObject(objectToRemove);
             if (inventory.getObjets().size() > 30) {
                 return new ApiReponse("Inventaire plein !", null);
             }

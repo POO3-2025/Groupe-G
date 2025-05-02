@@ -87,4 +87,21 @@ public class InventoryTest {
         inventory.setObjets(list);
         assertEquals(1, inventory.getObjets().size());
     }
+
+    @Order(5)
+    @Test
+    @DisplayName("Test du getter getObjets()")
+    public void testGetObjets() {
+        List<ObjectBase> objets = inventory.getObjets();
+        assertNotNull(objets);
+        assertTrue(objets.isEmpty(), "L'inventaire doit être vide à l'initialisation");
+    }
+
+    @Order(6)
+    @Test
+    @DisplayName("Retour de la capacité maximale de l'inventaire")
+    public void testGetCapaciteMax() {
+        int capacite = inventory.getCapaciteMax();
+        assertEquals(30, capacite, "La capacité maximale de l'inventaire doit être 5");
+    }
 }

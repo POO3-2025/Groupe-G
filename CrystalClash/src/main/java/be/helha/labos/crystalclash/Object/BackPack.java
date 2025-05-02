@@ -11,13 +11,13 @@ public class BackPack {
         this.objets = new ArrayList<>();
     }
 
-    public boolean ajouterObjet(ObjectBase objet) {
+    public boolean AddObjects(ObjectBase objet) {
         if (objets.size() >= CAPACITE_MAX) return false;
         objets.add(objet);
         return true;
     }
 
-    public boolean retirerObjet(ObjectBase objet) {
+    public boolean removeObject(ObjectBase objet) {
         return objets.remove(objet);
     }
 
