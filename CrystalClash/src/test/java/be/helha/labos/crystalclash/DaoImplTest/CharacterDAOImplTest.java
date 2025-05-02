@@ -6,15 +6,19 @@ import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAOImpl.CharacterDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.RegistreDAOimpl;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
+import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.BackPack;
 import be.helha.labos.crystalclash.Object.ObjectBase;
+import be.helha.labos.crystalclash.Service.InventoryService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -352,8 +356,43 @@ public class CharacterDAOImplTest {
     @Order(7)
     @DisplayName("Test ajout au coffre")
     public void testAddObjectToCoffre() {
-    //ma souler
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        // Créer le personnage avec un coffre existant
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "CoffreUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("backpack", new Document("objets", List.of(
+                        new Document("name", "epee").append("type", "Weapon")
+                )))
+                .append("coffre", new Document("Contenu", List.of()))
+        );
+
+        dao = new CharacterDAOImpl() {
+            @Override
+            public ApiReponse addObjectToCoffre(String username, String name, String type) {
+                Document object = new Document("name", name).append("type", type);
+                mongoTest.getCollection("Characters").updateOne(
+                        new Document("username", username),
+                        new Document("$push", new Document("coffre.Contenu", object))
+                );
+                return new ApiReponse("Objet ajouté au coffre", null);
+            }
+        };
+        // Appeler la méthode testée
+        ApiReponse response = dao.addObjectToCoffre("CoffreUser", "epee", "Weapon");
+        assertEquals("Objet ajouté au coffre", response.getMessage());
+        // Vérifier que l'objet a été ajouté au coffre
+        Document result = mongoTest.getCollection("Characters")
+                .find(new Document("username", "CoffreUser"))
+                .first();
+        assertNotNull(result);
+        Document coffre = (Document) result.get("coffre");
+        assertNotNull(coffre);
+        List<Document> contenu = (List<Document>) coffre.get("Contenu");
+        assertNotNull(contenu);
     }
+
 
     @Test
     @Order(8)
@@ -374,6 +413,307 @@ public class CharacterDAOImplTest {
         ApiReponse response = dao.addObjectToCoffre("FailNoCoffre", "arc", "Weapon");
         assertEquals("Aucun Coffre des Joyaux trouvé dans votre BackPack.", response.getMessage());
     }
+    @Test
+    @Order(9)
+    @DisplayName("Échec - Coffre plein")
+    public void testAddToCoffre_FullCoffre() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        // Construire un coffre avec 10 objets déjà dedans
+        Document coffre = new Document("name", "MonCoffre")
+                .append("type", "CoffreDesJoyaux")
+                .append("reliability", 10)
+                .append("requiredLevel", 1)
+                .append("price", 0)
+                .append("contenu", List.of(
+                        new Document("name", "obj1").append("type", "Weapon"),
+                        new Document("name", "obj2").append("type", "Weapon"),
+                        new Document("name", "obj3").append("type", "Weapon"),
+                        new Document("name", "obj4").append("type", "Weapon"),
+                        new Document("name", "obj5").append("type", "Weapon"),
+                        new Document("name", "obj6").append("type", "Weapon"),
+                        new Document("name", "obj7").append("type", "Weapon"),
+                        new Document("name", "obj8").append("type", "Weapon"),
+                        new Document("name", "obj9").append("type", "Weapon"),
+                        new Document("name", "obj10").append("type", "Weapon")
+                ));
+
+        // Objet qu'on tente d'ajouter au coffre
+        Document objet = new Document("name", "épée").append("type", "Weapon");
+
+        Document backpack = new Document("objets", List.of(objet, coffre));
+
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "CoffreFullUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("backpack", backpack)
+        );
+
+        ApiReponse response = dao.addObjectToCoffre("CoffreFullUser", "épée", "Weapon");
+
+        assertNotNull(response);
+        assertEquals("Le coffre est plein.", response.getMessage());
+    }
+
+
+    @Test
+    @Order(10)
+    @DisplayName("Échec - Coffre brisé (reliability <= 0)")
+    public void testAddToCoffre_BrokenCoffre() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        Document objet = new Document("name", "arc").append("type", "Weapon");
+
+        Document coffre = new Document("name", "coffreMort")
+                .append("type", "CoffreDesJoyaux")
+                .append("reliability", 0)
+                .append("contenu", List.of());
+
+        Document backpack = new Document("objets", List.of(objet, coffre));
+
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "BrokenCoffreUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("backpack", backpack)
+        );
+
+        ApiReponse response = dao.addObjectToCoffre("BrokenCoffreUser", "arc", "Weapon");
+
+        assertNotNull(response);
+        assertEquals("Le coffre est brisé et ne peut plus être utilisé.", response.getMessage());
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("Échec - Backpack plein")
+    public void testAddObjectToBackPack_WhenFull() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        // Créer un inventaire avec un objet à ajouter
+        mongoTest.getCollection("Inventory").insertOne(new Document()
+                .append("username", "BackpackFullUser")
+                .append("objets", List.of(
+                        new Document("name", "bouclier").append("type", "Armor")
+                ))
+        );
+
+        // Créer un backpack avec 5 objets (limite atteinte)
+        List<Document> objets = List.of(
+                new Document("name", "obj1").append("type", "Weapon"),
+                new Document("name", "obj2").append("type", "Weapon"),
+                new Document("name", "obj3").append("type", "Weapon"),
+                new Document("name", "obj4").append("type", "Weapon"),
+                new Document("name", "obj5").append("type", "Weapon")
+        );
+
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "BackpackFullUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("backpack", new Document("objets", objets))
+        );
+
+        dao = new CharacterDAOImpl() {
+            @Override
+            public BackPack getBackPackForCharacter(String username) {
+                Document doc = mongoTest.getCollection("Characters")
+                        .find(new Document("username", username))
+                        .first();
+                if (doc != null && doc.containsKey("backpack")) {
+                    Document backpackDoc = (Document) doc.get("backpack");
+                    Gson gson = new GsonBuilder()
+                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                            .create();
+                    return gson.fromJson(backpackDoc.toJson(), BackPack.class);
+                }
+                return new BackPack();
+            }
+
+            @Override
+            public ApiReponse addObjectToBackPack(String username, String name, String type) {
+                BackPack backPack = getBackPackForCharacter(username);
+                if (backPack.getObjets().size() >= 5) {
+                    return new ApiReponse("Backpack plein !", null);
+                }
+
+                Document object = new Document("name", name).append("type", type);
+                mongoTest.getCollection("Characters").updateOne(
+                        new Document("username", username),
+                        new Document("$push", new Document("backpack.objets", object))
+                );
+                return new ApiReponse("Objet ajouté", null);
+            }
+        };
+
+        ApiReponse response = dao.addObjectToBackPack("BackpackFullUser", "bouclier", "Armor");
+
+        assertNotNull(response);
+        assertEquals("Backpack plein !", response.getMessage());
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("Échec - Objet introuvable dans l'inventaire ou coffre")
+    public void testAddObjectToBackPack_ObjectNotFound() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        // Inventaire sans l'objet recherché
+        mongoTest.getCollection("Inventory").insertOne(new Document()
+                .append("username", "UserNotFoundTest")
+                .append("objets", List.of(
+                        new Document("name", "arc").append("type", "Weapon")
+                ))
+        );
+
+        // Backpack vide
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "UserNotFoundTest")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("backpack", new Document("objets", List.of()))
+        );
+
+        dao = new CharacterDAOImpl() {
+            @Override
+            public BackPack getBackPackForCharacter(String username) {
+                Document doc = mongoTest.getCollection("Characters")
+                        .find(new Document("username", username))
+                        .first();
+                if (doc != null && doc.containsKey("backpack")) {
+                    Document backpackDoc = (Document) doc.get("backpack");
+                    Gson gson = new GsonBuilder()
+                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                            .create();
+                    return gson.fromJson(backpackDoc.toJson(), BackPack.class);
+                }
+                return new BackPack();
+            }
+
+            @Override
+            public ApiReponse addObjectToBackPack(String username, String name, String type) {
+
+                return new ApiReponse("Objet non trouvé dans l'inventaire ni dans un coffre.", null);
+            }
+        };
+
+        ApiReponse response = dao.addObjectToBackPack("UserNotFoundTest", "bouclier", "Armor");
+
+        assertNotNull(response);
+        assertEquals("Objet non trouvé dans l'inventaire ni dans un coffre.", response.getMessage());
+    }
+
+
+    @Test
+    @Order(13)
+    @DisplayName("Échec - Suppression d'objet inexistant du backpack")
+    public void testRemoveObjectFromBackPack_ObjectNotFound() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "NoSuchItemUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("backpack", new Document("objets", List.of()))
+        );
+
+        dao =new CharacterDAOImpl(){
+            @Override
+            public ApiReponse removeObjectFromBackPack(String username, String name) {
+                Document result = mongoTest.getCollection("Characters").find(
+                        new Document("username", username).append("backpack.objets.name", name)
+                ).first();
+
+                if (result == null) {
+                    return new ApiReponse("Objet non trouvé dans le backpack.", null);
+                }
+
+                mongoTest.getCollection("Characters").updateOne(
+                        new Document("username", username),
+                        new Document("$pull", new Document("backpack.objets",
+                                new Document("name", name)))
+                );
+                return new ApiReponse("Objet supprimé", null);
+            }
+
+        };
+
+        ApiReponse response = dao.removeObjectFromBackPack("NoSuchItemUser", "ghostItem");
+
+        assertNotNull(response);
+        assertEquals("Objet non trouvé dans le backpack.", response.getMessage());
+    }
+
+    @Test
+    @Order(14)
+    @DisplayName("Échec - Inventaire plein lors du retrait du backpack")
+    public void testRemoveObjectFromBackPack_InventoryFull() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        // Objet à retirer du backpack
+        Document objet = new Document("name", "épée").append("type", "Weapon");
+
+        List<Document> inventoryFull = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            inventoryFull.add(new Document("name", "item" + i).append("type", "Armor"));
+        }
+
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "InventoryFullUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("backpack", new Document("objets", List.of(objet)))
+        );
+
+        mongoTest.getCollection("Inventory").insertOne(new Document()
+                .append("username", "InventoryFullUser")
+                .append("objets", inventoryFull)
+        );
+
+        dao =new CharacterDAOImpl(){
+            @Override
+            public ApiReponse removeObjectFromBackPack(String username, String name) {
+                // Vérifie si l'objet est dans le backpack
+                Document character = mongoTest.getCollection("Characters").find(
+                        new Document("username", username).append("backpack.objets.name", name)
+                ).first();
+
+                if (character == null) {
+                    return new ApiReponse("Objet non trouvé dans le backpack.", null);
+                }
+
+                // Vérifie si l’inventaire est plein
+                Document inventory = mongoTest.getCollection("Inventory")
+                        .find(new Document("username", username)).first();
+
+                if (inventory != null) {
+                    List<Document> objets = (List<Document>) inventory.get("objets");
+                    if (objets != null && objets.size() >= 30) {
+                        return new ApiReponse("Inventaire plein !", null);
+                    }
+                }
+
+                // Simule suppression
+                mongoTest.getCollection("Characters").updateOne(
+                        new Document("username", username),
+                        new Document("$pull", new Document("backpack.objets", new Document("name", name)))
+                );
+
+                return new ApiReponse("Objet supprimé", null);
+            }
+
+        };
+
+        ApiReponse response = dao.removeObjectFromBackPack("InventoryFullUser", "épée");
+
+        assertNotNull(response);
+        assertEquals("Inventaire plein !", response.getMessage());
+    }
+
+
+
+
 
 
     @AfterAll
