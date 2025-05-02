@@ -11,7 +11,7 @@ public class Armor extends ObjectBase {
 
     @Override
     public String use() {
-        if (!IsUsed()) return "The weapon worn";
+        if (!IsUsed()) return "The Armor worn";
         Reducereliability();
         return "Armor used , +" + bonusPV + "Pv during " +reliability+ " tours.";
     }
