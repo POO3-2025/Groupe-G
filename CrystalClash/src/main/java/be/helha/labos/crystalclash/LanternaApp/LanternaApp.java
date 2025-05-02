@@ -3,6 +3,7 @@ package be.helha.labos.crystalclash.LanternaApp;
 
 
 import be.helha.labos.crystalclash.Characters.Personnage;
+import be.helha.labos.crystalclash.DTO.StateCombat;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Inventory.Inventory;
@@ -12,6 +13,7 @@ import be.helha.labos.crystalclash.Services.HttpService;
 import be.helha.labos.crystalclash.User.UserInfo;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
 import be.helha.labos.crystalclash.server_auth.Session;
+import com.fasterxml.jackson.databind.deser.std.NumberDeserializers;
 import com.google.gson.*;
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
@@ -906,7 +908,7 @@ public class LanternaApp {
                 //Car le thread secondaire(fait la recherche) ne peut pas modif de lui meme
                 gui.getGUIThread().invokeLater(() -> {
                     combatWindow.close();
-                    openCombatWindow(gui, opponent); // demarre directement le combat  encore rien la
+                    OpenWindowFight(gui); // demarre directement le combat  encore rien la
                 });
             } catch (Exception e) {
                 gui.getGUIThread().invokeLater(() -> { //Serveur repond
@@ -1139,6 +1141,80 @@ public class LanternaApp {
     }
 
 
+ /*Test de comabt en lan */
+    private static void OpenWindowFight(WindowBasedTextGUI gui) {
+
+        BasicWindow window = new BasicWindow();
+        window.setHints(Arrays.asList(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label("Combat contre un adversaire..."));
+
+        try{
+            String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
+            StateCombat stateCombat = gson.fromJson(json, StateCombat.class);
+
+            panel.addComponent(new Label("Tour : " + stateCombat.getTour()));
+            panel.addComponent(new Label("PV " + Session.getUsername() + " : " + stateCombat.getPv(Session.getUsername())));
+            String ennemi = stateCombat.getOpponent(Session.getUsername());
+            panel.addComponent(new Label("PV Ennemi (" + ennemi + ") : " + stateCombat.getPv(ennemi)));
+
+            panel.addComponent(new EmptySpace());
+
+
+            if(!Session.getUsername().equals(stateCombat.getPlayerNow())){
+                panel.addComponent(new Label("Tour de l'adversaire...."));
+            }else {
+                panel.addComponent(new Label("A vcous de jouer !"));
+
+                panel.addComponent(new Button("Attaque Normale", () -> {
+                    try {
+                        HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
+                        window.close();
+                        OpenWindowFight(gui);
+                    } catch (Exception e) {
+                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                    }
+                }));
+                panel.addComponent(new Button("Attaque Spéciale", () -> {
+                    try {
+                        HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
+                        window.close();
+                        OpenWindowFight(gui);
+                    } catch (Exception e) {
+                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                    }
+                }));
+                for (ObjectBase obj : stateCombat.getBackpack(Session.getUsername())) {
+                    String label = "Utiliser " + obj.getName() + " (" + obj.getType() + ")";
+                    panel.addComponent(new Button(label, () -> {
+                        try {
+                            HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                            window.close();
+                            OpenWindowFight(gui);
+                        } catch (Exception e) {
+                            MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                        }
+                    }));
+                }
+            }
+            panel.addComponent(new EmptySpace());
+            panel.addComponent(new Label("Historique :"));
+            for (String logLine : stateCombat.getLog()) {
+                panel.addComponent(new Label(logLine));
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        panel.addComponent(new Button("Retour", window::close));
+        window.setComponent(panel);
+        gui.addWindowAndWait(window);
+    }
 
 
 }

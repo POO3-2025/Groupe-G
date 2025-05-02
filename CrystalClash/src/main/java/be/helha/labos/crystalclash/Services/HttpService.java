@@ -490,5 +490,46 @@ public class HttpService {
         return response.body();
     }
 
+    public static String combatAttack(String username, String type, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username, "type", type));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/attack"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    public static String combatUseObject(String username, String objectId, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username, "objectId", objectId));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/use-object"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    public static String getCombatState(String username, String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/state/" + username))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+
 }
 
