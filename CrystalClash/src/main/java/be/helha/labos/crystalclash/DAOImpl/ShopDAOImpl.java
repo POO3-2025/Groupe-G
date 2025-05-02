@@ -120,6 +120,10 @@ public class ShopDAOImpl implements ShopDAO{
         }
     }
 
+    /*
+    * Pq ces méthodes ? car dans les tests y a pas le moteur Spring, donc tout ce qui est AutoWired ne fonctionne pas
+    * donc inc on injecte manuellement les dépendances pour que les tests y accendent
+    * */
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
