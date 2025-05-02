@@ -14,7 +14,7 @@ public interface UserDAO {
      * @param username
      * @param newCristaux
      * */
-    void updateCristaux(String username, int newCristaux);
+    void updateCristaux(String username, int newCristaux)throws Exception ;
 
      boolean isAlreadyConnected(String username) throws Exception;
 
