@@ -31,7 +31,7 @@ public class RouletteService {
     /**
      * @param username
      * */
-    public ObjectBase PlayRoulette(String username){
+    public ObjectBase PlayRoulette(String username) throws Exception {
 
         UserInfo user = userService.getUserInfo(username)
             .orElseThrow(() -> new RuntimeException("User pas trouvé"));

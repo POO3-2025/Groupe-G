@@ -33,7 +33,7 @@ public class UserService {
      * @param username
      * @param newCristaux
      * **/
-    public void updateCristaux(String username, int newCristaux) {
+    public void updateCristaux(String username, int newCristaux)throws Exception  {
         userDAO.updateCristaux(username, newCristaux);
     }
 

@@ -227,4 +227,6 @@ public class InventoryDaoImplTest {
         assertEquals(111, data.get("nouveau_solde")); //Ancien solde de crisatux
         assertEquals("commun", data.get("rarity")); //La rareté de l'objet car prix entre 50
     }
+
+
     }
