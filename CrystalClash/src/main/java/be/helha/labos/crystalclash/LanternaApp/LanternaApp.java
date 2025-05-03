@@ -916,11 +916,16 @@ public class LanternaApp {
     }
 
 
-    /**
-     * Ouvre la fenêtre de combat
-     * @param gui
-     * @param adversaireNom
-     */
+
+    private static void updateToursRestants(Personnage perso, Label label) {
+        int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
+        if (toursRestants <= 0) {
+            label.setText("✅ Attaque spéciale disponible !");
+        } else {
+            label.setText("⏳ Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l’attaque spéciale.");
+        }
+    }
+
     private static void openCombatWindow(WindowBasedTextGUI gui, String adversaireNom) {
         BasicWindow combatWindow = new BasicWindow("Combat");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -934,8 +939,6 @@ public class LanternaApp {
         Label historyLabel = new Label("Historique du Combat");
         historyPanel.addComponent(historyLabel);
         StringBuilder history = new StringBuilder();
-
-        // Initialiser l'historique avec Tour 1
         history.append("==== TOUR 1 ====\n");
 
         // Panel stats et actions (droite)
@@ -951,20 +954,21 @@ public class LanternaApp {
         combatDescription.setForegroundColor(TextColor.ANSI.YELLOW);
         statsPanel.addComponent(combatDescription);
 
-        // Compteur de tours
         AtomicInteger tourCounter = new AtomicInteger(1);
         Label tourLabel = new Label("🕒 Tour : " + tourCounter.get());
         tourLabel.setForegroundColor(TextColor.ANSI.CYAN);
         tourLabel.addStyle(SGR.BOLD);
         statsPanel.addComponent(tourLabel);
 
-        // Infos joueur
         Panel playerInfoPanel = new Panel(new GridLayout(1));
         playerInfoPanel.addComponent(new Label("Personnage de " + Session.getUsername()));
         statsPanel.addComponent(playerInfoPanel);
 
         AtomicInteger enemyHP = new AtomicInteger(100);
         Label enemyHealth = new Label(adversaireNom + " santé : " + enemyHP.get() + " HP");
+
+        Label toursRestantsLabel = new Label(""); // Label pour l’attaque spéciale
+        statsPanel.addComponent(toursRestantsLabel);
 
         try {
             String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
@@ -988,7 +992,9 @@ public class LanternaApp {
                     String attaqueNormale = perso.getNameAttackBase();
                     String attaqueSpeciale = perso.getNameAttaqueSpecial();
 
-                    // Panel des actions
+                    // Initialiser le label tours restants
+                    updateToursRestants(perso, toursRestantsLabel);
+
                     Panel actionsPanel = new Panel(new GridLayout(1));
                     actionsPanel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL));
                     statsPanel.addComponent(new Label("Actions :"));
@@ -1008,8 +1014,10 @@ public class LanternaApp {
 
                             history.append("Vous avez infligé " + playerDamage + " PV avec " + attaqueNormale + ".\n");
                             historyLabel.setText(history.toString());
-                            // INCRÉMENTATION DU COMPTEUR D'ATTAQUES NORMALES ICI
+
                             perso.CompteurAttack(perso.getCompteurAttack() + 1);  // Incrémentation
+                            updateToursRestants(perso, toursRestantsLabel);
+
                             enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow, playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel);
                         });
 
@@ -1023,13 +1031,13 @@ public class LanternaApp {
                         actionsPanel.addComponent(backButton);
                     });
 
-                    // Attaque spéciale, si autorisée
+                    // Attaque spéciale
+                    // Attaque spéciale (modifié pour toujours afficher le sous-menu)
                     showSpecialAttacks[0] = new Button("Attaque Spéciale", () -> {
                         actionsPanel.removeAllComponents();
 
-                        // Vérification de la possibilité d'utiliser l'attaque spéciale
-                        if (perso.getCompteurAttack() >= perso.getRestrictionAttackSpecial()) {
-                            Button attackButton = new Button(attaqueSpeciale, () -> {
+                        Button attackButton = new Button(attaqueSpeciale, () -> {
+                            if (perso.getCompteurAttack() >= perso.getRestrictionAttackSpecial()) {
                                 int playerDamage = perso.getAttackSpecial();
                                 enemyHP.addAndGet(-playerDamage);
                                 playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
@@ -1038,25 +1046,26 @@ public class LanternaApp {
                                 history.append("Vous avez infligé " + playerDamage + " PV avec " + attaqueSpeciale + ".\n");
                                 historyLabel.setText(history.toString());
 
+                                perso.CompteurAttack(0);  // Reset après usage spéciale
+                                updateToursRestants(perso, toursRestantsLabel);
+
                                 enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow, playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel);
-                            });
+                            } else {
+                                int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
+                                history.append("⏳ Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant de pouvoir utiliser l'attaque spéciale.\n");
+                                historyLabel.setText(history.toString());
+                                updateToursRestants(perso, toursRestantsLabel);
+                            }
+                        });
 
-                            Button backButton = new Button("Retour", () -> {
-                                actionsPanel.removeAllComponents();
-                                actionsPanel.addComponent(showNormalAttacks[0]);
-                                actionsPanel.addComponent(showSpecialAttacks[0]);
-                            });
-
-                            actionsPanel.addComponent(attackButton);
-                            actionsPanel.addComponent(backButton);
-                        } else {
-                            history.append("Vous ne pouvez pas utiliser l'attaque spéciale car vous n'avez pas effectué assez d'attaques normales.\n");
-                            historyLabel.setText(history.toString());
-                            // Retour à l'interface de sélection d'attaque
+                        Button backButton = new Button("Retour", () -> {
                             actionsPanel.removeAllComponents();
                             actionsPanel.addComponent(showNormalAttacks[0]);
                             actionsPanel.addComponent(showSpecialAttacks[0]);
-                        }
+                        });
+
+                        actionsPanel.addComponent(attackButton);
+                        actionsPanel.addComponent(backButton);
                     });
 
                     actionsPanel.addComponent(showNormalAttacks[0]);
@@ -1092,50 +1101,62 @@ public class LanternaApp {
     }
 
 
-
     private static void enemyTurn(WindowBasedTextGUI gui, String adversaireNom,
                                   Label playerHealth, Label enemyHealth, BasicWindow combatWindow,
                                   AtomicInteger playerHP, AtomicInteger enemyHP,
                                   Label historyLabel, StringBuilder history,
                                   AtomicInteger tourCounter, Label tourLabel) {
 
-        int enemyDamage = 12;
-        playerHP.addAndGet(-enemyDamage);
-        playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
+        int enemyDamage = 5; // Dégâts infligés par l'ennemi
+        playerHP.addAndGet(-enemyDamage); // Réduction des points de vie du joueur
+        playerHealth.setText("Votre santé : " + playerHP.get() + " HP"); // Mise à jour de l'affichage des PV
 
+        // Ajout de l'attaque de l'ennemi à l'historique
         history.append(adversaireNom + " a infligé " + enemyDamage + " PV.\n");
-        historyLabel.setText(history.toString());
+        historyLabel.setText(history.toString()); // Mise à jour de l'historique à l'écran
 
+        // Vérification de la fin du combat
         if (playerHP.get() <= 0) {
+            // Si le joueur est vaincu
             history.append("\nVous avez été vaincu par " + adversaireNom + ".\n");
             historyLabel.setText(history.toString());
 
             MessageDialog.showMessageDialog(gui, "Défaite", "Vous avez été vaincu par " + adversaireNom + " !");
-            combatWindow.close();
-            afficherMenuPrincipal(gui);
+            combatWindow.close(); // Fermeture de la fenêtre de combat
+            afficherMenuPrincipal(gui); // Retour au menu principal
         } else if (enemyHP.get() <= 0) {
+            // Si l'ennemi est vaincu
             history.append("\nVous avez vaincu " + adversaireNom + " !\n");
             historyLabel.setText(history.toString());
 
             MessageDialog.showMessageDialog(gui, "Victoire", "Vous avez vaincu " + adversaireNom + " !");
-            combatWindow.close();
-            afficherMenuPrincipal(gui);
+            combatWindow.close(); // Fermeture de la fenêtre de combat
+            afficherMenuPrincipal(gui); // Retour au menu principal
         } else {
-            // Passer au tour suivant
-            tourCounter.incrementAndGet();
-            tourLabel.setText("🕒 Tour : " + tourCounter.get());
+            // Incrémentation du compteur de tours seulement après l'action de l'ennemi
+            int currentTour = tourCounter.incrementAndGet();
+            tourLabel.setText("🕒 Tour : " + currentTour); // Mise à jour du tour
 
-            // Réinitialiser l'historique tous les 5 tours
-            if (tourCounter.get() % 5 == 0) {
-                history.setLength(0);  // Effacer l'historique
-                history.append("==== TOUR " + tourCounter.get() + " ====\n"); // Ajouter le premier tour du nouveau cycle
+            // Réinitialiser l'historique tous les 5 tours, mais garder le tour précédent
+            if (currentTour % 5 == 0) {
+                // Garder l'historique du tour précédent (par exemple, tour 4 avant tour 5)
+                String previousHistory = history.toString();
+                int lastTourIndex = previousHistory.lastIndexOf("==== TOUR " + (currentTour - 1) + " ====");
+
+                if (lastTourIndex != -1) {
+                    // Garder uniquement l'historique jusqu'au tour précédent
+                    history.setLength(0); // Réinitialiser l'historique
+                    history.append(previousHistory.substring(lastTourIndex)); // Garder l'historique du dernier tour
+                }
+
+                history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête du tour actuel
             } else {
-                history.append("\n==== TOUR " + tourCounter.get() + " ====\n");
+                history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête des tours intermédiaires
             }
-            historyLabel.setText(history.toString());
+
+            historyLabel.setText(history.toString()); // Mise à jour de l'historique affiché
         }
     }
-
 
 
 
