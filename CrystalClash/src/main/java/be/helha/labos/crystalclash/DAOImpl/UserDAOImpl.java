@@ -46,14 +46,19 @@ public class UserDAOImpl implements UserDAO {
      * update les cristaux du suer apres un achat ou une vente
      * */
     @Override
-    public void updateCristaux(String username, int newCristaux) {
+    public void updateCristaux(String username, int newCristaux)throws Exception  {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
             PreparedStatement stmt = conn.prepareStatement("UPDATE users SET cristaux = ? WHERE username = ?");
             stmt.setInt(1, newCristaux);
             stmt.setString(2, username);
-            stmt.executeUpdate();
+            int updatedRows = stmt.executeUpdate();
+
+            if (updatedRows == 0) {
+                throw new IllegalStateException("Aucun utilisateur mis à jour : " + username);
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            throw e;
         }
     }
 

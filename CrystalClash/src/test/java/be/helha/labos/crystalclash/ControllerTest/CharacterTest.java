@@ -74,6 +74,7 @@ public class CharacterTest {
     public void cleanupMongo() {
         MongoDatabase db = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
         db.getCollection("Characters").deleteMany(new Document());
+        db.getCollection("Inventory").deleteMany(new Document());
     }
 
 
@@ -169,5 +170,447 @@ public class CharacterTest {
                     .andExpect(jsonPath("$.data").isArray());
         }
     }
+
+
+    @Test
+    @Order(3)
+    @DisplayName("Test d'ajout dans le backpack")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testAddObjectToBackpack() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+
+            // Simuler la réponse du service externe
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+                {
+                  "username": "CharacterTestUser",
+                  "level": 3,
+                  "cristaux": 100,
+                  "connected": true
+                }
+            """);
+
+            String requestBody = """
+                {
+                    "name": "Epee en bois",
+                    "type": "Weapon"
+                }
+            """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            // Insertion correcte d’un objet dans l’inventaire
+            Document weapon = new Document("name", "Epee en bois")
+                    .append("type", "Weapon")
+                    .append("price", 5)
+                    .append("requiredLevel", 1)
+                    .append("reliability", 3)
+                    .append("damage", 10);
+
+            mongoTest.getCollection("Inventory").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("objets", List.of(weapon))
+            );
+
+            // Insérer un personnage avec backpack vide
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document("objets", List.of()))
+            );
+
+            // Lancer la requête POST
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/add")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Objet ajouté au backpack avec succès !"))
+                    .andExpect(jsonPath("$.data.objets[0].name").value("Epee en bois"))
+                    .andExpect(jsonPath("$.data.objets[0].type").value("Weapon"));
+
+        }
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Test de la suppression d'un objet du backpack")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testRemoveObjectFromBackpack() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+
+            // Simuler la réponse du service externe
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+                {
+                  "username": "CharacterTestUser",
+                  "level": 3,
+                  "cristaux": 100,
+                  "connected": true
+                }
+            """);
+
+            String requestBody = """
+                {
+                    "name": "Epee en bois"
+                }
+            """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            // Insertion correcte d’un objet dans l’inventaire
+            Document weapon = new Document("name", "Epee en bois")
+                    .append("type", "Weapon")
+                    .append("price", 5)
+                    .append("requiredLevel", 1)
+                    .append("reliability", 3)
+                    .append("damage", 10);
+
+            mongoTest.getCollection("Inventory").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("objets", List.of())
+            );
+
+            // Insérer un personnage avec backpack vide
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document("objets", List.of(weapon)))
+            );
+
+            // Lancer la requête POST
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/remove")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Objet retiré du backpack avec succès !"))
+                    .andExpect(jsonPath("$.data.objets").isArray())
+                    .andExpect(jsonPath("$.data.objets").isEmpty());
+
+        }
+    }
+
+    @Test
+    @Order(5)
+    @DisplayName("Test ajout dans le coffre")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testAddObjectToCoffre() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+
+            // Simuler la réponse du service externe
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+                {
+                  "username": "CharacterTestUser",
+                  "level": 3,
+                  "cristaux": 100,
+                  "connected": true
+                }
+            """);
+
+            String requestBody = """
+                {
+                    "name": "Epee en bois",
+                    "type": "Weapon"
+                }
+            """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            // Insertion correcte d’un objet dans le backpack
+            Document weapon = new Document("name", "Epee en bois")
+                    .append("type", "Weapon")
+                    .append("price", 5)
+                    .append("requiredLevel", 1)
+                    .append("reliability", 3)
+                    .append("damage", 10);
+
+            Document coffre = new Document("name", "Coffre des Joyaux")
+                    .append("type", "CoffreDesJoyaux")
+                    .append("contenu", List.of());
+
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document()
+                            .append("objets", List.of(weapon, coffre))
+                    )
+            );
+
+            // Lancer la requête POST
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/coffre/add")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Objet ajouté au BackPack des Joyaux avec succès."));
+
+        }
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("Échec - Objet introuvable dans l'inventaire")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testAddObjectToBackpack_NotFound() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+            {
+              "username": "CharacterTestUser",
+              "level": 3,
+              "cristaux": 100,
+              "connected": true
+            }
+        """);
+
+            String requestBody = """
+            {
+                "name": "Objet Fantome",
+                "type": "Weapon"
+            }
+        """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            mongoTest.getCollection("Inventory").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("objets", List.of()) // Vide volontairement
+            );
+
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document("objets", List.of()))
+            );
+
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/add")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Objet non trouvé dans l'inventaire ni dans un coffre."));
+        }
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("Échec - Backpack vide")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testRemoveObjectFromBackpack_NotFound() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+            {
+              "username": "CharacterTestUser",
+              "level": 3,
+              "cristaux": 100,
+              "connected": true
+            }
+        """);
+
+            String requestBody = """
+            {
+                "name": "Objet Fantome"
+            }
+        """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document("objets", List.of())) // Vide
+            );
+
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/remove")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Backpack vide !"));
+        }
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("Échec - Backpack plein")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testAddObjectToBackpack_Full() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+            {
+              "username": "CharacterTestUser",
+              "level": 3,
+              "cristaux": 100,
+              "connected": true
+            }
+        """);
+
+            String requestBody = """
+            {
+                "name": "Epee en bois",
+                "type": "Weapon"
+            }
+        """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            // Insertion d'un objet dans l'inventaire
+            Document weapon = new Document("name", "Epee en bois")
+                    .append("type", "Weapon")
+                    .append("price", 5)
+                    .append("requiredLevel", 1)
+                    .append("reliability", 3)
+                    .append("damage", 10);
+
+            mongoTest.getCollection("Inventory").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("objets", List.of(weapon))
+            );
+
+            // Insérer un personnage avec backpack plein
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document()
+                            .append("objets", List.of(weapon, weapon, weapon,weapon,weapon)) // Plein
+                    )
+            );
+
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/add")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Backpack plein !"));
+        }
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("Échec - coffre plein")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testAddObjectToCoffre_Full() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+            {
+              "username": "CharacterTestUser",
+              "level": 3,
+              "cristaux": 100,
+              "connected": true
+            }
+        """);
+
+            String requestBody = """
+            {
+                "name": "Epee en bois",
+                "type": "Weapon"
+            }
+        """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            // Insertion d'un objet dans l'inventaire
+            Document weapon = new Document("name", "Epee en bois")
+                    .append("type", "Weapon")
+                    .append("price", 5)
+                    .append("requiredLevel", 1)
+                    .append("reliability", 3)
+                    .append("damage", 10);
+
+            Document coffre = new Document("name", "Coffre des Joyaux")
+                    .append("type", "CoffreDesJoyaux")
+                    .append("contenu", List.of(weapon, weapon, weapon,weapon,weapon,weapon, weapon, weapon,weapon,weapon)); // Plein
+
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document()
+                            .append("objets", List.of(coffre, weapon)) // Contient le coffre plein et un objet
+                    )
+            );
+
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/coffre/add")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Le coffre est plein."));
+        }
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Échec - coffre brisé ")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testAddObjectToCoffre_Broken() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+            {
+              "username": "CharacterTestUser",
+              "level": 3,
+              "cristaux": 100,
+              "connected": true
+            }
+        """);
+
+            String requestBody = """
+            {
+                "name": "Epee en bois",
+                "type": "Weapon"
+            }
+        """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            // Insertion d'un objet dans l'inventaire
+            Document weapon = new Document("name", "Epee en bois")
+                    .append("type", "Weapon")
+                    .append("price", 5)
+                    .append("requiredLevel", 1)
+                    .append("reliability", 3)
+                    .append("damage", 10);
+
+            Document coffre = new Document("name", "Coffre des Joyaux")
+                    .append("type", "CoffreDesJoyaux")
+                    .append("reliability", 0)
+                    .append("contenu", List.of(weapon, weapon, weapon,weapon,weapon,weapon, weapon, weapon,weapon,weapon)); // Plein
+
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document()
+                            .append("objets", List.of(coffre, weapon)) // Contient le coffre plein et un objet
+                    )
+            );
+
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/coffre/add")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Le coffre est brisé et ne peut plus être utilisé."));
+        }
+    }
+
+
+
+
+
+
+
 
 }

@@ -27,7 +27,7 @@ public class ShopDAOImpl implements ShopDAO{
     /*
      *Grace a la méthode dans ObjectFactory qui est getAllObjectsByName ou va aller rechercher les objects dispo
      * Retourne tous les objest dispo dans la Map (afit comme un catalogue)
-     *
+     *Chaque Map represente un objet de la boutique
      */
     @Override
     public List<Map<String, Object>> getShopItems() {
@@ -120,5 +120,15 @@ public class ShopDAOImpl implements ShopDAO{
         }
     }
 
+    /*
+    * Pq ces méthodes ? car dans les tests y a pas le moteur Spring, donc tout ce qui est AutoWired ne fonctionne pas
+    * donc inc on injecte manuellement les dépendances pour que les tests y accendent
+    * */
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
 }

@@ -2,13 +2,15 @@
 package be.helha.labos.crystalclash.Object;
 
 
+import java.util.UUID;
+
 public class ObjectBase {
     private String name;
     protected int price;
     protected int requiredLevel;
     protected int reliability;
     private String type;
-
+    private String id = UUID.randomUUID().toString(); //Génereation automatique d'UID pour les objects
     public ObjectBase() {
         // Constructeur par défaut requis pour la désérialisation
     }
@@ -66,6 +68,15 @@ public class ObjectBase {
     public int getRequiredLevel() {
         return requiredLevel;
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     /**
      * @param requiredLevel
      * **/

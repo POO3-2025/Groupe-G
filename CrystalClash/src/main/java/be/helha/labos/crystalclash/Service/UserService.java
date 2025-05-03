@@ -13,6 +13,7 @@ public class UserService {
 
     private final UserDAO userDAO;
 
+
     /**
      * @param userDAO
      * **/
@@ -32,7 +33,7 @@ public class UserService {
      * @param username
      * @param newCristaux
      * **/
-    public void updateCristaux(String username, int newCristaux) {
+    public void updateCristaux(String username, int newCristaux)throws Exception  {
         userDAO.updateCristaux(username, newCristaux);
     }
 
@@ -43,6 +44,7 @@ public class UserService {
      public void updateIsConnected(String username, boolean isConnected)throws Exception{
         userDAO.updateIsConnected(username, isConnected);
      }
+
 
 
 }

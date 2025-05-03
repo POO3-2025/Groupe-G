@@ -1,26 +1,48 @@
 package be.helha.labos.crystalclash.User;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 //Simple pour le moment
 public class ConnectedUsers {
-    //Ici le set est un thread-safe -> pas de probleme pour plusieurs co et déco
-    private static final Set<String> connectedUsers = ConcurrentHashMap.newKeySet();
+    //Ici une map qui contien les infos du joeuur connecté
+    private static final Map<String,UserInfo> connectedUsers = new ConcurrentHashMap<>();
 
-    public static void addUser(String username) {
-        connectedUsers.add(username);
+    /**
+     * Ajoute un utilisateur à la liste des connectés.
+     * @param userInfo informations complètes de l'utilisateur
+     */
+    public static void addUser(UserInfo userInfo) {
+        connectedUsers.put(userInfo.getUsername(),userInfo);
     }
 
+    /**
+     * Supprime un utilisateur de la liste.
+     * @param username nom de l'utilisateur
+     */
     public static void removeUser(String username) {
         connectedUsers.remove(username);
     }
 
+    /**
+     * Retourne le nombre d'utilisateurs connectés.
+     */
     public static int getConnectedUserCount() {
         return connectedUsers.size();
     }
 
-    public static Set<String> getConnectedUsers() {
+    /**
+     * Récupère un utilisateur connecté par son nom.
+     */
+    public static UserInfo getUser(String username) {
+        return connectedUsers.get(username);
+    }
+    /**
+     * Retourne une Map contenant les infos du joueur
+     */
+    public static Map<String, UserInfo> getConnectedUsers() {
         return connectedUsers;
     }
 }

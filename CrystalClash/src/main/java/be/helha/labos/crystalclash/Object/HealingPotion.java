@@ -26,7 +26,7 @@ public class HealingPotion extends ObjectBase {
     }
     @Override
     public String toString() {
-        return getName() + " – Dégâts : " + heal;
+        return getName() + " – Pv : " + heal;
     }
 
     @Override
