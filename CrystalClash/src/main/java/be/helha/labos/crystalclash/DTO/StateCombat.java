@@ -79,7 +79,7 @@ public class StateCombat {
 
     public String getWinner() {
         if (Pv1 <= 0) return Player2;
-        if (Pv1 <= 0) return Player1;
+        if (Pv2 <= 0) return Player1;
         return null;
     }
 }

@@ -295,6 +295,7 @@ public class LanternaApp {
         }));
 
         menuWindow.setComponent(mainPanel);
+        startCombatWatcher(gui);
         gui.addWindowAndWait(menuWindow);
     }
     /**
@@ -895,7 +896,7 @@ public class LanternaApp {
 
         combatWindow.setComponent(panel);
         gui.addWindow(combatWindow);
-       //lancage en arriere plan pour evite de figer
+        //lancage en arriere plan pour evite de figer
         //Thread normal quoi ca lance un new processus en arriere plan
         new Thread(() -> {
             try {
@@ -1140,8 +1141,7 @@ public class LanternaApp {
         }
     }
 
-
- /*Test de comabt en lan */
+    /*Test de comabt en lan */
     private static void OpenWindowFight(WindowBasedTextGUI gui) {
 
         BasicWindow window = new BasicWindow();
@@ -1175,16 +1175,25 @@ public class LanternaApp {
 
             }
 
-            System.out.println(">> Demande de démarrage du combat...");
-            String startCombat = HttpService.startCombat(Session.getUsername(), Session.getToken());
-            System.out.println(">> Réponse /combat/start : " + startCombat);
-
             String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
-            System.out.println("Combat state JSON : " + json);
+            System.out.println("Combat state JSON (avant start): " + json);
+
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                     .create();
             StateCombat stateCombat = gson.fromJson(json, StateCombat.class);
+
+            // Si le combat n'a pas encore été démarré côté serveur, on l'initie
+            if (stateCombat.getPlayerNow() == null || stateCombat.getPlayerNow().isBlank()) {
+                System.out.println(">> PlayerNow vide, démarrage du combat...");
+                String startCombat = HttpService.startCombat(Session.getUsername(), Session.getToken());
+                System.out.println(">> Réponse /combat/start : " + startCombat);
+
+                // Recharger l'état après le /start
+                json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+                stateCombat = gson.fromJson(json, StateCombat.class);
+            }
+
 
             panel.addComponent(new Label("Tour : " + stateCombat.getTour()));
             panel.addComponent(new Label("PV " + Session.getUsername() + " : " + stateCombat.getPv(Session.getUsername())));
@@ -1244,7 +1253,27 @@ public class LanternaApp {
         window.setComponent(panel);
         gui.addWindowAndWait(window);
     }
+    /**
+     * Lance un thread qui vérifie régulièrement si un combat a été lancé pour le joueur
+     */
+    private static void startCombatWatcher(WindowBasedTextGUI gui) {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(2000); // Vérifie toutes les 2 secondes
 
+                    String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+                    if (json != null && !json.contains("null") && json.contains("PlayerNow")) {
+                        System.out.println(">> [CombatWatcher] Un combat a été détecté !");
+                        gui.getGUIThread().invokeLater(() -> OpenWindowFight(gui));
+                        break; // on sort de la boucle après affichage du combat
+                    }
+                } catch (Exception e) {
+                    System.out.println("Erreur dans le thread de surveillance du combat : " + e.getMessage());
+                }
+            }
+        }).start();
+    }
 
 }
 
