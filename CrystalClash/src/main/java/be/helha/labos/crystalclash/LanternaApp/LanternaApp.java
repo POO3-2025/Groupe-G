@@ -270,7 +270,7 @@ public class LanternaApp {
         // Section Communauté
         mainPanel.addComponent(createSectionLabel("Communauté"));
         mainPanel.addComponent(new Button("Voir joueurs connectés", () -> DesplayUserConnected(gui)));
-        mainPanel.addComponent(new Button("Lancer un matchMaking", () -> MatchMaking(gui)));
+        mainPanel.addComponent(new Button("Salle d'attente", () -> MatchMaking(gui)));
 
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
@@ -887,37 +887,72 @@ public class LanternaApp {
 
 
     public static void MatchMaking(WindowBasedTextGUI gui) {
-        BasicWindow combatWindow = new BasicWindow("Matchmaking");
+        BasicWindow combatWindow = new BasicWindow("Salle de matchMaking");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
 
         Panel panel = new Panel(new GridLayout(1));
-        Label loadingLabel = new Label("Recherche d'un adversaire...");
-        panel.addComponent(loadingLabel);
+        Label infoLabel = new Label("Recherche d'autres joueurs dans la salle...");
+        panel.addComponent(infoLabel);
+        panel.addComponent(new EmptySpace());
+
+        Panel usersPanel = new Panel(new GridLayout(1));
+        panel.addComponent(usersPanel);
+
+        panel.addComponent(new Button("Quitter la salle", () -> {
+            try{
+                Map<String, String> data = new HashMap<>();
+                data.put("username", Session.getUsername());
+                HttpService.exitMatchmakingRoom(Session.getUsername(), Session.getToken());
+            }catch (Exception ignored) {}
+            combatWindow.close();
+        }));
 
         combatWindow.setComponent(panel);
         gui.addWindow(combatWindow);
-        //lancage en arriere plan pour evite de figer
-        //Thread normal quoi ca lance un new processus en arriere plan
+
+        //Autre try pour entrer dans la salle d'attente
+        try {
+            UserInfo userInfo = Session.getUserInfo();
+            String user = new Gson().toJson(userInfo);
+            HttpService.enterMatchmakingRoom(Session.getUserInfo(),Session.getToken());
+        }catch (Exception e) {
+            MessageDialog.showMessageDialog(gui, "Erreur", "Impossible d'entrer dans la salle : " + e.getMessage());
+            combatWindow.close();
+            return;
+        }
+
+        //Thread pour rafraichir la liste
         new Thread(() -> {
-            try {
-                Thread.sleep(2000); //  pause pour simuler un chargement
+            while (combatWindow.isVisible()){
+                try{
+                    Thread.sleep(2000);
 
-                //Thread secondaire
-                String opponent = HttpService.matcjmaking(Session.getUsername(), Session.getToken());
+                    List<UserInfo> opponents = HttpService.getAvailableOpponents(Session.getUsername(), Session.getToken());
 
-                //Une fois trouver ici il aura la modif de linterface graphique
-                //Car le thread secondaire(fait la recherche) ne peut pas modif de lui meme
-                gui.getGUIThread().invokeLater(() -> {
-                    combatWindow.close();
-                    OpenWindowFight(gui); // demarre directement le combat  encore rien la
-                });
-            } catch (Exception e) {
-                gui.getGUIThread().invokeLater(() -> { //Serveur repond
-                    MessageDialog.showMessageDialog(gui, "Erreur", "Adversaire introuvable " + e.getMessage());
-                    combatWindow.close();
-                });
+                    gui.getGUIThread().invokeLater(() ->{
+                        usersPanel.removeAllComponents();
+                        if (opponents.isEmpty()){
+                            usersPanel.addComponent(new Label("Aucun joueur dans la salle"));
+                        }
+                        else {
+                            for (UserInfo opponent : opponents) {
+                                String label = "Défier " + opponent.getUsername() + " (Niv " + opponent.getLevel() + ")";
+                                if (opponent.getSelectedCharacter() != null) {
+                                    label += " - " + opponent.getSelectedCharacter();
+                                }
+                                Button challenge = new Button(label, () ->{
+                                    combatWindow.close();
+                                    openCombatWindow(gui,opponent.getUsername());
+                                });
+                                usersPanel.addComponent(challenge);
+                            }
+                        }
+                        combatWindow.setComponent(panel); // Re-render
+                    });
+                }catch (Exception ignored) {}
             }
         }).start();
+
     }
 
 
@@ -1183,15 +1218,22 @@ public class LanternaApp {
                     .create();
             StateCombat stateCombat = gson.fromJson(json, StateCombat.class);
 
-            // Si le combat n'a pas encore été démarré côté serveur, on l'initie
-            if (stateCombat.getPlayerNow() == null || stateCombat.getPlayerNow().isBlank()) {
-                System.out.println(">> PlayerNow vide, démarrage du combat...");
+
+            if (stateCombat == null) {
+                System.out.println(">> Aucun combat trouvé, tentative de démarrage...");
                 String startCombat = HttpService.startCombat(Session.getUsername(), Session.getToken());
                 System.out.println(">> Réponse /combat/start : " + startCombat);
 
-                // Recharger l'état après le /start
+                //laisser le temps au backend
+                Thread.sleep(300);
+
                 json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
                 stateCombat = gson.fromJson(json, StateCombat.class);
+
+                if (stateCombat == null) {
+                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de démarrer le combat (réponse vide)");
+                    return;
+                }
             }
 
 
@@ -1263,10 +1305,20 @@ public class LanternaApp {
                     Thread.sleep(2000); // Vérifie toutes les 2 secondes
 
                     String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
-                    if (json != null && !json.contains("null") && json.contains("PlayerNow")) {
-                        System.out.println(">> [CombatWatcher] Un combat a été détecté !");
-                        gui.getGUIThread().invokeLater(() -> OpenWindowFight(gui));
-                        break; // on sort de la boucle après affichage du combat
+
+                    // Vérification de JSON non vide et présence d'un playerNow non nul
+                    if (json != null && !json.isBlank()) {
+                        Gson gson = new GsonBuilder()
+                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                            .create();
+
+                        StateCombat state = gson.fromJson(json, StateCombat.class);
+
+                        if (state != null && state.getPlayerNow() != null && !state.getPlayerNow().isBlank()) {
+                            System.out.println(">> [CombatWatcher] Un combat a été détecté !");
+                            gui.getGUIThread().invokeLater(() -> OpenWindowFight(gui));
+                            break; // Stop le watcher après détection
+                        }
                     }
                 } catch (Exception e) {
                     System.out.println("Erreur dans le thread de surveillance du combat : " + e.getMessage());

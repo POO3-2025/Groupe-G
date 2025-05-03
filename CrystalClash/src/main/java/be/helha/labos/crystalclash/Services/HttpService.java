@@ -28,7 +28,7 @@ import java.util.*;
 public class HttpService {
     //   private static final String BASE_URL = "https://bf8e-94-109-202-55.ngrok-free.app";
     //private static final String BASE_URL = "http://192.168.68.56:8080";
-    private static final String BASE_URL = "http://localhost:8080";
+    private static final String BASE_URL = "http://192.168.68.51:8080";
 
 
     /**
@@ -437,29 +437,6 @@ public class HttpService {
         return Arrays.asList(users); //retourne le tb en liste modifiable si y a besoin
     }
 
-    public static String matcjmaking(String username, String token) throws Exception {
-        //crée chaine json avec le username a partir d une map
-        //Map.of juste une map qui ne peut etre modifiée apres, apres on seriale (objet java vers text json)
-        String json = new Gson().toJson(Map.of("username", username));
-
-        //Création de la requete avec de bons headers
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/matchmaking/find"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json)) //Recoit la réponse en string
-            .build();
-        System.out.println("Envoi de logout pour JSON: " + json);
-        //Envoie de la requete
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (response.statusCode() != 200) {
-            throw new RuntimeException(" " + response.body());
-        }
-        return response.body();
-    }
 
     public static String combatAttack(String username, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of("username", username, "type", type));
@@ -514,5 +491,60 @@ public class HttpService {
         return response.body();
     }
 
+    /****************************Salle d'attente***************************/
+
+    public static void enterMatchmakingRoom(UserInfo userInfo, String token) throws Exception {
+        String json = new Gson().toJson(userInfo);
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/matchmaking/enter"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur entrée matchmaking : " + response.body());
+        }
+    }
+
+    public static void exitMatchmakingRoom(String username, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username));
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/matchmaking/exit"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur entrée matchmaking : " + response.body());
+        }
+    }
+
+    public static  List<UserInfo> getAvailableOpponents(String username, String token) throws Exception {
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/matchmaking/available?username=" + username))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .GET()
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur entrée matchmaking : " + response.body());
+        }
+        return Arrays.asList(new Gson().fromJson(response.body(), UserInfo[].class));
+
+    }
 }
 

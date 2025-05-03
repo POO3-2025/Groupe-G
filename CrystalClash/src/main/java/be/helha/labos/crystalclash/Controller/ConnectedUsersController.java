@@ -7,16 +7,17 @@ import be.helha.labos.crystalclash.User.UserInfo;
 import com.mysql.cj.x.protobuf.MysqlxDatatypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
 @RestController
 
 public class ConnectedUsersController {
+
+    // username, infos complètes du joueur, synchronizedMap va etre utilise pour les post,get,delete
+    private static final Map<String, UserInfo> matchmakingWaitingRoom = Collections.synchronizedMap(new HashMap<>());
+
 
     @Autowired
     private UserService userService ;
@@ -46,47 +47,38 @@ public class ConnectedUsersController {
         return ResponseEntity.ok("Déconnecté avec succès");
     }
 
-
-    /*Style de matchmaking simple test
-     *on va recup les joueurs co ensuite on s'ejecte de la liste car null de se battre contre sois meme
-     *  */
-  /*  @PostMapping("/matchmaking/find")
-    public ResponseEntity<String> matchmaking(@RequestBody String username){
-        Set<String> users = ConnectedUsers.getConnectedUsers();
-        users.remove(username);
-        if (users.isEmpty()) {
-            return ResponseEntity.badRequest().body("Erreur : username vide");
+    @PostMapping("/matchmaking/enter")
+    public ResponseEntity<Void> enterMatchMaking(@RequestBody UserInfo userInfo){
+        if(userInfo.getUsername() != null && !userInfo.getUsername().isBlank()){
+            matchmakingWaitingRoom.put(userInfo.getUsername(), userInfo);
         }
-        //Stream transfrorme le pseudo en flux
-        //FinfAny va prendre 1 élément aux hasard
-        String hasard = users.stream().findAny().get();
-        return ResponseEntity.ok(hasard);
-    }*/
-
-    //Aleatoire
-    /*
-    *de base je passais que String username en commentaire mais le problème etait que Spring lisait username comme si c'etait tout le Json, le resultat etait que le matchMaking pouvait lancer le combat contre sois meme
-    * La avec Map spirng va prendre ce qui est renvoyé en JSON et va le décode en Map<String....>
-    *Exemple "username":"celio" mit dans une map et avec String username = request.get("username"); celio peut etre bien récup
-    **/
-    @PostMapping("/matchmaking/find")
-    public ResponseEntity<String> matchmaking(@RequestBody Map<String, String> request){
-        String username = request.get("username");
-        //New Haset = pour travailler sur une copie
-        Set<String> users =new HashSet<>( ConnectedUsers.getConnectedUsers().keySet()); // Keyset pour prendre que les noms
-        users.remove(username);
-
-        if (users.isEmpty()) {
-            return ResponseEntity.badRequest().body("");
-        }
-
-        List<String> userList = new ArrayList<>(users);
-
-        Random user = new Random();
-        String hasard = userList.get(user.nextInt(userList.size()));
-        //Stream transfrorme le pseudo en flux
-        //FinfAny va prendre 1 élément aux hasard
-       // String hasard = users.stream().findAny().get();
-        return ResponseEntity.ok(hasard);
+        return ResponseEntity.ok().build();
     }
-}
+
+    @PostMapping("/matchmaking/exit")
+    public ResponseEntity<Void> exitMatchmaking(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        if (username != null && !username.isBlank()) {
+            matchmakingWaitingRoom.remove(username);
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/matchmaking/available")
+    public List<UserInfo> getAvailableOpponents(@RequestParam("username") String username) {
+        List<UserInfo> user = new ArrayList<>();
+
+        //On va synchro la room pour ajouter les users
+        synchronized (matchmakingWaitingRoom) {
+            for(Map.Entry<String, UserInfo> entry : matchmakingWaitingRoom.entrySet()) {
+                if (!entry.getKey().equals(username)) {
+                    user.add(entry.getValue());
+                }
+            }
+            return user;
+        }
+
+    }
+
+
+    }
