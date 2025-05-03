@@ -495,6 +495,120 @@ public class CharacterTest {
         }
     }
 
+    @Test
+    @Order(9)
+    @DisplayName("Échec - coffre plein")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testAddObjectToCoffre_Full() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+            {
+              "username": "CharacterTestUser",
+              "level": 3,
+              "cristaux": 100,
+              "connected": true
+            }
+        """);
+
+            String requestBody = """
+            {
+                "name": "Epee en bois",
+                "type": "Weapon"
+            }
+        """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            // Insertion d'un objet dans l'inventaire
+            Document weapon = new Document("name", "Epee en bois")
+                    .append("type", "Weapon")
+                    .append("price", 5)
+                    .append("requiredLevel", 1)
+                    .append("reliability", 3)
+                    .append("damage", 10);
+
+            Document coffre = new Document("name", "Coffre des Joyaux")
+                    .append("type", "CoffreDesJoyaux")
+                    .append("contenu", List.of(weapon, weapon, weapon,weapon,weapon,weapon, weapon, weapon,weapon,weapon)); // Plein
+
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document()
+                            .append("objets", List.of(coffre, weapon)) // Contient le coffre plein et un objet
+                    )
+            );
+
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/coffre/add")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Le coffre est plein."));
+        }
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Échec - coffre brisé ")
+    @WithMockUser(username = "CharacterTestUser")
+    public void testAddObjectToCoffre_Broken() throws Exception {
+        try (MockedStatic<HttpService> mockedStatic = Mockito.mockStatic(HttpService.class)) {
+            mockedStatic.when(() ->
+                    HttpService.getUserInfo("CharacterTestUser", "password")
+            ).thenReturn("""
+            {
+              "username": "CharacterTestUser",
+              "level": 3,
+              "cristaux": 100,
+              "connected": true
+            }
+        """);
+
+            String requestBody = """
+            {
+                "name": "Epee en bois",
+                "type": "Weapon"
+            }
+        """;
+
+            MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+            // Insertion d'un objet dans l'inventaire
+            Document weapon = new Document("name", "Epee en bois")
+                    .append("type", "Weapon")
+                    .append("price", 5)
+                    .append("requiredLevel", 1)
+                    .append("reliability", 3)
+                    .append("damage", 10);
+
+            Document coffre = new Document("name", "Coffre des Joyaux")
+                    .append("type", "CoffreDesJoyaux")
+                    .append("reliability", 0)
+                    .append("contenu", List.of(weapon, weapon, weapon,weapon,weapon,weapon, weapon, weapon,weapon,weapon)); // Plein
+
+            mongoTest.getCollection("Characters").insertOne(new Document()
+                    .append("username", "CharacterTestUser")
+                    .append("type", "Elf")
+                    .append("selected", true)
+                    .append("backpack", new Document()
+                            .append("objets", List.of(coffre, weapon)) // Contient le coffre plein et un objet
+                    )
+            );
+
+            mockMvc.perform(post("/characters/CharacterTestUser/backpack/coffre/add")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Le coffre est brisé et ne peut plus être utilisé."));
+        }
+    }
+
+
+
+
 
 
 
