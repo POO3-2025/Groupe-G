@@ -1151,7 +1151,36 @@ public class LanternaApp {
         panel.addComponent(new Label("Combat contre un adversaire..."));
 
         try{
+            //Recup le perso
+            String UserJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+            UserInfo user = new Gson().fromJson(UserJson, UserInfo.class);
+
+            //Verif perso
+            if(user.getSelectedCharacter() == null || user.getSelectedCharacter().isBlank()) {
+                //Recup perso
+                String charactType = HttpService.getCharacter(Session.getUsername(), Session.getToken());
+                if(charactType != null && !charactType.isBlank()) {
+                    // Sélection automatique du personnage
+                    try {
+                        HttpService.selectCharacter(Session.getUsername(), charactType, Session.getToken());
+                        System.out.println(">> Sélection confirmée");
+                    } catch (Exception e) {
+                        System.err.println("Erreur lors de la sélection automatique : " + e.getMessage());
+                        MessageDialog.showMessageDialog(gui, "Erreur", "Sélection auto échouée : " + e.getMessage());
+                        return;
+                    }
+                }else{
+                    throw new RuntimeException("Aucun personnage existant trouvé pour l'utilisateur !");
+                }
+
+            }
+
+            System.out.println(">> Demande de démarrage du combat...");
+            String startCombat = HttpService.startCombat(Session.getUsername(), Session.getToken());
+            System.out.println(">> Réponse /combat/start : " + startCombat);
+
             String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+            System.out.println("Combat state JSON : " + json);
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                     .create();

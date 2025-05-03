@@ -1,24 +1,23 @@
 package be.helha.labos.crystalclash.Controller;
 
-import be.helha.labos.crystalclash.DTO.StateCombat       ;
-
+import be.helha.labos.crystalclash.DTO.StateCombat;
 import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Service.CharacterService;
-import be.helha.labos.crystalclash.Service.CombatService;
 import be.helha.labos.crystalclash.Service.FightService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
-import be.helha.labos.crystalclash.User.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.annotation.PostConstruct;
 import java.util.*;
 
 @RestController
 @RequestMapping("/combat")
-public class FightController  {
+public class FightController {
 
     @Autowired
     private FightService fightService;
@@ -29,23 +28,39 @@ public class FightController  {
     @Autowired
     private CharacterService characterService;
 
+    @PostConstruct
+    public void init() {
+        System.out.println("=== FightController initialisé ===");
+    }
+
     @PostMapping("/start")
     public Map<String, Object> startCombat(@RequestBody Map<String, String> body) {
         String player = body.get("username");
+
+        if (player == null || player.isBlank()) {
+            throw new RuntimeException("Nom d'utilisateur manquant dans la requête !");
+        }
+
+        System.out.println("[DEBUG] FightController - startCombat() appelé par " + player);
         Set<String> others = new HashSet<>(ConnectedUsers.getConnectedUsers().keySet());
         others.remove(player);
 
         if (others.isEmpty()) throw new RuntimeException("Aucun adversaire trouvé !");
         String opponent = others.stream().findAny().get();
 
-        UserInfo info1 = ConnectedUsers.getUser(player);
-        UserInfo info2 = ConnectedUsers.getUser(opponent);
+        // Rechargement à jour du type de personnage sélectionné
+        String charType1 = characterService.getCharacterForUser(player);
+        String charType2 = characterService.getCharacterForUser(opponent);
 
-        Personnage p1 = CharactersFactory.getCharacterByType(info1.getSelectedCharacter());
-        Personnage p2 = CharactersFactory.getCharacterByType(info2.getSelectedCharacter());
+        if (charType1 == null || charType2 == null) {
+            throw new RuntimeException("Les personnages n'ont pas été sélectionnés !");
+        }
+
+        Personnage p1 = CharactersFactory.getCharacterByType(charType1);
+        Personnage p2 = CharactersFactory.getCharacterByType(charType2);
 
         List<ObjectBase> bp1 = characterService.getBackPackForCharacter(player).getObjets();
-        List<ObjectBase> bp2 = characterService.getBackPackForCharacter(player).getObjets();
+        List<ObjectBase> bp2 = characterService.getBackPackForCharacter(opponent).getObjets();
 
         fightService.createCombat(player, opponent, p1, p2, bp1, bp2);
 
@@ -53,19 +68,33 @@ public class FightController  {
     }
 
     @PostMapping("/attack")
-    public StateCombat attack(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> attack(@RequestBody Map<String, String> body) {
         String player = body.get("username");
-        String type = body.get("type"); // "normal" ou "special"
+        String type = body.get("type");
+
+        System.out.println("[DEBUG] /attack appelé avec username=" + player + ", type=" + type);
+
+        if (player == null || type == null) {
+            return ResponseEntity.badRequest().body("Paramètres manquants !");
+        }
+
         fightService.HandleAttach(player, type);
-        return fightService.getCombat(player);
+        return ResponseEntity.ok(fightService.getCombat(player));
     }
 
     @PostMapping("/use-object")
-    public StateCombat useObject(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> useObject(@RequestBody Map<String, String> body) {
         String player = body.get("username");
         String objectId = body.get("objectId");
+
+        System.out.println("[DEBUG] /use-object appelé avec username=" + player + ", objectId=" + objectId);
+
+        if (player == null || objectId == null) {
+            return ResponseEntity.badRequest().body("Paramètres manquants !");
+        }
+
         fightService.useObject(player, objectId);
-        return fightService.getCombat(player);
+        return ResponseEntity.ok(fightService.getCombat(player));
     }
 
     @GetMapping("/state/{username}")

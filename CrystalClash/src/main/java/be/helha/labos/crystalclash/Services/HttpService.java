@@ -378,36 +378,7 @@ public class HttpService {
     }
 
 
-    /**
-     * Démarre un combat en envoyant une requête au serveur.
-     * @param username Le nom d'utilisateur du joueur qui lance le combat.
-     * @param token Le token d'autorisation pour le joueur.
-     * @return La réponse JSON du serveur indiquant le résultat du combat.
-     * @throws Exception Si une erreur se produit lors de l'appel HTTP ou de la sérialisation.
-     */
-    public static String startCombat(String username, String token) throws Exception {
-        // Préparer le corps de la requête en JSON
-        String json = new Gson().toJson(Map.of("username", username));
 
-        // Créer la requête HTTP avec une timeout de 5 secondes
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/combat/start"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .POST(HttpRequest.BodyPublishers.ofString(json))  // Utilisation du JSON sérialisé
-            .build();
-
-        // Créer un client HTTP et envoyer la requête
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-        // Vérifier si la réponse est réussie
-        if (response.statusCode() != 200) {
-            throw new Exception("Erreur serveur: " + response.statusCode() + " - " + response.body());
-        }
-
-        // Retourner le corps de la réponse JSON
-        return response.body();
-    }
 
     /*
      * appelle le serveur via httpService.getInventory
@@ -529,7 +500,19 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
     }
+    public static String startCombat(String username, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/start"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
 
 }
 

@@ -18,6 +18,8 @@ public class FightService {
 
     public void createCombat(String p1, String p2, Personnage char1, Personnage char2,
                              List<ObjectBase> bp1, List<ObjectBase> bp2) {
+        System.out.println("[DEBUG] FightService - createCombat() entre " + p1 + " et " + p2);
+
         StateCombat state = new StateCombat(p1, p2, char1, char2, bp1, bp2);
         combats.put(p1, state);
         combats.put(p2, state);
@@ -28,8 +30,12 @@ public class FightService {
     }
 
     public void HandleAttach(String Player, String type) {
+        System.out.println("[DEBUG] useObject() appelé par " + Player + " avec  " + type);
+
+        if (Player == null || type == null) return; // sécurité
+
         StateCombat state = combats.get(Player);
-        if (state == null || !state.getPlayerNow().equals(Player)) {
+        if (state == null || Player == null || !Player.equals(state.getPlayerNow())) {
             return;
         }
 
@@ -56,8 +62,12 @@ public class FightService {
     }
 
     public void useObject(String Player, String objectId){
+        System.out.println("[DEBUG] useObject() appelé par " + Player + " avec objet " + objectId);
+
+        if (Player == null || objectId == null) return; // sécurité
+
         StateCombat state = combats.get(Player);
-        if (state == null || !state.getPlayerNow().equals(Player)) {
+        if (state == null || !Player.equals(state.getPlayerNow())) {
             return;
         }
 
