@@ -19,4 +19,7 @@ public interface UserDAO {
      boolean isAlreadyConnected(String username) throws Exception;
 
      void updateIsConnected(String username, boolean isConnected)throws Exception;
+
+    void updateLevel(String username, int newLevel) throws Exception;
+
 }

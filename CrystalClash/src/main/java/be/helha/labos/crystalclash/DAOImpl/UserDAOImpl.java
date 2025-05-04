@@ -92,5 +92,23 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+    @Override
+    public void updateLevel(String username, int newLevel) throws Exception {
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
+            PreparedStatement stmt = conn.prepareStatement("UPDATE users SET level = ? WHERE username = ?");
+            stmt.setInt(1, newLevel);
+            stmt.setString(2, username);
+            int updatedRows = stmt.executeUpdate();
+
+            if (updatedRows == 0) {
+                throw new IllegalStateException("Aucun utilisateur mis à jour : " + username);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+
 
 }

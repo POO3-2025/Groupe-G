@@ -45,6 +45,21 @@ public class UserService {
         userDAO.updateIsConnected(username, isConnected);
      }
 
+    public void rewardWinner(String username, int cristauxBonus, int levelUp) {
+        try {
+            Optional<UserInfo> optional = userDAO.getUserByUsername(username);
+            if (optional.isEmpty()) return;
 
+            UserInfo user = optional.get();
+
+            int newCristaux = user.getCristaux() + cristauxBonus;
+            int newLevel = user.getLevel() + levelUp;
+
+            userDAO.updateCristaux(username, newCristaux);
+            userDAO.updateLevel(username, newLevel);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

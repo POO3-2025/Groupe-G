@@ -104,7 +104,7 @@ public class FightController {
         return fightService.getCombat(username);
     }
 
-    @PostMapping("/combat/challenge")
+    @PostMapping("/challenge")
     public ResponseEntity<?> challenge(@RequestBody Map<String, String> body) {
         try{
          String challenger = body.get("challenger");

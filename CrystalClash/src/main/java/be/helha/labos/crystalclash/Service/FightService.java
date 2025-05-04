@@ -6,12 +6,14 @@ import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Object.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 @Service
 public class FightService {
-
+    @Autowired
+    private UserService userService;
     //Pailre clés valeurs (String id ou nom et StateCombat l'etat du combat)
     private final Map<String, StateCombat> combats = new HashMap<>();
 
@@ -58,7 +60,16 @@ public class FightService {
 
         int newPv = state.getPv(oppenent) - Damage;
         state.setPv(oppenent, newPv);
+        if (state.isFinished()) {
+            String winner = state.getWinner();
+            userService.rewardWinner(winner, 50, 1); // exemple : +50 cristaux et +1 level
+            state.addLog(winner + " remporte le combat ! +1 niveau, +50 cristaux");
+            combats.remove(winner);
+            combats.remove(state.getOpponent(winner));
+            return; // Pas besoin de continuer le tour
+        }
         state.NextTurn();
+
     }
 
     public void useObject(String Player, String objectId){
@@ -96,11 +107,22 @@ public class FightService {
             int pv = state.getPv(Player);
             state.setPv(Player, pv + bonus);
             state.addLog(Player + " utilise " + obj.getName() + " et gagne " + bonus + " PV temporairement");
+        }else if(obj instanceof PotionOfStrenght){
+            int bonus = ((PotionOfStrenght) obj).getBonusATK();
+            state.addLog(Player + " boit une " + obj.getName() + " et gagne +" + bonus + " en attaque !");
         }
 
         obj.Reducereliability();
         if (!obj.IsUsed()) {
             backpack.remove(obj); // Supprime si fiabilité 0
+        }
+        if (state.isFinished()) {
+            String winner = state.getWinner();
+            userService.rewardWinner(winner, 50, 1); // même récompense
+            state.addLog(winner + " remporte le combat ! +1 niveau, +50 cristaux");
+            combats.remove(winner);
+            combats.remove(state.getOpponent(winner));
+            return;
         }
 
         state.NextTurn();

@@ -38,13 +38,15 @@ public class StateCombat {
         return Player.equals(Player1) ? Character1 : Character2;
     }
 
-    public int getPv(String Player){
-        return Player.equals(Player1) ? Pv1 : Pv2;
+    public int getPv(String player) {
+        if (player == null) return 0;
+        return player.equals(Player1) ? Pv1 : Pv2;
     }
 
-    public void setPv(String Player, int Pv){
-        if (Player.equals(Player1)) this.Pv1 = Pv;
-        else this.Pv2 = Pv;
+    public void setPv(String player, int pv) {
+        if (player == null) return;
+        if (player.equals(Player1)) this.Pv1 = pv;
+        else if (player.equals(Player2)) this.Pv2 = pv;
     }
 
     public List<ObjectBase> getBackpack(String Player){

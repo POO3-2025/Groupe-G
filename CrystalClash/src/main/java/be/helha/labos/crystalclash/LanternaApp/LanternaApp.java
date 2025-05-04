@@ -47,9 +47,9 @@ public class LanternaApp {
 
         TextColor backgroundColor = TextColor.ANSI.BLACK; // Choisir couleur ici
         WindowBasedTextGUI gui = new MultiWindowTextGUI(
-                screen,
-                new DefaultWindowManager(),
-                new EmptySpace(backgroundColor) // Fond global ici
+            screen,
+            new DefaultWindowManager(),
+            new EmptySpace(backgroundColor) // Fond global ici
         );
 
         afficherEcranAccueil(gui, screen);
@@ -248,14 +248,17 @@ public class LanternaApp {
         mainPanel.addComponent(createSectionLabel("Profil"));
         mainPanel.addComponent(new Button("Voir profil", () -> afficherMonProfil(gui)));
         mainPanel.addComponent(new Button("Voir BackPack", () -> afficherBackPack(gui, () -> {
-            afficherBackPack(gui, () -> {}); // on relance une fois pour rafraîchir le contenu
+            afficherBackPack(gui, () -> {
+            }); // on relance une fois pour rafraîchir le contenu
         })));
         mainPanel.addComponent(new Button("Voir personnage", () -> afficherPersonnage(gui)));
         mainPanel.addComponent(new Button("Voir mon inventaire", () -> {
             displayInventory(gui);
-        }));;
-        mainPanel.addComponent(new Button("Voir mon coffre", () -> afficherCoffre(gui,()-> {
-            afficherCoffre(gui, () -> {});
+        }));
+        ;
+        mainPanel.addComponent(new Button("Voir mon coffre", () -> afficherCoffre(gui, () -> {
+            afficherCoffre(gui, () -> {
+            });
         })));
 
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
@@ -277,14 +280,14 @@ public class LanternaApp {
 
         // Section Combat
         mainPanel.addComponent(createSectionLabel("Combat"));
-        mainPanel.addComponent(new Button("Lancer un combat", () -> openCombatWindow(gui,"testadversaire")));
+        mainPanel.addComponent(new Button("Lancer un combat", () -> openCombatWindow(gui, "testadversaire")));
         mainPanel.addComponent(new Button("Changer de personnage", () -> afficherChoixPersonnage(gui)));
 
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
 
         mainPanel.addComponent(new Button("Se déconnecter", () -> {
-            try{
+            try {
                 HttpService.logout(Session.getUsername(), Session.getToken());
             } catch (Exception e) {
                 System.out.println("Erreur lors de la déconnexion");
@@ -299,9 +302,11 @@ public class LanternaApp {
 
         gui.addWindowAndWait(menuWindow);
     }
+
     /**
      * Affiche les section du menu
      * avec le style et la couleur
+     *
      * @param text => le texte de la section
      */
     private static Label createSectionLabel(String text) {
@@ -322,7 +327,7 @@ public class LanternaApp {
 
         Panel panel = new Panel(new GridLayout(1));
         panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
-        try{
+        try {
             List<UserInfo> connectedUsers = HttpService.getConnectedUsers();
 
             if (connectedUsers.isEmpty()) {
@@ -342,6 +347,7 @@ public class LanternaApp {
             throw new RuntimeException(e);
         }
     }
+
     /**
      * Affiche la fenêtre de choix de personnage
      *
@@ -443,6 +449,7 @@ public class LanternaApp {
         persoWindow.setComponent(panel);
         gui.addWindowAndWait(persoWindow);
     }
+
     /**
      * Affiche l'inventaire du joueur
      *
@@ -455,8 +462,8 @@ public class LanternaApp {
 
             // Création de Gson avec désérialiseur custom
             Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                    .create();
+                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                .create();
 
             // Désérialisation de l'inventaire avec le bon type d'objets
             Inventory inventory = gson.fromJson(json, Inventory.class);
@@ -472,7 +479,7 @@ public class LanternaApp {
                 panel.addComponent(new Label("Objets dans l'inventaire :"));
                 // Sert a voir si le joueur a un coffre
                 boolean hasCoffre = inventory.getObjets().stream()
-                        .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
+                    .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
                 //Parcour liste objets de l'inventaire
                 //obj représente object du joueur
                 // Personnalisation selon le type
@@ -505,7 +512,7 @@ public class LanternaApp {
      * @param obj              => l'objet à afficher
      * @param refreshInventory => pour rafraîchir l'inventaire après une action
      */
-    private static void afficherDetailsObjet(WindowBasedTextGUI gui, ObjectBase obj, Runnable refreshInventory,Boolean hasCoffre) {
+    private static void afficherDetailsObjet(WindowBasedTextGUI gui, ObjectBase obj, Runnable refreshInventory, Boolean hasCoffre) {
         BasicWindow window = new BasicWindow("Détails de l'objet");
         window.setHints(Arrays.asList(Hint.CENTERED));
 
@@ -537,7 +544,7 @@ public class LanternaApp {
                 MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le BackPack : " + e.getMessage());
             }
         }));
-        if (hasCoffre){
+        if (hasCoffre) {
             panel.addComponent(new Button("Mettre dans le coffre", () -> {
                 try {
                     String result = HttpService.putInCoffre(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
@@ -673,13 +680,13 @@ public class LanternaApp {
             JsonArray dataArray = response.getAsJsonArray("data");
 
             Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                    .create();
+                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                .create();
 
             ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
 
             boolean hasCoffre = Arrays.stream(objets)
-                    .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
+                .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
 
             if (objets.length == 0) {
                 panel.addComponent(new Label("Votre BackPack est vide."));
@@ -740,8 +747,8 @@ public class LanternaApp {
         gui.addWindowAndWait(window);
     }
 
-    private static void PLayRoulette (WindowBasedTextGUI gui){
-        try{
+    private static void PLayRoulette(WindowBasedTextGUI gui) {
+        try {
             String json = HttpService.PlayRoulette(Session.getUsername(), Session.getToken());
             //Convertit une chaine json recue depuis le serveur en 1 objet java que l'on peut jouer avec
             //et acceder au champ
@@ -769,7 +776,7 @@ public class LanternaApp {
                 MessageDialog.showMessageDialog(gui, "Roulette", message);
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             MessageDialog.showMessageDialog(gui, " ", " " + e.getMessage());
 
@@ -790,8 +797,8 @@ public class LanternaApp {
 
         try {
             Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                    .create();
+                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                .create();
 
             String jsonInventaire = HttpService.getInventory(Session.getUsername(), Session.getToken());
             Inventory inventory = gson.fromJson(jsonInventaire, Inventory.class);
@@ -904,11 +911,12 @@ public class LanternaApp {
 
         panel.addComponent(new Button("Quitter la salle", () -> {
             shouldRun.set(false); // Demande d'arrêt,passe a faut si on clique
-            try{
+            try {
                 Map<String, String> data = new HashMap<>();
                 data.put("username", Session.getUsername());
                 HttpService.exitMatchmakingRoom(Session.getUsername(), Session.getToken());
-            }catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             combatWindow.close();
         }));
 
@@ -919,8 +927,8 @@ public class LanternaApp {
         try {
             UserInfo userInfo = Session.getUserInfo();
             String user = new Gson().toJson(userInfo);
-            HttpService.enterMatchmakingRoom(Session.getUserInfo(),Session.getToken());
-        }catch (Exception e) {
+            HttpService.enterMatchmakingRoom(Session.getUserInfo(), Session.getToken());
+        } catch (Exception e) {
             MessageDialog.showMessageDialog(gui, "Erreur", "Impossible d'entrer dans la salle : " + e.getMessage());
             combatWindow.close();
             return;
@@ -929,29 +937,48 @@ public class LanternaApp {
         //Thread pour rafraichir la liste
         //Utile coté client pour ne pas crache
         new Thread(() -> {
-            while (shouldRun.get()){
-                try{
+            while (shouldRun.get()) {
+                try {
                     //A partir d'ici c un thread secondaire
                     Thread.sleep(2000); //attend 2 sec
+
+                    // Ajout en haut de la boucle pour détecter si l'utilisateur est défié
+                    String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+                    System.out.println("CombatState reçu (thread matchmaking) : " + json);
+
+                    Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                        .create();
+                    StateCombat state = gson.fromJson(json, StateCombat.class);
+
+                    if (state != null && state.getPlayerNow() != null) {
+                        gui.getGUIThread().invokeLater(() -> {
+                            shouldRun.set(false);
+                            combatWindow.close();
+                            lancerCombat(gui, state);
+                        });
+                        break;
+                    }
+
+
 
                     //Appelle du endpoint
                     List<UserInfo> opponents = HttpService.getAvailableOpponents(Session.getUsername(), Session.getToken());
 
                     //Lorsqu'on a une réponse du serveur la mise a jour de l'interface ce fait ici
                     //invokeLater permet de repasser sur le thread pricipale
-                    gui.getGUIThread().invokeLater(() ->{
+                    gui.getGUIThread().invokeLater(() -> {
                         if (!shouldRun.get()) return;
                         usersPanel.removeAllComponents();
-                        if (opponents.isEmpty()){
+                        if (opponents.isEmpty()) {
                             usersPanel.addComponent(new Label("Aucun joueur dans la salle"));
-                        }
-                        else {
+                        } else {
                             for (UserInfo opponent : opponents) {
                                 String label = "Défier " + opponent.getUsername() + " (Niv " + opponent.getLevel() + ")";
                                 if (opponent.getSelectedCharacter() != null) {
                                     label += " - " + opponent.getSelectedCharacter();
                                 }
-                                Button challenge = new Button(label, () ->{
+                                Button challenge = new Button(label, () -> {
                                     try {
                                         HttpService.challengePlayer(Session.getUsername(), opponent.getUsername(), Session.getToken());
 
@@ -959,7 +986,6 @@ public class LanternaApp {
 
                                         shouldRun.set(false);
                                         combatWindow.close();
-                                        OpenWindowFight(gui, opponent.getUsername());
                                     } catch (Exception e) {
                                         MessageDialog.showMessageDialog(gui, "Erreur", "Défi impossible : " + e.getMessage());
                                     }
@@ -969,7 +995,8 @@ public class LanternaApp {
                         }
                         combatWindow.setComponent(panel); // Re-render
                     });
-                }catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
         }).start();
 
@@ -978,6 +1005,7 @@ public class LanternaApp {
 
     /**
      * Ouvre la fenêtre de combat
+     *
      * @param gui
      * @param adversaireNom
      */
@@ -1152,7 +1180,6 @@ public class LanternaApp {
     }
 
 
-
     private static void enemyTurn(WindowBasedTextGUI gui, String adversaireNom,
                                   Label playerHealth, Label enemyHealth, BasicWindow combatWindow,
                                   AtomicInteger playerHP, AtomicInteger enemyHP,
@@ -1183,7 +1210,7 @@ public class LanternaApp {
         } else {
             // Passer au tour suivant
             tourCounter.incrementAndGet();
-            tourLabel.setText("🕒 Tour : " + tourCounter.get());
+            tourLabel.setText("Tour : " + tourCounter.get());
 
             // Réinitialiser l'historique tous les 5 tours
             if (tourCounter.get() % 5 == 0) {
@@ -1196,128 +1223,67 @@ public class LanternaApp {
         }
     }
 
-    /*Test de comabt en lan */
-    private static void OpenWindowFight(WindowBasedTextGUI gui, String opponentName) {
+    public static void lancerCombat(WindowBasedTextGUI gui, StateCombat state) {
+        String adversaire = state.getOpponent(Session.getUsername());
 
-        BasicWindow window = new BasicWindow();
-        window.setHints(Arrays.asList(Hint.CENTERED));
+        BasicWindow combatWindow = new BasicWindow("Combat contre " + adversaire);
+        combatWindow.setHints(List.of(Window.Hint.CENTERED));
 
         Panel panel = new Panel(new GridLayout(1));
-        panel.addComponent(new Label("Combat contre un adversaire..."));
+        panel.addComponent(new Label("Combat contre " + adversaire + " ").setForegroundColor(TextColor.ANSI.RED));
+        panel.addComponent(new Label("Tour : " + state.getTour()));
+        panel.addComponent(new Label("PV adversaire : " + state.getPv(adversaire)));
+        panel.addComponent(new Label("Vos PV : " + state.getPv(Session.getUsername())));
 
-        try{
-            //Recup le perso
-            String UserJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
-            UserInfo user = new Gson().fromJson(UserJson, UserInfo.class);
-            Session.setUsername(user.getUsername());
-            //Verif perso
-            if(user.getSelectedCharacter() == null || user.getSelectedCharacter().isBlank()) {
-                //Recup perso
-                String charactType = HttpService.getCharacter(Session.getUsername(), Session.getToken());
-                if(charactType != null && !charactType.isBlank()) {
-                    // Sélection automatique du personnage
-                    try {
-                        HttpService.selectCharacter(Session.getUsername(), charactType, Session.getToken());
-                        System.out.println(">> Sélection confirmée");
-                    } catch (Exception e) {
-                        System.err.println("Erreur lors de la sélection automatique : " + e.getMessage());
-                        MessageDialog.showMessageDialog(gui, "Erreur", "Sélection auto échouée : " + e.getMessage());
-                        return;
-                    }
-                }else{
-                    throw new RuntimeException("Aucun personnage existant trouvé pour l'utilisateur !");
-                }
-
-            }
-
-            String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
-            System.out.println("Combat state JSON (avant start): " + json);
-
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                    .create();
-            StateCombat stateCombat = gson.fromJson(json, StateCombat.class);
-
-
-            if (stateCombat == null) {
-                System.out.println(">> Aucun combat trouvé, tentative de démarrage...");
-                String startCombat = HttpService.startCombat(Session.getUsername(), Session.getToken());
-                System.out.println(">> Réponse /combat/start : " + startCombat);
-
-                //laisser le temps au backend
-                Thread.sleep(300);
-
-                json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
-                stateCombat = gson.fromJson(json, StateCombat.class);
-
-                if (stateCombat == null) {
-                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de démarrer le combat (réponse vide)");
-                    return;
-                }
-            }
-
-
-            panel.addComponent(new Label("Tour : " + stateCombat.getTour()));
-            panel.addComponent(new Label("PV " + Session.getUsername() + " : " + stateCombat.getPv(Session.getUsername())));
-            String ennemi = stateCombat.getOpponent(Session.getUsername());
-            panel.addComponent(new Label("PV Ennemi (" + ennemi + ") : " + stateCombat.getPv(ennemi)));
-
-            panel.addComponent(new EmptySpace());
-
-
-            String joueurActuel = stateCombat.getPlayerNow();
-            if (joueurActuel == null) {
-                panel.addComponent(new Label("Combat en cours d'initialisation... Réessaie dans une seconde."));
-            } else if (!Session.getUsername().equals(joueurActuel)) {
-                panel.addComponent(new Label("Tour de l'adversaire...."));
-            } else {
-                panel.addComponent(new Label("A vous de jouer !"));
-
-                panel.addComponent(new Button("Attaque Normale", () -> {
-                    try {
-                        HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
-                        window.close();
-                        OpenWindowFight(gui, opponentName);
-                    } catch (Exception e) {
-                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                    }
-                }));
-                panel.addComponent(new Button("Attaque Spéciale", () -> {
-                    try {
-                        HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
-                        window.close();
-                        OpenWindowFight(gui,opponentName);
-                    } catch (Exception e) {
-                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                    }
-                }));
-                for (ObjectBase obj : stateCombat.getBackpack(Session.getUsername())) {
-                    String label = "Utiliser " + obj.getName() + " (" + obj.getType() + ")";
-                    panel.addComponent(new Button(label, () -> {
-                        try {
-                            HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
-                            window.close();
-                            OpenWindowFight(gui, opponentName );
-                        } catch (Exception e) {
-                            MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                        }
-                    }));
-                }
-            }
-            panel.addComponent(new EmptySpace());
-            panel.addComponent(new Label("Historique :"));
-            for (String logLine : stateCombat.getLog()) {
-                panel.addComponent(new Label(logLine));
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        panel.addComponent(new Label("Historique :"));
+        for (String entry : state.getLog()) {
+            panel.addComponent(new Label(entry));
         }
 
-        panel.addComponent(new Button("Retour", window::close));
-        window.setComponent(panel);
-        gui.addWindowAndWait(window);
-    }
+        if (Session.getUsername().equals(state.getPlayerNow())) {
+            panel.addComponent(new Label("🗡 Vos actions :"));
 
+            panel.addComponent(new Button("Attaque normale", () -> {
+                try {
+                    HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
+                    combatWindow.close();
+                } catch (Exception e) {
+                    MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                }
+            }));
+
+            panel.addComponent(new Button("Attaque spéciale", () -> {
+                try {
+                    HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
+                    combatWindow.close();
+                } catch (Exception e) {
+                    MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                }
+            }));
+
+            for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
+                panel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
+                    try {
+                        HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                        combatWindow.close();
+                    } catch (Exception e) {
+                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                    }
+                }));
+            }
+        } else {
+            panel.addComponent(new Label("En attente du tour de l'adversaire..."));
+        }
+
+        panel.addComponent(new Button("Quitter le combat", () -> {
+            combatWindow.close();
+            LanternaApp.afficherMenuPrincipal(gui);
+        }));
+
+        combatWindow.setComponent(panel);
+        gui.addWindowAndWait(combatWindow);
+    }
 }
+
+
 

@@ -28,7 +28,7 @@ import java.util.*;
 public class HttpService {
     //   private static final String BASE_URL = "https://bf8e-94-109-202-55.ngrok-free.app";
     //private static final String BASE_URL = "http://192.168.68.56:8080";
-    private static final String BASE_URL = "http://192.168.68.51:8080";
+    private static final String BASE_URL = "http://192.168.68.50:8080";
 
 
     /**
