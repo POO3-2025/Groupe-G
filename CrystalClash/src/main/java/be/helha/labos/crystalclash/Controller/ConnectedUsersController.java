@@ -47,6 +47,10 @@ public class ConnectedUsersController {
         return ResponseEntity.ok("Déconnecté avec succès");
     }
 
+    /**
+    * @param userInfo = user renvoie le json avec ses infos
+    * matchmakingWaitingRoom qui est Map<String, UserInfo>
+    * */
     @PostMapping("/matchmaking/enter")
     public ResponseEntity<Void> enterMatchMaking(@RequestBody UserInfo userInfo){
         if(userInfo.getUsername() != null && !userInfo.getUsername().isBlank()){
@@ -55,6 +59,10 @@ public class ConnectedUsersController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * @param request = user renvoie juste son username dans une map JSON
+     * puis on supprimer ce user dans la map, matchmakingWaitingRoom.remove
+     * */
     @PostMapping("/matchmaking/exit")
     public ResponseEntity<Void> exitMatchmaking(@RequestBody Map<String, String> request) {
         String username = request.get("username");
@@ -64,11 +72,19 @@ public class ConnectedUsersController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * @param username
+     * ici on va retourner tous les joueurs ds la salle sauf sois meme
+     * synchronized = lui permet de faire une action a la fois sur la MAP matchmakingWaitingRoom pour garder une bonne cohérance quoi
+     * que ce soit pour le put, remove ou le for dans getAvailableOpponents
+     * permet de ne pas planter (ce n'est pas optimal mais je laisse comme ça pour le moment)
+     * pq ? car bcp peuvent se co,deco,... si pas cette méthode une erreur aura lieu
+     * */
     @GetMapping("/matchmaking/available")
     public List<UserInfo> getAvailableOpponents(@RequestParam("username") String username) {
         List<UserInfo> user = new ArrayList<>();
 
-        //On va synchro la room pour ajouter les users
+        //
         synchronized (matchmakingWaitingRoom) {
             for(Map.Entry<String, UserInfo> entry : matchmakingWaitingRoom.entrySet()) {
                 if (!entry.getKey().equals(username)) {

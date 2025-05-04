@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -295,7 +296,7 @@ public class LanternaApp {
         }));
 
         menuWindow.setComponent(mainPanel);
-        startCombatWatcher(gui);
+
         gui.addWindowAndWait(menuWindow);
     }
     /**
@@ -889,6 +890,9 @@ public class LanternaApp {
     public static void MatchMaking(WindowBasedTextGUI gui) {
         BasicWindow combatWindow = new BasicWindow("Salle de matchMaking");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
+        //Boolean pour les thread
+        //Utilise pour control u nthrad en cours d'execution. le thread seco verra obligatoirement la mise a jour
+        AtomicBoolean shouldRun = new AtomicBoolean(true);
 
         Panel panel = new Panel(new GridLayout(1));
         Label infoLabel = new Label("Recherche d'autres joueurs dans la salle...");
@@ -899,6 +903,7 @@ public class LanternaApp {
         panel.addComponent(usersPanel);
 
         panel.addComponent(new Button("Quitter la salle", () -> {
+            shouldRun.set(false); // Demande d'arrêt,passe a faut si on clique
             try{
                 Map<String, String> data = new HashMap<>();
                 data.put("username", Session.getUsername());
@@ -922,14 +927,20 @@ public class LanternaApp {
         }
 
         //Thread pour rafraichir la liste
+        //Utile coté client pour ne pas crache
         new Thread(() -> {
-            while (combatWindow.isVisible()){
+            while (shouldRun.get()){
                 try{
-                    Thread.sleep(2000);
+                    //A partir d'ici c un thread secondaire
+                    Thread.sleep(2000); //attend 2 sec
 
+                    //Appelle du endpoint
                     List<UserInfo> opponents = HttpService.getAvailableOpponents(Session.getUsername(), Session.getToken());
 
+                    //Lorsqu'on a une réponse du serveur la mise a jour de l'interface ce fait ici
+                    //invokeLater permet de repasser sur le thread pricipale
                     gui.getGUIThread().invokeLater(() ->{
+                        if (!shouldRun.get()) return;
                         usersPanel.removeAllComponents();
                         if (opponents.isEmpty()){
                             usersPanel.addComponent(new Label("Aucun joueur dans la salle"));
@@ -941,8 +952,17 @@ public class LanternaApp {
                                     label += " - " + opponent.getSelectedCharacter();
                                 }
                                 Button challenge = new Button(label, () ->{
-                                    combatWindow.close();
-                                    openCombatWindow(gui,opponent.getUsername());
+                                    try {
+                                        HttpService.challengePlayer(Session.getUsername(), opponent.getUsername(), Session.getToken());
+
+                                        MessageDialog.showMessageDialog(gui, "Défi lancé", "Vous avez défié " + opponent.getUsername() + " !");
+
+                                        shouldRun.set(false);
+                                        combatWindow.close();
+                                        OpenWindowFight(gui, opponent.getUsername());
+                                    } catch (Exception e) {
+                                        MessageDialog.showMessageDialog(gui, "Erreur", "Défi impossible : " + e.getMessage());
+                                    }
                                 });
                                 usersPanel.addComponent(challenge);
                             }
@@ -1177,7 +1197,7 @@ public class LanternaApp {
     }
 
     /*Test de comabt en lan */
-    private static void OpenWindowFight(WindowBasedTextGUI gui) {
+    private static void OpenWindowFight(WindowBasedTextGUI gui, String opponentName) {
 
         BasicWindow window = new BasicWindow();
         window.setHints(Arrays.asList(Hint.CENTERED));
@@ -1189,7 +1209,7 @@ public class LanternaApp {
             //Recup le perso
             String UserJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
             UserInfo user = new Gson().fromJson(UserJson, UserInfo.class);
-
+            Session.setUsername(user.getUsername());
             //Verif perso
             if(user.getSelectedCharacter() == null || user.getSelectedCharacter().isBlank()) {
                 //Recup perso
@@ -1245,16 +1265,19 @@ public class LanternaApp {
             panel.addComponent(new EmptySpace());
 
 
-            if(!Session.getUsername().equals(stateCombat.getPlayerNow())){
+            String joueurActuel = stateCombat.getPlayerNow();
+            if (joueurActuel == null) {
+                panel.addComponent(new Label("Combat en cours d'initialisation... Réessaie dans une seconde."));
+            } else if (!Session.getUsername().equals(joueurActuel)) {
                 panel.addComponent(new Label("Tour de l'adversaire...."));
-            }else {
-                panel.addComponent(new Label("A vcous de jouer !"));
+            } else {
+                panel.addComponent(new Label("A vous de jouer !"));
 
                 panel.addComponent(new Button("Attaque Normale", () -> {
                     try {
                         HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
                         window.close();
-                        OpenWindowFight(gui);
+                        OpenWindowFight(gui, opponentName);
                     } catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                     }
@@ -1263,7 +1286,7 @@ public class LanternaApp {
                     try {
                         HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
                         window.close();
-                        OpenWindowFight(gui);
+                        OpenWindowFight(gui,opponentName);
                     } catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                     }
@@ -1274,7 +1297,7 @@ public class LanternaApp {
                         try {
                             HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
                             window.close();
-                            OpenWindowFight(gui);
+                            OpenWindowFight(gui, opponentName );
                         } catch (Exception e) {
                             MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                         }
@@ -1294,37 +1317,6 @@ public class LanternaApp {
         panel.addComponent(new Button("Retour", window::close));
         window.setComponent(panel);
         gui.addWindowAndWait(window);
-    }
-    /**
-     * Lance un thread qui vérifie régulièrement si un combat a été lancé pour le joueur
-     */
-    private static void startCombatWatcher(WindowBasedTextGUI gui) {
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(2000); // Vérifie toutes les 2 secondes
-
-                    String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
-
-                    // Vérification de JSON non vide et présence d'un playerNow non nul
-                    if (json != null && !json.isBlank()) {
-                        Gson gson = new GsonBuilder()
-                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                            .create();
-
-                        StateCombat state = gson.fromJson(json, StateCombat.class);
-
-                        if (state != null && state.getPlayerNow() != null && !state.getPlayerNow().isBlank()) {
-                            System.out.println(">> [CombatWatcher] Un combat a été détecté !");
-                            gui.getGUIThread().invokeLater(() -> OpenWindowFight(gui));
-                            break; // Stop le watcher après détection
-                        }
-                    }
-                } catch (Exception e) {
-                    System.out.println("Erreur dans le thread de surveillance du combat : " + e.getMessage());
-                }
-            }
-        }).start();
     }
 
 }

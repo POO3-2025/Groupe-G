@@ -546,5 +546,30 @@ public class HttpService {
         return Arrays.asList(new Gson().fromJson(response.body(), UserInfo[].class));
 
     }
-}
+
+    public static String challengePlayer(String challenger, String challenged, String token) throws Exception, InterruptedException {
+        // Corps JSON
+        JsonObject json = new JsonObject();
+        json.addProperty("challenger", challenger);
+        json.addProperty("challenged", challenged);
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/combat/challenge"))
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + token)
+            .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur défi : " + response.body());
+        }
+
+        return response.body();
+
+    }
+
+
+    }
 

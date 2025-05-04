@@ -5,6 +5,7 @@ import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Service.CharacterService;
+import be.helha.labos.crystalclash.Service.CombatService;
 import be.helha.labos.crystalclash.Service.FightService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
@@ -27,6 +28,7 @@ public class FightController {
 
     @Autowired
     private CharacterService characterService;
+
 
     @PostConstruct
     public void init() {
@@ -101,4 +103,38 @@ public class FightController {
     public StateCombat getState(@PathVariable String username) {
         return fightService.getCombat(username);
     }
+
+    @PostMapping("/combat/challenge")
+    public ResponseEntity<?> challenge(@RequestBody Map<String, String> body) {
+        try{
+         String challenger = body.get("challenger");
+         String challenged = body.get("challenged");
+
+         //Recup perso
+        String charType1 = characterService.getCharacterForUser(challenger);
+        String charType2 = characterService.getCharacterForUser(challenged);
+
+        if(charType1 == null || charType2 == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Personnage manquant"));
+        }
+
+        //Instancier
+        Personnage p1 = CharactersFactory.getCharacterByType(charType1);
+        Personnage p2 = CharactersFactory.getCharacterByType(charType2);
+
+        List<ObjectBase> bp1 = characterService.getBackPackForCharacter(challenger).getObjets();
+        List<ObjectBase> bp2 = characterService.getBackPackForCharacter(challenged).getObjets();
+
+        fightService.createCombat(challenger,challenged,p1,p2,bp1,bp2);
+
+            return ResponseEntity.ok(Map.of("message", "Combat lancé !"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("message", "Erreur : " + e.getMessage()));
+        }
+    }
 }
+
+
+
