@@ -186,8 +186,9 @@ public class CharacterDAOImpl implements CharacterDAO {
                 }
 
                 Document doc = new Document()
+                        .append("id", obj.getId())
                         .append("name", obj.getName())
-                        .append("type", obj.getType())  // toujours présent
+                        .append("type", obj.getType())
                         .append("price", obj.getPrice())
                         .append("requiredLevel", obj.getRequiredLevel());
 
@@ -215,6 +216,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                         List<Document> contenuDocs = new ArrayList<>();
                         for (ObjectBase item : coffre.getContenu()) {
                             Document itemDoc = new Document()
+                                    .append("id", item.getId())
                                     .append("name", item.getName())
                                     .append("type", item.getType())
                                     .append("price", item.getPrice())
@@ -319,7 +321,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                             copie.setPrice(coffre.getPrice());
                             copie.setRequiredLevel(coffre.getRequiredLevel());
                             copie.setReliability(coffre.getReliability());
-                            copie.setContenu(new ArrayList<>(coffre.getContenu())); // Deep copy du contenu
+                            copie.setContenu(new ArrayList<>(coffre.getContenu()));
 
                             objectToAdd = copie;
                             isCoffre = true;
@@ -333,7 +335,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                 return new ApiReponse("Objet non trouvé dans l'inventaire ni dans un coffre.", null);
             }
 
-            // 3. Ajouter au backpack
+            // Ajouter au backpack
             if (!backpack.AddObjects(objectToAdd)) {
                 return new ApiReponse("Erreur lors de l'ajout de l'objet au backpack.", null);
             }
