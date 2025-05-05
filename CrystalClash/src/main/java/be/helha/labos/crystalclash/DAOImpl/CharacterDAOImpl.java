@@ -110,18 +110,19 @@ public class CharacterDAOImpl implements CharacterDAO {
     }
 
     /**
-     * Récupère le backpack du personnage du joueur
-     *
-     * @param username Nom d'utilisateur
-     * @return Le backpack du personnage
-     */
+
+     Récupère le backpack du personnage du joueur*
+     @param username Nom d'utilisateur
+     @return Le backpack du personnage*/
     @Override
     public BackPack getBackPackForCharacter(String username) {
         try {
             MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Characters");
 
-            Document doc = collection.find(new Document("username", username)).first();
+            Document doc = collection.find(
+                    new Document("username", username).append("selected", true)
+            ).first();
             if (doc != null && doc.containsKey("backpack")) {
                 Document backpackDoc = (Document) doc.get("backpack");
                 doc.remove("_id"); // important
