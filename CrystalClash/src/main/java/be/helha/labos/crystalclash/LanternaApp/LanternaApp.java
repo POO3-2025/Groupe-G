@@ -21,7 +21,7 @@ import com.googlecode.lanterna.gui2.Window.Hint;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import be.helha.labos.crystalclash.Combat.CombatManager;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
