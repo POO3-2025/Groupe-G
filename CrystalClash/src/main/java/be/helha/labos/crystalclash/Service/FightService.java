@@ -23,6 +23,11 @@ public class FightService {
         System.out.println("[DEBUG] FightService - createCombat() entre " + p1 + " et " + p2);
 
         StateCombat state = new StateCombat(p1, p2, char1, char2, bp1, bp2);
+        System.out.println("[DEBUG] Backpack joueur1 (" + p1 + ") : " + bp1);
+        System.out.println("[DEBUG] Backpack joueur2 (" + p2 + ") : " + bp2);
+        System.out.println("[DEBUG] Personnage joueur1 (" + p1 + ") : " + char1);
+        System.out.println("[DEBUG] Personnage joueur2 (" + p2 + ") : " + char2);
+
         combats.put(p1, state);
         combats.put(p2, state);
     }

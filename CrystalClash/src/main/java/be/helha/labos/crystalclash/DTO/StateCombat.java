@@ -2,64 +2,70 @@ package be.helha.labos.crystalclash.DTO;
 
 import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Object.ObjectBase;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.*;
 public class StateCombat {
 
-    private String Player1;
-    private String Player2;
-    private Personnage Character1;
-    private Personnage Character2;
-    private int Pv1;
-    private int Pv2;
-    private String PlayerNow;
+    private String player1;
+    private String player2;
+    private Personnage character1;
+    private Personnage character2;
+    private int pv1;
+    private int pv2;
+    private String playerNow;
     private Map<String, List<ObjectBase>> backpack = new HashMap<>();
+    @JsonProperty("logCombat")
     private List<String> logCombat = new ArrayList<>();
     private int tour = 1;
 
-    public StateCombat(String Player1, String Player2, Personnage Character1, Personnage Character2,
+    public StateCombat(String player1, String player2, Personnage character1, Personnage character2,
                        List<ObjectBase> bp1, List<ObjectBase> bp2) {
-        this.Player1 = Player1;
-        this.Player2 = Player2;
-        this.Character1 = Character1;
-        this.Character2 = Character2;
-        this.Pv1 = Character1.getPV();
-        this.Pv2 = Character2.getPV();
-        this.PlayerNow = Player1;
-        backpack.put(Player1, bp1);
-        backpack.put(Player2, bp2);
+        this.player1 = player1;
+        this.player2 = player2;
+        this.character1 = character1;
+        this.character2 = character2;
+        this.pv1 = character1.getPV();
+        this.pv2 = character2.getPV();
+        this.playerNow =player1;
+        backpack.put(player1, bp1);
+        backpack.put(player2, bp2);
     }
 
     //Cool pour un combat player1 va return player 2 et inversement
     public String getOpponent(String Player) {
-        return Player.equals(Player1) ? Player2 : Player1;
+        return Player.equals(player1) ? player2 : player1;
     }
 
     public Personnage getCharacter(String Player) {
-        return Player.equals(Player1) ? Character1 : Character2;
+        return Player.equals(player1) ? character1 : character2;
     }
 
     public int getPv(String player) {
         if (player == null) return 0;
-        return player.equals(Player1) ? Pv1 : Pv2;
+        return player.equals(player1) ? pv1 : pv2;
     }
 
     public void setPv(String player, int pv) {
         if (player == null) return;
-        if (player.equals(Player1)) this.Pv1 = pv;
-        else if (player.equals(Player2)) this.Pv2 = pv;
+        if (player.equals(player1)) this.pv1 = pv;
+        else if (player.equals(player2)) this.pv2 = pv;
     }
 
-    public List<ObjectBase> getBackpack(String Player){
-        return backpack.getOrDefault(Player, new ArrayList<>());
+    public void setBackpack(Map<String, List<ObjectBase>> backpack) {
+        this.backpack = backpack;
     }
 
+    public List<ObjectBase> getBackpack(String username) {
+        return backpack.getOrDefault(username, new ArrayList<>());
+    }
     public String getPlayerNow(){
 
-        return PlayerNow;
+        return playerNow;
     }
 
     public void NextTurn(){
-        this.PlayerNow = getOpponent(PlayerNow);
+        this.playerNow = getOpponent(playerNow);
         this.tour++;
     }
     public int getTour() {
@@ -68,6 +74,7 @@ public class StateCombat {
 
 
     public List<String> getLog() {
+        if (logCombat == null) logCombat = new ArrayList<>();
         return logCombat;
     }
 
@@ -76,12 +83,20 @@ public class StateCombat {
     }
 
     public boolean isFinished() {
-        return Pv1 <= 0 || Pv2 <= 0;
+        return pv1 <= 0 || pv2 <= 0;
     }
 
     public String getWinner() {
-        if (Pv1 <= 0) return Player2;
-        if (Pv2 <= 0) return Player1;
+        if (pv1 <= 0) return player2;
+        if (pv2 <= 0) return player1;
         return null;
+    }
+
+    public String getPlayer1() {
+        return player1;
+    }
+
+    public String getPlayer2() {
+        return player2;
     }
 }

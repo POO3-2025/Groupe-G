@@ -124,7 +124,9 @@ public class FightController {
 
         List<ObjectBase> bp1 = characterService.getBackPackForCharacter(challenger).getObjets();
         List<ObjectBase> bp2 = characterService.getBackPackForCharacter(challenged).getObjets();
-
+            System.out.println("Création du combat entre " + challenger + " et " + challenged);
+            System.out.println("Backpack joueur1 : " + bp1);
+            System.out.println("Backpack joueur2 : " + bp2);
         fightService.createCombat(challenger,challenged,p1,p2,bp1,bp2);
 
             return ResponseEntity.ok(Map.of("message", "Combat lancé !"));

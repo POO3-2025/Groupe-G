@@ -1,4 +1,3 @@
-
 package be.helha.labos.crystalclash.LanternaApp;
 
 
@@ -47,9 +46,9 @@ public class LanternaApp {
 
         TextColor backgroundColor = TextColor.ANSI.BLACK; // Choisir couleur ici
         WindowBasedTextGUI gui = new MultiWindowTextGUI(
-            screen,
-            new DefaultWindowManager(),
-            new EmptySpace(backgroundColor) // Fond global ici
+                screen,
+                new DefaultWindowManager(),
+                new EmptySpace(backgroundColor) // Fond global ici
         );
 
         afficherEcranAccueil(gui, screen);
@@ -462,8 +461,8 @@ public class LanternaApp {
 
             // Création de Gson avec désérialiseur custom
             Gson gson = new GsonBuilder()
-                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                .create();
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
 
             // Désérialisation de l'inventaire avec le bon type d'objets
             Inventory inventory = gson.fromJson(json, Inventory.class);
@@ -479,7 +478,7 @@ public class LanternaApp {
                 panel.addComponent(new Label("Objets dans l'inventaire :"));
                 // Sert a voir si le joueur a un coffre
                 boolean hasCoffre = inventory.getObjets().stream()
-                    .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
+                        .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
                 //Parcour liste objets de l'inventaire
                 //obj représente object du joueur
                 // Personnalisation selon le type
@@ -680,13 +679,13 @@ public class LanternaApp {
             JsonArray dataArray = response.getAsJsonArray("data");
 
             Gson gson = new GsonBuilder()
-                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                .create();
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
 
             ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
 
             boolean hasCoffre = Arrays.stream(objets)
-                .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
+                    .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
 
             if (objets.length == 0) {
                 panel.addComponent(new Label("Votre BackPack est vide."));
@@ -797,8 +796,8 @@ public class LanternaApp {
 
         try {
             Gson gson = new GsonBuilder()
-                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                .create();
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
 
             String jsonInventaire = HttpService.getInventory(Session.getUsername(), Session.getToken());
             Inventory inventory = gson.fromJson(jsonInventaire, Inventory.class);
@@ -893,7 +892,6 @@ public class LanternaApp {
         gui.addWindowAndWait(detailsWindow);
     }
 
-
     public static void MatchMaking(WindowBasedTextGUI gui) {
         BasicWindow combatWindow = new BasicWindow("Salle de matchMaking");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -947,15 +945,16 @@ public class LanternaApp {
                     System.out.println("CombatState reçu (thread matchmaking) : " + json);
 
                     Gson gson = new GsonBuilder()
-                        .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                        .create();
+                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                            .create();
                     StateCombat state = gson.fromJson(json, StateCombat.class);
 
                     if (state != null && state.getPlayerNow() != null) {
                         gui.getGUIThread().invokeLater(() -> {
+                            System.out.println("===> Passage dans invokeLater : lancement du combat");
                             shouldRun.set(false);
                             combatWindow.close();
-                            lancerCombat(gui, state);
+                            LanternaApp.lancerCombat(gui, state);
                         });
                         break;
                     }
@@ -981,15 +980,35 @@ public class LanternaApp {
                                 Button challenge = new Button(label, () -> {
                                     try {
                                         HttpService.challengePlayer(Session.getUsername(), opponent.getUsername(), Session.getToken());
-
                                         MessageDialog.showMessageDialog(gui, "Défi lancé", "Vous avez défié " + opponent.getUsername() + " !");
-
                                         shouldRun.set(false);
-                                        combatWindow.close();
+
+                                        // Relancer un thread qui vérifie le combat côté joueur initiateur
+                                        new Thread(() -> {
+                                            try {
+                                                Thread.sleep(1500); // Laisse au serveur le temps de créer le combat
+                                                String json1 = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+                                                Gson gson1 = new GsonBuilder()
+                                                        .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                                                        .create();
+                                                StateCombat state1 = gson.fromJson(json, StateCombat.class);
+
+                                                if (state != null && state.getPlayerNow() != null) {
+                                                    gui.getGUIThread().invokeLater(() -> {
+                                                        combatWindow.close();
+                                                        LanternaApp.lancerCombat(gui, state);
+                                                    });
+                                                }
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }).start();
+
                                     } catch (Exception e) {
                                         MessageDialog.showMessageDialog(gui, "Erreur", "Défi impossible : " + e.getMessage());
                                     }
                                 });
+
                                 usersPanel.addComponent(challenge);
                             }
                         }
@@ -1224,6 +1243,8 @@ public class LanternaApp {
     }
 
     public static void lancerCombat(WindowBasedTextGUI gui, StateCombat state) {
+        System.out.println(">>> LANCEMENT COMBAT avec " + state);
+        System.out.println(">>> Joueur courant : " + state.getPlayerNow());
         String adversaire = state.getOpponent(Session.getUsername());
 
         BasicWindow combatWindow = new BasicWindow("Combat contre " + adversaire);
@@ -1284,6 +1305,3 @@ public class LanternaApp {
         gui.addWindowAndWait(combatWindow);
     }
 }
-
-
-
