@@ -422,14 +422,17 @@ public class HttpService {
         return gson.fromJson(jsonInventaire, Inventory.class);
     }
 
-    public static String updateObjectReliability(String username, int objectIndex, int newReliability, String token) throws Exception {
+    public static String updateObjectReliability(String username, String objectId, int newReliability, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
-                "reliability", newReliability  // On ne modifie que la fiabilité
+                "reliability", newReliability
         ));
 
-        // URL inclut l'index pour désigner l'objet dans le tableau "objets"
+        // Construire l'URL correcte
+        String url = BASE_URL + "/characters/" + username + "/backpack/update/" + objectId;
+        System.out.println("URL: " + url); // Afficher l'URL pour déboguer
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/objets/" + objectIndex)) // Utilisation de l'index
+                .uri(URI.create(url))
                 .timeout(Duration.ofSeconds(5))
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
@@ -439,6 +442,9 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
     }
+
+
+
 
 
 

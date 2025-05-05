@@ -20,7 +20,6 @@ import com.googlecode.lanterna.gui2.Window.Hint;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import be.helha.labos.crystalclash.Combat.CombatManager;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -660,6 +659,14 @@ public class LanternaApp {
         Panel panel = new Panel(new GridLayout(1));
         String username = Session.getUsername();
 
+        UserInfo info = Session.getUserInfo();
+        if (info != null) {
+            panel.addComponent(new Label("Niveau : " + info.getLevel()));
+            panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
+            panel.addComponent(new Label("Personnage choisi : " + info.getSelectedCharacter()));
+        } else {
+            panel.addComponent(new Label("Aucune information disponible."));
+        }
         try {
             String json = HttpService.getBackpack(username, Session.getToken());
 
@@ -674,7 +681,7 @@ public class LanternaApp {
             ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
 
             boolean hasCoffre = Arrays.stream(objets)
-                    .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
+                    .anyMatch(objet -> objet instanceof CoffreDesJoyaux);
 
             if (objets.length == 0) {
                 panel.addComponent(new Label("Votre BackPack est vide."));
@@ -1099,8 +1106,9 @@ public class LanternaApp {
                                 actionsPanel.addComponent(new Label("Votre BackPack est vide."));
                             } else {
                                 for (ObjectBase objlist : objets) {
+                                    String objectId = objlist.getId(); // On récupère l'ID unique
+
                                     Button objButton = new Button(objlist.getName() + " (" + objlist.getType() + ")", () -> {
-                                        // Utilisation de l'objet via un switch
                                         switch (objlist.getType()) {
                                             case "Weapon":
                                                 Weapon weapon = (Weapon) objlist;
@@ -1113,17 +1121,16 @@ public class LanternaApp {
                                                     enemyHP.addAndGet(-weaponDamage);
                                                     history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
 
-                                                    // 🔥 ➡️ MAJ de la fiabilité (reliability) sur MongoDB ici avec ta nouvelle méthode
+                                                    // 🔥 ➡️ MAJ de la fiabilité (reliability) sur MongoDB avec l'ID unique
                                                     try {
-                                                  /*      String responseupdateobject = HttpService.updateObjectReliability(
+                                                        String responseupdateobject = HttpService.updateObjectReliability(
                                                                 username,
-                                                                weapon.getName(),
-                                                                weapon.getType(),    // Ici "Weapon"
+                                                                objectId,  // on utilise l'id ici
                                                                 weapon.getReliability(),
                                                                 Session.getToken()
-                                                        );*/
+                                                        );
 
-                                                        System.out.println("Mise à jour de la fiabilité de l'arme : " + response);
+                                                        System.out.println("Mise à jour de la fiabilité de l'arme : " + responseupdateobject);
 
                                                     } catch (Exception ex) {
                                                         ex.printStackTrace();
@@ -1135,7 +1142,6 @@ public class LanternaApp {
                                                 }
                                                 break;
 
-
                                             case "HealingPotion":
                                                 HealingPotion potion = (HealingPotion) objlist;
                                                 int healAmount = potion.getHeal();
@@ -1144,27 +1150,11 @@ public class LanternaApp {
                                                 enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow, playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel);
                                                 break;
 
-/*
-                                            case "PotionOfStrenght":
-                                                PotionOfStrenght strengthPotion = (PotionOfStrenght) objlist;
-                                                int boost = strengthPotion.getStrengthBoost();
-                                                perso.boostForce(boost);
-                                                history.append("Vous avez utilisé " + strengthPotion.getName() + " et gagné " + boost + " de force.\n");
-                                                break;
-
-                                            case "Armor":
-                                                Armor armor = (Armor) objlist;
-                                                int protection = armor.getProtection();
-                                                perso.ajouterProtection(protection);
-                                                history.append("Vous avez équipé l'armure " + armor.getName() + " et gagné " + protection + " de protection.\n");
-                                                break;
-*/
                                             default:
                                                 history.append("Objet inconnu : " + objlist.getName() + ".\n");
                                                 break;
                                         }
                                         historyLabel.setText(history.toString());
-
                                     });
 
                                     actionsPanel.addComponent(objButton);

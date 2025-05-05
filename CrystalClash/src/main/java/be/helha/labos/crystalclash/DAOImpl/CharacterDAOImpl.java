@@ -110,18 +110,18 @@ public class CharacterDAOImpl implements CharacterDAO {
     }
 
     /**
-     * Récupère le backpack du personnage du joueur
-     *
-     * @param username Nom d'utilisateur
-     * @return Le backpack du personnage
-     */
+    Récupère le backpack du personnage du joueur*
+    @param username Nom d'utilisateur
+            @return Le backpack du personnage*/
     @Override
     public BackPack getBackPackForCharacter(String username) {
         try {
             MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Characters");
 
-            Document doc = collection.find(new Document("username", username)).first();
+            Document doc = collection.find(
+                    new Document("username", username).append("selected", true)
+            ).first();
             if (doc != null && doc.containsKey("backpack")) {
                 Document backpackDoc = (Document) doc.get("backpack");
                 doc.remove("_id"); // important
@@ -136,6 +136,8 @@ public class CharacterDAOImpl implements CharacterDAO {
 
         return new BackPack(); // retourne un backpack vide si erreur ou pas trouvé
     }
+
+
 
     /**
      * Met a jour le personnage sélectionné pour un utilisateur
@@ -456,6 +458,53 @@ public class CharacterDAOImpl implements CharacterDAO {
             return new ApiReponse("Erreur lors de l'ajout au coffre : " + e.getMessage(), null);
         }
     }
+
+    /**
+     * Modifie la reliability d'un objet (weapon ou armor) dans le backpack du personnage du joueur
+     *
+     * @param username Nom d'utilisateur
+     * @param objectId ID de l'objet à modifier
+     * @param newReliability Nouvelle valeur de reliability
+     * @return Réponse de l'API
+     */
+    @Override
+    public ApiReponse updateReliabilityInBackPack(String username, String objectId, int newReliability) {
+        try {
+            BackPack backpack = getBackPackForCharacter(username);
+
+            boolean found = false;
+
+            for (ObjectBase obj : backpack.getObjets()) {
+                if (obj.getId().equals(objectId)) {
+                    // Vérifie que c'est bien une Weapon ou Armor
+                    if (obj instanceof Weapon weapon) {
+                        weapon.setReliability(newReliability);
+                        found = true;
+                        break;
+                    } else if (obj instanceof Armor armor) {
+                        armor.setReliability(newReliability);
+                        found = true;
+                        break;
+                    } else {
+                        return new ApiReponse("L'objet trouvé n'a pas de reliability (ce n'est ni une arme ni une armure).", null);
+                    }
+                }
+            }
+
+            if (!found) {
+                return new ApiReponse("Objet avec l'ID spécifié non trouvé dans le backpack.", null);
+            }
+
+            // Sauvegarder le backpack après modification
+            saveBackPackForCharacter(username, backpack);
+
+            return new ApiReponse("Reliability de l'objet modifiée avec succès.", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ApiReponse("Erreur lors de la modification de la reliability : " + e.getMessage(), null);
+        }
+    }
+
 }
 
 
