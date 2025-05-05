@@ -42,6 +42,8 @@ public interface CharacterDAO {
     ApiReponse removeObjectFromBackPack(String username, String name);
 
     ApiReponse addObjectToCoffre(String username, String name, String type);
+
+    ApiReponse updateReliabilityInBackPack(String username, String objectId, int newReliability);
 }
 
 
