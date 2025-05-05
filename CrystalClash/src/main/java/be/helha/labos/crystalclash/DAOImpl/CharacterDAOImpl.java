@@ -119,9 +119,7 @@ public class CharacterDAOImpl implements CharacterDAO {
             MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Characters");
 
-            Document doc = collection.find(
-                    new Document("username", username).append("selected", true)
-            ).first();
+            Document doc = collection.find(new Document("username", username)).first();
             if (doc != null && doc.containsKey("backpack")) {
                 Document backpackDoc = (Document) doc.get("backpack");
                 doc.remove("_id"); // important
@@ -136,8 +134,6 @@ public class CharacterDAOImpl implements CharacterDAO {
 
         return new BackPack(); // retourne un backpack vide si erreur ou pas trouvé
     }
-
-
 
     /**
      * Met a jour le personnage sélectionné pour un utilisateur
