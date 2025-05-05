@@ -1115,13 +1115,13 @@ public class LanternaApp {
 
                                                     // 🔥 ➡️ MAJ de la fiabilité (reliability) sur MongoDB ici avec ta nouvelle méthode
                                                     try {
-                                                        String responseupdateobject = HttpService.updateObjectReliability(
+                                                  /*      String responseupdateobject = HttpService.updateObjectReliability(
                                                                 username,
                                                                 weapon.getName(),
                                                                 weapon.getType(),    // Ici "Weapon"
                                                                 weapon.getReliability(),
                                                                 Session.getToken()
-                                                        );
+                                                        );*/
 
                                                         System.out.println("Mise à jour de la fiabilité de l'arme : " + response);
 
