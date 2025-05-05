@@ -9,11 +9,16 @@ public class StateCombat {
 
     private String player1;
     private String player2;
+    @JsonProperty("character1")
     private Personnage character1;
+    @JsonProperty("character2")
     private Personnage character2;
+    @JsonProperty("pv1")
     private int pv1;
+    @JsonProperty("pv2")
     private int pv2;
     private String playerNow;
+    @JsonProperty("backpack")
     private Map<String, List<ObjectBase>> backpack = new HashMap<>();
     @JsonProperty("logCombat")
     private List<String> logCombat = new ArrayList<>();
@@ -27,9 +32,14 @@ public class StateCombat {
         this.character2 = character2;
         this.pv1 = character1.getPV();
         this.pv2 = character2.getPV();
+
+        System.out.println(">>> Création du combat");
+        System.out.println(">>> " + player1 + " avec personnage " + character1.getClass().getSimpleName() + " - PV : " + pv1);
+        System.out.println(">>> " + player2 + " avec personnage " + character2.getClass().getSimpleName() + " - PV : " + pv2);
+
         this.playerNow =player1;
-        backpack.put(player1, bp1);
-        backpack.put(player2, bp2);
+        this.backpack.put(player1, bp1 != null ? bp1 : new ArrayList<>());
+        this.backpack.put(player2, bp2 != null ? bp2 : new ArrayList<>());
     }
 
     //Cool pour un combat player1 va return player 2 et inversement
@@ -42,6 +52,9 @@ public class StateCombat {
     }
 
     public int getPv(String player) {
+        System.out.println(">>> getPv appelé avec : " + player);
+        System.out.println(">>> player1 = " + player1 + " / pv1 = " + pv1);
+        System.out.println(">>> player2 = " + player2 + " / pv2 = " + pv2);
         if (player == null) return 0;
         return player.equals(player1) ? pv1 : pv2;
     }
@@ -53,12 +66,14 @@ public class StateCombat {
     }
 
     public void setBackpack(Map<String, List<ObjectBase>> backpack) {
-        this.backpack = backpack;
+        this.backpack = (backpack != null) ? backpack : new HashMap<>();
     }
 
     public List<ObjectBase> getBackpack(String username) {
+        if (backpack == null) return new ArrayList<>();
         return backpack.getOrDefault(username, new ArrayList<>());
     }
+
     public String getPlayerNow(){
 
         return playerNow;

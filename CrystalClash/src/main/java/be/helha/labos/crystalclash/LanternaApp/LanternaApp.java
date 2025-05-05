@@ -22,7 +22,6 @@ import com.googlecode.lanterna.gui2.Window.Hint;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import be.helha.labos.crystalclash.Combat.CombatManager;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -1243,8 +1242,17 @@ public class LanternaApp {
     }
 
     public static void lancerCombat(WindowBasedTextGUI gui, StateCombat state) {
+
+        AtomicBoolean shouldRun = new AtomicBoolean(true); //Arrete le thread
+
+
         System.out.println(">>> LANCEMENT COMBAT avec " + state);
         System.out.println(">>> Joueur courant : " + state.getPlayerNow());
+        // PATCH DE SÉCURITÉ (évite NullPointer sur backpack)
+        if (state.getBackpack(Session.getUsername()) == null) {
+            System.out.println("[WARN] Backpack manquant côté client, patch appliqué");
+            state.setBackpack(new HashMap<>()); // vide
+        }
         String adversaire = state.getOpponent(Session.getUsername());
 
         BasicWindow combatWindow = new BasicWindow("Combat contre " + adversaire);
@@ -1255,6 +1263,8 @@ public class LanternaApp {
         panel.addComponent(new Label("Tour : " + state.getTour()));
         panel.addComponent(new Label("PV adversaire : " + state.getPv(adversaire)));
         panel.addComponent(new Label("Vos PV : " + state.getPv(Session.getUsername())));
+
+
 
         panel.addComponent(new Label("Historique :"));
         for (String entry : state.getLog()) {
@@ -1267,7 +1277,7 @@ public class LanternaApp {
             panel.addComponent(new Button("Attaque normale", () -> {
                 try {
                     HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
-                    combatWindow.close();
+
                 } catch (Exception e) {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
@@ -1276,7 +1286,7 @@ public class LanternaApp {
             panel.addComponent(new Button("Attaque spéciale", () -> {
                 try {
                     HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
-                    combatWindow.close();
+
                 } catch (Exception e) {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
@@ -1286,7 +1296,7 @@ public class LanternaApp {
                 panel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
                     try {
                         HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
-                        combatWindow.close();
+
                     } catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                     }
@@ -1297,11 +1307,55 @@ public class LanternaApp {
         }
 
         panel.addComponent(new Button("Quitter le combat", () -> {
+            try{
+                  HttpService.forfait(Session.getUsername(),Session.getToken());
+            } catch (Exception e) {
+                System.out.println("Erreur lors du forfait : " + e.getMessage());
+            }
+            shouldRun.set(false); //Stop le thread qui raffraichit
             combatWindow.close();
             LanternaApp.afficherMenuPrincipal(gui);
         }));
 
         combatWindow.setComponent(panel);
-        gui.addWindowAndWait(combatWindow);
+        gui.addWindow(combatWindow);
+
+        new Thread(() -> {
+            while (shouldRun.get()) {
+                try {
+                    Thread.sleep(2000);
+                    String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+
+                    Gson gson = new GsonBuilder()
+                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                            .create();
+
+                    StateCombat updatedState = gson.fromJson(json, StateCombat.class);
+                    if (updatedState == null) continue;
+
+                   if (updatedState.isFinished()) {
+                        gui.getGUIThread().invokeLater(() -> {
+                            combatWindow.close();
+                            String winner = updatedState.getWinner();
+                            MessageDialog.showMessageDialog(gui, "Fin du combat", winner + " a gagné !");
+                            afficherMenuPrincipal(gui);
+                        });
+                        break;
+                    }
+
+                    if (!Session.getUsername().equals(updatedState.getPlayerNow())) continue;
+
+                    // Dès que c’est à nouveau notre tour, relancer l’interface
+                    gui.getGUIThread().invokeLater(() -> {
+                        combatWindow.close();
+                        lancerCombat(gui, updatedState); // Affiche nouvelle version
+                    });
+                    break;
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 }

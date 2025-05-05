@@ -129,8 +129,14 @@ public class FightService {
             combats.remove(state.getOpponent(winner));
             return;
         }
-
         state.NextTurn();
     }
 
+     public void forfait(String username){
+        StateCombat state = combats.get(username);
+        if (state == null) return;
+        String opponent = state.getOpponent(username);
+         state.setPv(opponent, 0);
+         state.addLog(opponent + " a abandonné le forfait !");
+    }
 }

@@ -5,7 +5,6 @@ import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Service.CharacterService;
-import be.helha.labos.crystalclash.Service.CombatService;
 import be.helha.labos.crystalclash.Service.FightService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
@@ -136,6 +135,17 @@ public class FightController {
             return ResponseEntity.internalServerError().body(Map.of("message", "Erreur : " + e.getMessage()));
         }
     }
+
+
+    //Endpoint si un joeur quitte le combat.
+    @PostMapping("/forfait")
+    public ResponseEntity<?> forfait(@RequestBody Map<String, String> body, @RequestHeader("Authorization") String token) {
+        String username = body.get("username");
+        fightService.forfait(username);
+        return ResponseEntity.ok(Map.of("message", "Forfait accepté !"));
+
+    }
+
 }
 
 

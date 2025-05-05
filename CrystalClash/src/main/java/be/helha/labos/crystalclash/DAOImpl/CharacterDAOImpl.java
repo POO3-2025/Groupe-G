@@ -186,6 +186,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                 }
 
                 Document doc = new Document()
+                        .append("id", obj.getId())
                         .append("name", obj.getName())
                         .append("type", obj.getType())  // toujours présent
                         .append("price", obj.getPrice())
@@ -215,6 +216,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                         List<Document> contenuDocs = new ArrayList<>();
                         for (ObjectBase item : coffre.getContenu()) {
                             Document itemDoc = new Document()
+                                    .append("id", item.getId())
                                     .append("name", item.getName())
                                     .append("type", item.getType())
                                     .append("price", item.getPrice())
