@@ -6,6 +6,7 @@ import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Object.*;
+import be.helha.labos.crystalclash.User.ConnectedUsers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,11 +44,13 @@ public class FightService {
         // Si le combat est terminé, reconstruire un état minimal avec le vainqueur
         if (derniersGagnants.containsKey(username)) {
             String winner = derniersGagnants.get(username);
-
+            String losser = ConnectedUsers.getConnectedUsers().keySet().stream()
+                    .filter(user -> !user.equals(winner))
+                    .findFirst().orElse("adversaire inconnu");
             //  renvoie un état vide avec juste le nom du vainqueur, suffisant pour l'affichage final
-            StateCombat endState = new StateCombat(null, null, null, null, null, null);
+            StateCombat endState = new StateCombat(winner, losser, null, null, null, null);
             endState.setPv(winner, 1); // Juste pour éviter que les deux soient à 0
-            endState.setPv(username.equals(winner) ? winner : username, 0); // Le perdant a 0
+            endState.setPv(losser, 0); // Le perdant a 0
             endState.addLog(winner + " remporte le combat !");
             return endState;
         }

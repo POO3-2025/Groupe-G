@@ -599,23 +599,32 @@ public class HttpService {
     }
 
     //New
-    public static String getLastWinner(String username, String token) throws Exception {
-        String json = new Gson().toJson(Map.of("username", username));
+    public static String getLastWinner(String username, String token) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/combat/Winner?username=" + username))
+                    .timeout(Duration.ofSeconds(5))
+                    .header("Authorization", "Bearer " + token)
+                    .GET()
+                    .build();
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/combat/Winner"))
-                .timeout(Duration.ofSeconds(5))
-                .header("Authorization", "Bearer " + token)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
 
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                System.out.println("[DEBUG] Status winner = " + response.statusCode());
+                System.out.println("[DEBUG] Body winner = " + response.body());
+                return null;
+            }
 
-        if (response.statusCode() != 200) {
-            throw new RuntimeException("Erreur lors de la récupération du gagnan : " + response.body());
+            return response.body();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
+
 
 }
 

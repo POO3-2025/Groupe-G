@@ -102,6 +102,7 @@ public class StateCombat {
     }
 
     public String getWinner() {
+        if (player1 == null || player2 == null) return null;
         if (pv1 <= 0) return player2;
         if (pv2 <= 0) return player1;
         return null;

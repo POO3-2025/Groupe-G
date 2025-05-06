@@ -1301,23 +1301,29 @@ public class LanternaApp {
                             .create();
                     StateCombat updated = gson.fromJson(json, StateCombat.class);
                     if (updated == null) {
-                        //Essaie récup le gagant
-                        String winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
-                        boolean win = winner != null && winner.equals(Session.getUsername());
-                        String result = forfaitEffectue[0] ? "Vous avez quitté le comabt, votre adversaire a gagné !" : (win ? "Vous avez gagné par HO ou forfait !" : "Vous avez perdu le comabt");
                         gui.getGUIThread().invokeLater(() -> {
-                            MessageDialog.showMessageDialog(gui, "Fin du combat", result);
+                            String message = forfaitEffectue[0]
+                                    ? "Vous avez quitté le combat, votre adversaire a gagné !"
+                                    : "Combat terminé, mais le gagnant est inconnu.";
+                            MessageDialog.showMessageDialog(gui, "Fin du combat", message);
                             afficherMenuPrincipal(gui);
                         });
-
                         break;
                     }
-
 
                     if (updated.isFinished()) {
                         gui.getGUIThread().invokeLater(() -> {
                             combatWindow.close();
-                            MessageDialog.showMessageDialog(gui, "Fin du combat", updated.getWinner() + " a gagné !");
+                            String winner = updated.getWinner();
+                            String message;
+                            if (winner == null) {
+                                message = "Combat terminé, mais le gagnant est inconnu.";
+                            } else if ("Égalité".equals(winner)) {
+                                message = "Combat terminé sur une égalité !";
+                            } else {
+                                message = winner + " a gagné !";
+                            }
+                            MessageDialog.showMessageDialog(gui, "Fin du combat", message);
                             afficherMenuPrincipal(gui);
                         });
                         break;

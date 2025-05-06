@@ -8,6 +8,8 @@ import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.FightService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
+import org.springframework.security.core.Authentication;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -149,14 +151,16 @@ public class FightController {
 
     //Petit GetMapping Pour le dernier winner
     @GetMapping("/Winner")
-    public ResponseEntity<String> getLastWinner(@RequestBody String username){
-        String winner =  fightService.getLastWinner(username);
+    public ResponseEntity<String> getLastWinner(@RequestParam String username) {
+        String winner = fightService.getLastWinner(username);
         if (winner == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(404).body("Aucun gagnant trouvé pour " + username);
         }
         return ResponseEntity.ok(winner);
     }
-    }
+
+
+}
 
 
 
