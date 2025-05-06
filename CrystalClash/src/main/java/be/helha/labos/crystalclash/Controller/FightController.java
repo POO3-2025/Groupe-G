@@ -146,7 +146,19 @@ public class FightController {
 
     }
 
-}
+
+    //Petit GetMapping Pour le dernier winner
+    @GetMapping("/Winner")
+    public ResponseEntity<String> getLastWinner(@RequestBody String username){
+        String winner =  fightService.getLastWinner(username);
+        if (winner == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(winner);
+    }
+    }
+
+
 
 
 

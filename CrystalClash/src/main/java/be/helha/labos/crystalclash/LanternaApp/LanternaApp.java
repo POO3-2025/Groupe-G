@@ -959,7 +959,6 @@ public class LanternaApp {
                     }
 
 
-
                     //Appelle du endpoint
                     List<UserInfo> opponents = HttpService.getAvailableOpponents(Session.getUsername(), Session.getToken());
 
@@ -1242,120 +1241,144 @@ public class LanternaApp {
     }
 
     public static void lancerCombat(WindowBasedTextGUI gui, StateCombat state) {
+        AtomicBoolean shouldRun = new AtomicBoolean(true);
+        boolean[] forfaitEffectue = {false};
+        int[] lasttour = {state.getTour()}; //Evite les relancements inutiles
 
-        AtomicBoolean shouldRun = new AtomicBoolean(true); //Arrete le thread
-
-
-        System.out.println(">>> LANCEMENT COMBAT avec " + state);
-        System.out.println(">>> Joueur courant : " + state.getPlayerNow());
-        // PATCH DE SÉCURITÉ (évite NullPointer sur backpack)
-        if (state.getBackpack(Session.getUsername()) == null) {
-            System.out.println("[WARN] Backpack manquant côté client, patch appliqué");
-            state.setBackpack(new HashMap<>()); // vide
-        }
         String adversaire = state.getOpponent(Session.getUsername());
 
         BasicWindow combatWindow = new BasicWindow("Combat contre " + adversaire);
         combatWindow.setHints(List.of(Window.Hint.CENTERED));
 
-        Panel panel = new Panel(new GridLayout(1));
-        panel.addComponent(new Label("Combat contre " + adversaire + " ").setForegroundColor(TextColor.ANSI.RED));
-        panel.addComponent(new Label("Tour : " + state.getTour()));
-        panel.addComponent(new Label("PV adversaire : " + state.getPv(adversaire)));
-        panel.addComponent(new Label("Vos PV : " + state.getPv(Session.getUsername())));
+        Panel mainPanel = new Panel(new GridLayout(1));
+        Label tourLabel = new Label("Tour : " + state.getTour());
+        Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
+        Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
+        Panel historyPanel = new Panel(new GridLayout(1));
+        Panel actionPanel = new Panel(new GridLayout(1));
 
-
-
-        panel.addComponent(new Label("Historique :"));
+        historyPanel.addComponent(new Label("Historique :"));
         for (String entry : state.getLog()) {
-            panel.addComponent(new Label(entry));
+            historyPanel.addComponent(new Label(entry));
         }
+        //Va appeller les labels plus haut
+        mainPanel.addComponent(tourLabel);
+        mainPanel.addComponent(labelPvAdversaire);
+        mainPanel.addComponent(labelMesPv);
+        mainPanel.addComponent(historyPanel);
+        mainPanel.addComponent(actionPanel);
 
-        if (Session.getUsername().equals(state.getPlayerNow())) {
-            panel.addComponent(new Label("🗡 Vos actions :"));
-
-            panel.addComponent(new Button("Attaque normale", () -> {
-                try {
-                    HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
-
-                } catch (Exception e) {
-                    MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                }
-            }));
-
-            panel.addComponent(new Button("Attaque spéciale", () -> {
-                try {
-                    HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
-
-                } catch (Exception e) {
-                    MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                }
-            }));
-
-            for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
-                panel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
-                    try {
-                        HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
-
-                    } catch (Exception e) {
-                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                    }
-                }));
-            }
-        } else {
-            panel.addComponent(new Label("En attente du tour de l'adversaire..."));
-        }
-
-        panel.addComponent(new Button("Quitter le combat", () -> {
-            try{
-                  HttpService.forfait(Session.getUsername(),Session.getToken());
+        mainPanel.addComponent(new Button("Quitter le combat", () -> {
+            try {
+                HttpService.forfait(Session.getUsername(), Session.getToken());
+                forfaitEffectue[0] = true;
             } catch (Exception e) {
-                System.out.println("Erreur lors du forfait : " + e.getMessage());
+                System.out.println("Erreur forfait : " + e.getMessage());
             }
-            shouldRun.set(false); //Stop le thread qui raffraichit
+            shouldRun.set(false);
             combatWindow.close();
             LanternaApp.afficherMenuPrincipal(gui);
         }));
 
-        combatWindow.setComponent(panel);
+        //Ajout bouton action
+        if (Session.getUsername().equals(state.getPlayerNow())) {
+            updateActionPanel(actionPanel, state, gui); //Va appeller la méthode
+        } else {
+            actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+        }
+
+        combatWindow.setComponent(mainPanel);
         gui.addWindow(combatWindow);
 
+        // Thread pour mise à jour sans tout refermer
         new Thread(() -> {
             while (shouldRun.get()) {
                 try {
                     Thread.sleep(2000);
                     String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
-
                     Gson gson = new GsonBuilder()
                             .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                             .create();
+                    StateCombat updated = gson.fromJson(json, StateCombat.class);
+                    if (updated == null) {
+                        //Essaie récup le gagant
+                        String winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                        boolean win = winner != null && winner.equals(Session.getUsername());
+                        String result = forfaitEffectue[0] ? "Vous avez quitté le comabt, votre adversaire a gagné !" : (win ? "Vous avez gagné par HO ou forfait !" : "Vous avez perdu le comabt");
+                        gui.getGUIThread().invokeLater(() -> {
+                            MessageDialog.showMessageDialog(gui, "Fin du combat", result);
+                            afficherMenuPrincipal(gui);
+                        });
 
-                    StateCombat updatedState = gson.fromJson(json, StateCombat.class);
-                    if (updatedState == null) continue;
+                        break;
+                    }
 
-                   if (updatedState.isFinished()) {
+
+                    if (updated.isFinished()) {
                         gui.getGUIThread().invokeLater(() -> {
                             combatWindow.close();
-                            String winner = updatedState.getWinner();
-                            MessageDialog.showMessageDialog(gui, "Fin du combat", winner + " a gagné !");
+                            MessageDialog.showMessageDialog(gui, "Fin du combat", updated.getWinner() + " a gagné !");
                             afficherMenuPrincipal(gui);
                         });
                         break;
                     }
 
-                    if (!Session.getUsername().equals(updatedState.getPlayerNow())) continue;
-
-                    // Dès que c’est à nouveau notre tour, relancer l’interface
                     gui.getGUIThread().invokeLater(() -> {
-                        combatWindow.close();
-                        lancerCombat(gui, updatedState); // Affiche nouvelle version
+                        tourLabel.setText("Tour : " + updated.getTour());
+                        labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
+                        labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
+
+                        historyPanel.removeAllComponents();
+                        historyPanel.addComponent(new Label("Historique :"));
+                        for (String log : updated.getLog()) {
+                            historyPanel.addComponent(new Label(log));
+                        }
+
+                        // relancer l’interface avec les boutons
+                        if (updated.getTour() != lasttour[0]) {
+                            lasttour[0] = updated.getTour();
+                            actionPanel.removeAllComponents();
+                            if (updated.getPlayerNow().equals(Session.getUsername())) {
+                                updateActionPanel(actionPanel, updated, gui); //Va appeller la méthode
+                            } else {
+                                actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+                            }
+                        }
                     });
-                    break;
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }).start();
+    }
+
+    //Rafraichissemnt auto des bouton essaie
+    private static void updateActionPanel(Panel actionPanel, StateCombat state, WindowBasedTextGUI gui) {
+
+        actionPanel.addComponent(new Label("Vos actions :"));
+        actionPanel.addComponent(new Button("Attaque normale ", () -> {
+            try {
+                HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
+            } catch (Exception e) {
+                MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+            }
+        }));
+        actionPanel.addComponent(new Button("Attaque spéciale ", () -> {
+            try {
+                HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
+            } catch (Exception e) {
+                MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+            }
+        }));
+        for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
+            actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
+                try {
+                    HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                } catch (Exception e) {
+                    MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                }
+            }));
+        }
     }
 }

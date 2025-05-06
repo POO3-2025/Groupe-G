@@ -17,6 +17,8 @@ public class FightService {
     //Pailre clés valeurs (String id ou nom et StateCombat l'etat du combat)
     private final Map<String, StateCombat> combats = new HashMap<>();
 
+    //Va stocker le gagnant.
+    private final Map<String, String> derniersGagnants = new HashMap<>();
 
     public void createCombat(String p1, String p2, Personnage char1, Personnage char2,
                              List<ObjectBase> bp1, List<ObjectBase> bp2) {
@@ -33,7 +35,29 @@ public class FightService {
     }
 
     public StateCombat getCombat(String username) {
-        return combats.get(username);
+        StateCombat state = combats.get(username);
+        if (state != null) {
+            return state;
+        }
+
+        // Si le combat est terminé, reconstruire un état minimal avec le vainqueur
+        if (derniersGagnants.containsKey(username)) {
+            String winner = derniersGagnants.get(username);
+
+            //  renvoie un état vide avec juste le nom du vainqueur, suffisant pour l'affichage final
+            StateCombat endState = new StateCombat(null, null, null, null, null, null);
+            endState.setPv(winner, 1); // Juste pour éviter que les deux soient à 0
+            endState.setPv(username.equals(winner) ? winner : username, 0); // Le perdant a 0
+            endState.addLog(winner + " remporte le combat !");
+            return endState;
+        }
+
+        return null;
+    }
+
+    //Get pour avoir le dernier gagnant
+    public String getLastWinner(String username) {
+        return derniersGagnants.get(username);
     }
 
     public void HandleAttach(String Player, String type) {
@@ -67,8 +91,10 @@ public class FightService {
         state.setPv(oppenent, newPv);
         if (state.isFinished()) {
             String winner = state.getWinner();
-            userService.rewardWinner(winner, 50, 1); // exemple : +50 cristaux et +1 level
+            userService.rewardWinner(winner, 50, 1); // 50 cristaux et +1 level
             state.addLog(winner + " remporte le combat ! +1 niveau, +50 cristaux");
+            derniersGagnants.put(winner, winner);
+            derniersGagnants.put(state.getOpponent(winner), winner);
             combats.remove(winner);
             combats.remove(state.getOpponent(winner));
             return; // Pas besoin de continuer le tour
@@ -132,11 +158,30 @@ public class FightService {
         state.NextTurn();
     }
 
-     public void forfait(String username){
+    public void forfait(String username) {
         StateCombat state = combats.get(username);
         if (state == null) return;
+
         String opponent = state.getOpponent(username);
-         state.setPv(opponent, 0);
-         state.addLog(opponent + " a abandonné le forfait !");
+        if (opponent == null) return;
+
+        // Mettre les PV du joueur qui abandonne à 0 pour terminer le combat
+        state.setPv(username, 0);
+
+        // Vérification que le combat est bien terminé
+        if (state.isFinished()) {
+            String winner = state.getWinner(); // ce sera l’adversaire puisque username a 0 PV
+            if (winner != null) {
+                userService.rewardWinner(winner, 50, 1);
+                state.addLog(username + " a abandonné le combat.");
+                state.addLog(winner + " remporte le combat par forfait ! +1 niveau, +50 cristaux");
+                derniersGagnants.put(winner, winner);
+                derniersGagnants.put(state.getOpponent(winner), winner);
+                combats.remove(username);
+                combats.remove(opponent);
+            }
+        }
     }
+
+
 }

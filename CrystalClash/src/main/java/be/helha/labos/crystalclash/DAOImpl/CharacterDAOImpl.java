@@ -79,7 +79,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                     .append("type", characterType)
                     .append("backpack", backpack)
                     .append("selected",IsFirst);
-            collection.insertOne(doc);
+            collection.insertOne(docu);
         }
     }
 
@@ -121,7 +121,7 @@ public class CharacterDAOImpl implements CharacterDAO {
             MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Characters");
 
-            Document doc = collection.find(new Document("username", username)).first();
+            Document doc = collection.find( new Document("username", username).append("selected", true)).first();
             if (doc != null && doc.containsKey("backpack")) {
                 Document backpackDoc = (Document) doc.get("backpack");
                 doc.remove("_id"); // important
