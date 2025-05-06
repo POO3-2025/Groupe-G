@@ -79,7 +79,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                     .append("type", characterType)
                     .append("backpack", backpack)
                     .append("selected",IsFirst);
-            collection.insertOne(doc);
+            collection.insertOne(docu);
         }
     }
 
