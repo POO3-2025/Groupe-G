@@ -79,7 +79,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                     .append("type", characterType)
                     .append("backpack", backpack)
                     .append("selected",IsFirst);
-            collection.insertOne(doc);
+            collection.insertOne(docu);
         }
     }
 
@@ -119,7 +119,7 @@ public class CharacterDAOImpl implements CharacterDAO {
             MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Characters");
 
-            Document doc = collection.find(new Document("username", username)).first();
+            Document doc = collection.find(new Document("username", username).append("selected",true)).first();
             if (doc != null && doc.containsKey("backpack")) {
                 Document backpackDoc = (Document) doc.get("backpack");
                 doc.remove("_id"); // important
@@ -178,8 +178,15 @@ public class CharacterDAOImpl implements CharacterDAO {
             // Construction de la liste d'objets à insérer dans Mongo
             List<Document> objetsDocuments = new ArrayList<>();
             for (ObjectBase obj : backPack.getObjets()) {
+
+
                 if (obj == null || obj.getType() == null) {
                     System.err.println("Objet null ou sans type dans le backpack de " + username);
+                    continue;
+                }
+
+                if ((obj instanceof Weapon weapon && weapon.getReliability() == 0) || (obj instanceof Armor armor && armor.getReliability() == 0)){
+                    System.out.println("Supprimer objet" + obj.getName());
                     continue;
                 }
 
