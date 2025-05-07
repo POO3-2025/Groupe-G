@@ -185,6 +185,11 @@ public class CharacterDAOImpl implements CharacterDAO {
                     continue;
                 }
 
+                if((obj instanceof Weapon weapon && weapon.getReliability() == 0) || (obj instanceof Armor armor && armor.getReliability() == 0)){
+                    System.out.println("Objet cassé" + obj.getName());
+                    continue;
+                }
+
                 Document doc = new Document()
                         .append("id", obj.getId())
                         .append("name", obj.getName())

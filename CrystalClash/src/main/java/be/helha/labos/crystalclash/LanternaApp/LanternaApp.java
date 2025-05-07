@@ -14,6 +14,7 @@ import be.helha.labos.crystalclash.User.ConnectedUsers;
 import be.helha.labos.crystalclash.server_auth.Session;
 import com.fasterxml.jackson.databind.deser.std.NumberDeserializers;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.googlecode.lanterna.SGR;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
@@ -23,6 +24,7 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.List;
 import java.util.ArrayList;
@@ -261,6 +263,10 @@ public class LanternaApp {
 
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
+        //Setcion classement
+        mainPanel.addComponent(createSectionLabel("Classement"));
+        mainPanel.addComponent(new Button("Accéder au classement", () -> DisplayClassement(gui)));
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
         // Section Boutique
         mainPanel.addComponent(createSectionLabel("Boutique"));
@@ -300,6 +306,8 @@ public class LanternaApp {
 
         gui.addWindowAndWait(menuWindow);
     }
+
+
 
     /**
      * Affiche les section du menu
@@ -588,6 +596,10 @@ public class LanternaApp {
             panel.addComponent(new Label("Niveau : " + info.getLevel()));
             panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
             panel.addComponent(new Label("Personnage choisi : " + info.getSelectedCharacter()));
+            panel.addComponent(new Label("Combats gagnés : " + info.getGagner()));
+
+            panel.addComponent(new Label("Comnbats perdus" + ": " + info.getPerdu()));
+
         } else {
             panel.addComponent(new Label("Aucune information disponible."));
         }
@@ -1386,5 +1398,40 @@ public class LanternaApp {
                 }
             }));
         }
+    }
+    private static void DisplayClassement(WindowBasedTextGUI gui) {
+        BasicWindow profileWindow = new BasicWindow("Classement");
+        profileWindow.setHints(Arrays.asList(Hint.CENTERED));
+        Panel panel = new Panel(new GridLayout(1));
+        panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
+
+
+        try {
+            String userJson = HttpService.getClassementPlayer(Session.getToken());
+            if (userJson == null) {
+             panel.addComponent(new Label("Erreur : impossible de récupérer le classement"));
+            }else  {
+                Type list = new TypeToken<List<UserInfo>>() {}.getType();
+                List<UserInfo> classement = new Gson().fromJson(userJson, list);
+                if (classement.isEmpty()){
+                    panel.addComponent(new Label("classement vide"));
+                } else {
+                    List<UserInfo> top3 = classement.size() > 3 ? classement.subList(0, 3) : classement;
+                    int pos = 1;
+                    for (UserInfo user : top3) {
+                        String resul = user.getUsername() + " Victoire : " + user.getGagner();
+                        panel.addComponent(new Label(resul));
+                        pos++;
+                        panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Impossible de  charger le classement: " + e.getMessage());
+        }
+        panel.addComponent(new Button("Retour", profileWindow::close));
+        profileWindow.setComponent(panel);
+        gui.addWindowAndWait(profileWindow);
     }
 }

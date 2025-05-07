@@ -625,6 +625,29 @@ public class HttpService {
         }
     }
 
+    public static String getClassementPlayer( String token) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/classement"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("Statut HTTP : " + response.statusCode());
+            System.out.println("Réponse brute : " + response.body());
+            if (response.statusCode() != 200) {
+
+                return null;
+            }
+            return response.body();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
 }
 

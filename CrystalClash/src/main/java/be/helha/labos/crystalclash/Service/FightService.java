@@ -1,18 +1,25 @@
 package be.helha.labos.crystalclash.Service;
 
 
+import be.helha.labos.crystalclash.DAO.FightDAO;
+import be.helha.labos.crystalclash.DAO.ShopDAO;
 import be.helha.labos.crystalclash.DTO.StateCombat;
 import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Object.*;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
+import be.helha.labos.crystalclash.User.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 @Service
 public class FightService {
+
+    private final FightDAO fightDAO;
+
+
     @Autowired
     private UserService userService;
     //Pailre clés valeurs (String id ou nom et StateCombat l'etat du combat)
@@ -20,6 +27,10 @@ public class FightService {
 
     //Va stocker le gagnant.
     private final Map<String, String> derniersGagnants = new HashMap<>();
+
+    public FightService(FightDAO fightDAO) {
+        this.fightDAO = fightDAO;
+    }
 
     public void createCombat(String p1, String p2, Personnage char1, Personnage char2,
                              List<ObjectBase> bp1, List<ObjectBase> bp2) {
@@ -184,6 +195,10 @@ public class FightService {
                 combats.remove(opponent);
             }
         }
+    }
+
+    public List<UserInfo> getClassementPlayer() {
+    return fightDAO.getClassementPlayer();
     }
 
 
