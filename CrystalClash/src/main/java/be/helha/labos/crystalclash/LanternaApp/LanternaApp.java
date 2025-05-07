@@ -1553,13 +1553,24 @@ public class LanternaApp {
 
                         if (updated.isFinished()) {
                             gui.getGUIThread().invokeLater(() -> {
-                                combatWindow.close();
+
+                                //Mettre a jour l affich des pv a 0 avant fermeture de la fenetre
+                                tourLabel.setText("Tour : " + updated.getTour());
+                                labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
+                                labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
+
+
+                                String loser = Session.getUsername();
                                 String winner = null;
                                 try {
                                     winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
                                 } catch (Exception e) {
                                     System.out.println("Erreur récup du gagnant : " + e.getMessage());
                                 }
+                                if (winner != null && winner.equals(loser)) {
+                                    MessageDialog.showMessageDialog(gui, "Défaite", "Vous êtes mort... Vos PV sont tombés à 0.");
+                                }
+
                                 String message;
                                 if (winner == null) {
                                     message = "Combat terminé, mais le gagnant est inconnu.";
