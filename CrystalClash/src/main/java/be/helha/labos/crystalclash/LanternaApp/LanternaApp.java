@@ -1252,9 +1252,13 @@ public class LanternaApp {
         }
     }
 
+    /**
+     * Afficher l'ecran de comabt et mettre a jour dynamiquement l'affichage des deux cotés
+     * Pv joueur, historique, actions possibles, bouton quitter,detection fin de combat,passage de tour
+     * */
     public static void lancerCombat(WindowBasedTextGUI gui, StateCombat state) {
-        AtomicBoolean shouldRun = new AtomicBoolean(true);
-        boolean[] forfaitEffectue = {false};
+        AtomicBoolean shouldRun = new AtomicBoolean(true);//Le thread l'utilse pour savoir quand stopé
+        boolean[] forfaitEffectue = {false}; //boolean pour savoir si le user a quitter le comabt
         int[] lasttour = {state.getTour()}; //Evite les relancements inutiles
 
         String adversaire = state.getOpponent(Session.getUsername());
@@ -1292,7 +1296,7 @@ public class LanternaApp {
             LanternaApp.afficherMenuPrincipal(gui);
         }));
 
-        //Ajout bouton action
+        //Ajout bouton action, le joueur qui doit jouer les voit, l'autre non
         if (Session.getUsername().equals(state.getPlayerNow())) {
             updateActionPanel(actionPanel, state, gui); //Va appeller la méthode
         } else {
@@ -1302,7 +1306,9 @@ public class LanternaApp {
         combatWindow.setComponent(mainPanel);
         gui.addWindow(combatWindow);
 
-        // Thread pour mise à jour sans tout refermer
+        // Thread pour mise à jour sans tout refermer, afficher l'etat du comabt toute les 2 sec (tourne en arriere plan)
+        //Récupe le StateComabt a jour ( de JSON via GSON)
+        //Dans le cas de lan le Thread est utilse pour la mise a jour automatique de l'affichage, sans le Thread le joueur aurait du appuyer manuellement sur un bouton
         new Thread(() -> {
             while (shouldRun.get()) {
                 try {
@@ -1313,6 +1319,7 @@ public class LanternaApp {
                             .create();
                     StateCombat updated = gson.fromJson(json, StateCombat.class);
                     if (updated == null) {
+                        //invokeLater permet de revenir au thread principale de lanterna pour mettre a jour l interface
                         gui.getGUIThread().invokeLater(() -> {
                             String winner = null;
                             try{
@@ -1366,6 +1373,7 @@ public class LanternaApp {
                         break;
                     }
 
+                    //Ici a chaque invokeLater il y aura une mise a jour visuelle du tour, les pvs et historique
                     gui.getGUIThread().invokeLater(() -> {
                         tourLabel.setText("Tour : " + updated.getTour());
                         labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
@@ -1377,7 +1385,8 @@ public class LanternaApp {
                             historyPanel.addComponent(new Label(log));
                         }
 
-                        // relancer l’interface avec les boutons
+                        // relancer l’interface avec les boutons en focntion des tours, si c le meme tour alors les boutons sont affichés pour le bon user
+                        //Si le tour a changé alors la on fait un remove soit pour retirer les boutons et afficher en attente..... soint pour retirer cette phrase et afficher les boutons.
                         if (updated.getTour() != lasttour[0]) {
                             lasttour[0] = updated.getTour();
                             actionPanel.removeAllComponents();

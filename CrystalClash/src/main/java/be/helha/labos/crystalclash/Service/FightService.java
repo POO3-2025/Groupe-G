@@ -17,21 +17,36 @@ import java.util.*;
 @Service
 public class FightService {
 
-    private final FightDAO fightDAO;
+    private final FightDAO fightDAO; //classement
     @Autowired
-    private CharacterService characterService;
+    private CharacterService characterService;//Save backPack perso
     @Autowired
-    private UserService userService;
-    //Pailre clés valeurs (String id ou nom et StateCombat l'etat du combat)
+    private UserService userService;//Donner récompense aux gagnant, win/lose
+
+    /**
+     * Pailre clés valeurs (String id ou nom et StateCombat l'etat du combat), associe un nom de user a 1 statecombat partagé entre 2 users
+     * */
     private final Map<String, StateCombat> combats = new HashMap<>();
 
-    //Va stocker le gagnant.
+    /**
+     * Va stocker le gagnant. apres que comabt soit retiré de comabts
+     * **/
     private final Map<String, String> derniersGagnants = new HashMap<>();
 
     public FightService(FightDAO fightDAO) {
         this.fightDAO = fightDAO;
     }
 
+    /**
+     * Cration du comabt
+     * @param p1 = user1
+     * @param p2
+     * @param char1 = perso du user 1
+     * @param char2
+     * @param bp1 = contennu du backPack1 du perso1 qui appartient au user1
+     * @param bp2
+     * Crée un new objet StateCombat avec les parametres et ce même objet sera stocké sous p1 et p2 dans combats
+     * **/
     public void createCombat(String p1, String p2, Personnage char1, Personnage char2,
                              List<ObjectBase> bp1, List<ObjectBase> bp2) {
         System.out.println("[DEBUG] FightService - createCombat() entre " + p1 + " et " + p2);
@@ -46,6 +61,12 @@ public class FightService {
         combats.put(p2, state);
     }
 
+    /**
+     * @param username
+     * Recupérer un comabt
+     * Si le comabt est en cours on retourne StateCombat, si est trminé on fait un StateCombat juste avec le gagnant( PV = 1 gagnant, perdu 0)
+     * renvoie un état vide avec juste le nom du vainqueur, suffisant pour l'affichage final
+     * **/
     public StateCombat getCombat(String username) {
         StateCombat state = combats.get(username);
         if (state != null) {
@@ -53,12 +74,17 @@ public class FightService {
         }
 
         // Si le combat est terminé, reconstruire un état minimal avec le vainqueur
+        //Verif si la map derniersGagnants contient une clé username
         if (derniersGagnants.containsKey(username)) {
-            String winner = derniersGagnants.get(username);
-            String losser = ConnectedUsers.getConnectedUsers().keySet().stream()
-                    .filter(user -> !user.equals(winner))
-                    .findFirst().orElse("adversaire inconnu");
-            //  renvoie un état vide avec juste le nom du vainqueur, suffisant pour l'affichage final
+            String winner = derniersGagnants.get(username);//Recup la valeur = a la clé username ds la map derniersGagnants (donne le winner du comabt en gros)
+
+            String losser = ConnectedUsers.getConnectedUsers().keySet()//retourne la map et renvoie toutes les clés de la map (liste des users co)
+                    .stream()//transforme la co -> en flux pour la traiter
+                    .filter(user -> !user.equals(winner))//Conserve les user differents de winner
+                    .findFirst()//Premier user find
+                    .orElse("adversaire inconnu");//donne valeurr par défaut si rien trouvé
+
+           // objet avec les noms user, et le reste a null
             StateCombat endState = new StateCombat(winner, losser, null, null, null, null);
             endState.setPv(winner, 1); // Juste pour éviter que les deux soient à 0
             endState.setPv(losser, 0); // Le perdant a 0
@@ -74,6 +100,16 @@ public class FightService {
         return derniersGagnants.get(username);
     }
 
+
+    /**
+     * Attaque normal et spécial
+     * Recupé l'état du comabt
+     * si attaque normal, on inflige dégat  de base et incrémente le compteur d'attack
+     * si special, regarde si le joueur a assez de vie, si oui ok inflige dégats et remet le compteur a zéro car l'attaque spé n'est que dispo a partir d'un certain nbr de tour
+     * et a jour pv du user
+     * Comabt terminée on recup le winner et loserr, on donne les récompense, stats gagnant, perdant
+     * met a jour le dernier gagnant et on delete le combat
+     * */
     public void HandleAttach(String Player, String type) {
         System.out.println("[DEBUG] useObject() appelé par " + Player + " avec  " + type);
 
@@ -106,17 +142,28 @@ public class FightService {
         state.setPv(oppenent, newPv);
         if (state.isFinished()) {
             String winner = state.getWinner();
-            userService.rewardWinner(winner, 50, 1); // 50 cristaux et +1 level
+            String loser = state.getOpponent(winner);
+
+            try {
+                userService.rewardWinner(winner, 50, 1);
+                userService.IncrementWinner(winner);
+                userService.incrementDefeat(loser);
+            } catch (Exception e) {
+                System.out.println("[ERREUR] Mise à jour des statistiques : " + e.getMessage());
+                e.printStackTrace(); // Facultatif mais utile
+            }
+
             state.addLog(winner + " remporte le combat ! +1 niveau, +50 cristaux");
             derniersGagnants.put(winner, winner);
-            derniersGagnants.put(state.getOpponent(winner), winner);
+            derniersGagnants.put(loser, winner);
             combats.remove(winner);
-            combats.remove(state.getOpponent(winner));
-            return; // Pas besoin de continuer le tour
+            combats.remove(loser);
+            return;
         }
         state.NextTurn();
 
     }
+
 
     public void useObject(String Player, String objectId) throws Exception {
         System.out.println("[DEBUG] useObject() appelé par " + Player + " avec objet " + objectId);
@@ -165,13 +212,21 @@ public class FightService {
         if (state.isFinished()) {
             String winner = state.getWinner();
             String loser = state.getOpponent(winner);
-            userService.rewardWinner(winner, 50, 1); // même récompense
-            userService.IncrementWinner(winner);
-            userService.incrementDefeat(loser);
+
+            try {
+                userService.rewardWinner(winner, 50, 1);
+                userService.IncrementWinner(winner);
+                userService.incrementDefeat(loser);
+            } catch (Exception e) {
+                System.out.println("[ERREUR] Mise à jour des statistiques : " + e.getMessage());
+                e.printStackTrace(); // Facultatif mais utile
+            }
+
             state.addLog(winner + " remporte le combat ! +1 niveau, +50 cristaux");
+            derniersGagnants.put(winner, winner);
+            derniersGagnants.put(loser, winner);
             combats.remove(winner);
-            combats.remove(state.getOpponent(winner));
-            return;
+            combats.remove(loser);
         }
 
         //Test de mettre a jour le backPack pour l endurance des armes
@@ -208,7 +263,7 @@ public class FightService {
                 state.addLog(username + " a abandonné le combat.");
                 state.addLog(winner + " remporte le combat par forfait ! +1 niveau, +50 cristaux");
                 derniersGagnants.put(winner, winner);
-                derniersGagnants.put(state.getOpponent(winner), winner);
+                derniersGagnants.put(state.getOpponent(winner), winner);//Opponent gagnant
                 combats.remove(username);
                 combats.remove(opponent);
             }

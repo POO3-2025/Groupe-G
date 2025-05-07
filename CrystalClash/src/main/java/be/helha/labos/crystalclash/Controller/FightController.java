@@ -33,14 +33,13 @@ public class FightController {
 
 
     @PostConstruct
-    public void init() {
-        System.out.println("=== FightController initialisé ===");
-    }
+
 
     @PostMapping("/start")
     public Map<String, Object> startCombat(@RequestBody Map<String, String> body) {
         String player = body.get("username");
 
+        //true si null
         if (player == null || player.isBlank()) {
             throw new RuntimeException("Nom d'utilisateur manquant dans la requête !");
         }

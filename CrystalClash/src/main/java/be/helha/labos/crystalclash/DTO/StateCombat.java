@@ -5,11 +5,21 @@ import be.helha.labos.crystalclash.Object.ObjectBase;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.*;
+
+/**
+ *Son role est d avoir toutes les infos pour représenter le comabt en cours
+ * Les 2 jouers
+ * PV
+ * Objets
+ * Log du combat
+ * le joueur actuelle
+ * num du tour
+ **/
 public class StateCombat {
 
     private String player1;
     private String player2;
-    @JsonProperty("character1")
+    @JsonProperty("character1") //nomme le chmap ds le JSON  transmis (Jackson utile)
     private Personnage character1;
     @JsonProperty("character2")
     private Personnage character2;
@@ -21,7 +31,7 @@ public class StateCombat {
     @JsonProperty("backpack")
     private Map<String, List<ObjectBase>> backpack = new HashMap<>();
     @JsonProperty("logCombat")
-    private List<String> logCombat = new ArrayList<>();
+    private List<String> logCombat = new ArrayList<>(); //Contient user joue, tour et historique des actions
     private int tour = 1;
 
     public StateCombat(String player1, String player2, Personnage character1, Personnage character2,
@@ -42,7 +52,7 @@ public class StateCombat {
         this.backpack.put(player2, bp2 != null ? bp2 : new ArrayList<>());
     }
 
-    //Cool pour un combat player1 va return player 2 et inversement
+    //Cool pour un combat player1 va return player 2 et inversement, retourne liste des 2 users
     public String getOpponent(String Player) {
         return Player.equals(player1) ? player2 : player1;
     }
@@ -68,7 +78,7 @@ public class StateCombat {
     public void setBackpack(Map<String, List<ObjectBase>> backpack) {
         this.backpack = (backpack != null) ? backpack : new HashMap<>();
     }
-
+//Recup contenu du back
     public List<ObjectBase> getBackpack(String username) {
         if (backpack == null) return new ArrayList<>();
         return backpack.getOrDefault(username, new ArrayList<>());
