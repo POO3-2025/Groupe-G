@@ -22,7 +22,7 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<UserInfo> getUserByUsername(String username) {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
-            PreparedStatement stmt = conn.prepareStatement("SELECT username, level, cristaux,is_connected FROM users WHERE username = ?");
+            PreparedStatement stmt = conn.prepareStatement("SELECT username, level, cristaux,is_connected, gagner,perdu FROM users WHERE username = ?");
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
 
@@ -32,6 +32,9 @@ public class UserDAOImpl implements UserDAO {
                 user.setLevel(rs.getInt("level"));
                 user.setCristaux(rs.getInt("cristaux"));
                 user.setConnected(rs.getBoolean("is_connected"));
+                user.setGagner(rs.getInt("gagner"));
+                user.setPerdu(rs.getInt("perdu"));
+
                 return Optional.of(user);
             }
         } catch (Exception e) {
@@ -92,5 +95,46 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+    @Override
+    public void updateLevel(String username, int newLevel) throws Exception {
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
+            PreparedStatement stmt = conn.prepareStatement("UPDATE users SET level = ? WHERE username = ?");
+            stmt.setInt(1, newLevel);
+            stmt.setString(2, username);
+            int updatedRows = stmt.executeUpdate();
+
+            if (updatedRows == 0) {
+                throw new IllegalStateException("Aucun utilisateur mis à jour : " + username);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Override
+
+    public void IncrementWinner(String username) throws Exception {
+        updateWin_Lose(username, "gagner");
+    }
+
+    public void IncrementDefeat(String username) throws Exception {
+        updateWin_Lose(username, "perdu");
+    }
+
+    @Override
+    public void updateWin_Lose(String username, String New) throws Exception {
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
+            PreparedStatement stmt = conn.prepareStatement("UPDATE users SET " + New  +" = " + New + " + 1 where username = ?");
+            stmt.setString(1, username);
+            int updatedRows = stmt.executeUpdate();
+            if (updatedRows == 0) {
+                throw new IllegalStateException("Aucun utilisateur mis à jour : " + username);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
 
 }

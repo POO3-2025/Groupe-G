@@ -6,6 +6,8 @@ public class UserInfo {
     private int level;
     private int cristaux;
     private String selectedCharacter;
+    private int gagner ;
+    private int perdu;
     public String getUsername() { return username; }
     public int getLevel() { return level; }
     public int getCristaux() { return cristaux; }
@@ -16,5 +18,11 @@ public class UserInfo {
     public void setSelectedCharacter(String selectedCharacter) { this.selectedCharacter = selectedCharacter; }
     public boolean isConnected() {   return isConnected; }
     public void setConnected(boolean connected) { this.isConnected = connected;}
+    public void setGagner(int gagner) { this.gagner = gagner; }
+    public void setPerdu(int perdu) { this.perdu = perdu; }
+    public int getGagner() { return gagner; }
+    public int getPerdu() { return perdu; }
+
+
 
 }

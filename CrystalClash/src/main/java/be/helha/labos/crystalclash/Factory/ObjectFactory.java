@@ -78,8 +78,8 @@ public class ObjectFactory {
                 else throw new IllegalArgumentException("Niveau insuffisant pour AK-47");
                 break;
 
-            case "elixir daube":
-                if (LevelPlayer >= 2) obj = new HealingPotion("Elixir d'Aube", 20, 2, 15);
+            case "elixir d aube":
+                if (LevelPlayer >= 2) obj = new HealingPotion("Elixir d Aube", 20, 2, 15);
                 else throw new IllegalArgumentException("Niveau insuffisant pour Elixir d'Aube");
                 break;
             case "larme de licorne":
@@ -179,8 +179,8 @@ public class ObjectFactory {
                 obj = new Weapon("AK-47", 275, 7, 1, 50);
                 break;
 
-            case "elixir d'aube":
-                obj = new HealingPotion("Elixir d'Aube", 20, 2, 15);
+            case "elixir d aube":
+                obj = new HealingPotion("Elixir d Aube", 20, 2, 15);
                 break;
             case "larme de licorne":
                 obj = new HealingPotion("Larme de Licorne", 30, 4, 25);
@@ -245,7 +245,7 @@ public class ObjectFactory {
         map.put("arme de poing", new Weapon("Arme de poing", 175, 7, 3, 20));
         map.put("ak-47", new Weapon("Ak-47", 275, 7, 1, 50));
 
-        map.put("elixir d'aube", new HealingPotion("Elixir d'Aube", 20, 2, 15));
+        map.put("elixir d aube", new HealingPotion("Elixir d Aube", 20, 2, 15));
         map.put("larme de licorne", new HealingPotion("Larme de Licorne", 30, 4, 25));
         map.put("fluide du phenix", new HealingPotion("Fluide du Phenix", 60, 6, 50));
 

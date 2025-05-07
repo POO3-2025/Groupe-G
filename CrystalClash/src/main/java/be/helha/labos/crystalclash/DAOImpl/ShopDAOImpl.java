@@ -89,13 +89,6 @@ public class ShopDAOImpl implements ShopDAO{
             }
 
 
-            // Vérifie si déjà possédé
-            if (item.getName().equalsIgnoreCase("Coffre des Joyaux")) {
-                boolean alreadyOwned = inventory.getObjets().stream()
-                    .anyMatch(obj -> obj.getName().equalsIgnoreCase("Coffre des Joyaux"));
-                if (alreadyOwned) return "Tu possèdes déjà un Coffre des Joyaux !";
-            }
-
             if (inventory.getObjets().size() >= 30) {
                 return "Inventaire plein !";
 

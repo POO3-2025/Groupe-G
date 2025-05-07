@@ -86,15 +86,17 @@ public class InventoryControllerTest {  // <- ici "Test" !
         try {
             var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
             var stmt = conn.prepareStatement("""
-            INSERT INTO users (username, password, level, cristaux, is_connected)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (username, password, level, cristaux, is_connected,gagner,perdu)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux)
         """);
             stmt.setString(1, "inventoryTestUser");
             stmt.setString(2, "password");   // mot de passe bidon pour test
             stmt.setInt(3, 1);               // niveau de départ
             stmt.setInt(4, 100);            // cristaux de départ
-            stmt.setBoolean(5, false);      // connecté ou non
+            stmt.setBoolean(5, false); // connecté ou non
+            stmt.setInt(6, 0); // valeur par défaut pour 'gagner'
+            stmt.setInt(7, 0); // valeur par défaut pour 'perdu'
             stmt.executeUpdate();
             stmt.close();
             conn.close();

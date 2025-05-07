@@ -158,6 +158,10 @@ public class CharactersController {
             }
 
             ApiReponse response = characterService.addObjectToCoffre(username, name, type);
+            String msg = response.getMessage().toLowerCase();
+
+            if ( msg.contains("brisé")) return ResponseEntity.status(409).body(response);
+
             return ResponseEntity.ok(response);
         }
     }
@@ -179,6 +183,11 @@ public class CharactersController {
 
         ApiReponse response = characterService.updateReliabilityInBackPack(username, objectId, newReliability);
         return ResponseEntity.ok(response);
+    }
+
+
+    public void setCharacterServices(CharacterService characterService) {
+        this.characterService = characterService;
     }
 
 
