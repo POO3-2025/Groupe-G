@@ -17,24 +17,21 @@ import java.util.Map;
 public class InventoryController {
 
 
-
     @Autowired
     private InventoryService inventoryService;
 
     /**
-     * @param username
-     * obtenir l'inventaire du username
-     * */
+     * @param username obtenir l'inventaire du username
+     */
     @GetMapping("/{username}")
     public Inventory getInventory(@PathVariable String username) {
         return inventoryService.getInventoryForUser(username);
     }
 
     /**
-     * @param payload
-     *payload corps body de la requete http POST envoyé par le client
-     * name et type seront ganrit de ce que le user aura envoyé
-     * */
+     * @param payload payload corps body de la requete http POST envoyé par le client
+     *                name et type seront ganrit de ce que le user aura envoyé
+     */
     @PostMapping("/sell")
     public ResponseEntity<ApiReponse> sellObject(@RequestBody Map<String, String> payload) {
         //charge nom et type
@@ -61,8 +58,8 @@ public class InventoryController {
 
     @PostMapping("/{username}/coffre/add")
     public ResponseEntity<ApiReponse> addObjectToCoffre(
-        @PathVariable String username,
-        @RequestBody Map<String, String> payload) {
+            @PathVariable String username,
+            @RequestBody Map<String, String> payload) {
 
         String name = payload.get("name");
         String type = payload.get("type");

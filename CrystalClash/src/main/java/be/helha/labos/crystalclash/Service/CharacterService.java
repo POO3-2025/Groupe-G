@@ -77,7 +77,9 @@ public class CharacterService {
         return characterDAO.addObjectToCoffre(username, name, type);
     }
 
+
     public ApiReponse updateReliabilityInBackPack(String username, String objectId, Integer newReliability) {
         return characterDAO.updateReliabilityInBackPack(username,objectId,newReliability);
     }
+
 }

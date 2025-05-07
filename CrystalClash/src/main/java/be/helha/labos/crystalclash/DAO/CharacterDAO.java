@@ -3,6 +3,8 @@ package be.helha.labos.crystalclash.DAO;
 
 import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.Object.BackPack;
+import be.helha.labos.crystalclash.Service.InventoryService;
+import be.helha.labos.crystalclash.Service.UserService;
 
 public interface CharacterDAO {
     /**
@@ -43,7 +45,10 @@ public interface CharacterDAO {
 
     ApiReponse addObjectToCoffre(String username, String name, String type);
 
+    public void setInventoryService(InventoryService inventoryService);
+
     ApiReponse updateReliabilityInBackPack(String username, String objectId, int newReliability);
+
 }
 
 

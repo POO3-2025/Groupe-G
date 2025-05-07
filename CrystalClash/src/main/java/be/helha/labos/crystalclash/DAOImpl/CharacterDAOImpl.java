@@ -462,6 +462,10 @@ public class CharacterDAOImpl implements CharacterDAO {
         }
     }
 
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
     /**
      * Modifie la reliability d'un objet (weapon ou armor) dans le backpack du personnage du joueur
      *

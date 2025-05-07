@@ -24,10 +24,9 @@ public class CharactersController {
     private CharacterService characterService;
 
     /**
-     * @param payload
-     *Permet de selectionné un personnage
-     * passe plusieurs vérfi
-     * */
+     * @param payload Permet de selectionné un personnage
+     *                passe plusieurs vérfi
+     */
     @PostMapping("/select")
     public ResponseEntity<ApiReponse> selectCharacter(@RequestBody Map<String, String> payload) {
         String username = payload.get("username");
@@ -91,9 +90,8 @@ public class CharactersController {
     /**
      * @param username
      * @return
-     * @throws Exception
-     * Récupérer le backpack du personnage
-     * */
+     * @throws Exception Récupérer le backpack du personnage
+     */
     @GetMapping("/{username}/backpack")
     public ResponseEntity<Map<String, Object>> getBackpack(@PathVariable String username) {
         try {
@@ -113,9 +111,8 @@ public class CharactersController {
     }
 
     /**
-     * @param username
-     * Ajoute un objet au backpack du personnage
-     * */
+     * @param username Ajoute un objet au backpack du personnage
+     */
     @PostMapping("/{username}/backpack/add")
     public ResponseEntity<ApiReponse> addObjectToBackpack(@PathVariable String username, @RequestBody Map<String, String> payload) {
         String name = payload.get("name");
@@ -145,11 +142,11 @@ public class CharactersController {
     /**
      * @param username
      * @return
-     * @throws Exception
-     * Récupérer le personnage sélectionné pour l'utilisateur
-     * */
+     * @throws Exception Récupérer le personnage sélectionné pour l'utilisateur
+     */
     @PostMapping("/{username}/backpack/coffre/add")
-    public ResponseEntity<ApiReponse> addObjectToCoffreInBackPack(@PathVariable String username, @RequestBody Map<String, String> payload) { {
+    public ResponseEntity<ApiReponse> addObjectToCoffreInBackPack(@PathVariable String username, @RequestBody Map<String, String> payload) {
+        {
             String name = payload.get("name");
             String type = payload.get("type");
 
@@ -158,6 +155,10 @@ public class CharactersController {
             }
 
             ApiReponse response = characterService.addObjectToCoffre(username, name, type);
+            String msg = response.getMessage().toLowerCase();
+
+            if ( msg.contains("brisé")) return ResponseEntity.status(409).body(response);
+
             return ResponseEntity.ok(response);
         }
     }
@@ -179,6 +180,11 @@ public class CharactersController {
 
         ApiReponse response = characterService.updateReliabilityInBackPack(username, objectId, newReliability);
         return ResponseEntity.ok(response);
+    }
+
+
+    public void setCharacterServices(CharacterService characterService) {
+        this.characterService = characterService;
     }
 
 
