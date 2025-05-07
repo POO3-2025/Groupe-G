@@ -307,7 +307,6 @@ public class LanternaApp {
     }
 
 
-
     /**
      * Affiche les section du menu
      * avec le style et la couleur
@@ -1040,13 +1039,6 @@ public class LanternaApp {
 
 
 
-    /**
-     * Ouvre la fenêtre de combat
-     *
-     * @param gui
-     * @param adversaireNom
-     */
-
 
     private static void updateToursRestants(Personnage perso, Label label) {
         int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
@@ -1057,7 +1049,12 @@ public class LanternaApp {
         }
     }
 
-
+    /**
+     * Ouvre la fenêtre de combat
+     *
+     * @param gui
+     * @param adversaireNom
+     */
     private static void openCombatWindow(WindowBasedTextGUI gui, String adversaireNom) {
         BasicWindow combatWindow = new BasicWindow("Combat");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -1223,7 +1220,6 @@ public class LanternaApp {
                     });
 
 
-
 // --- On ajoute les 3 boutons AVEC ESPACES ---
                     actionsPanel.addComponent(showNormalAttacks[0]);
                     actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
@@ -1265,7 +1261,14 @@ public class LanternaApp {
         gui.addWindowAndWait(combatWindow);
     }
 
-
+    private static void showMainActions(Panel actionsPanel, Button normalAttack, Button specialAttack, Button objectButton) {
+        actionsPanel.removeAllComponents();
+        actionsPanel.addComponent(normalAttack);
+        actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+        actionsPanel.addComponent(specialAttack);
+        actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+        actionsPanel.addComponent(objectButton);
+    }
     private static void enemyTurn(WindowBasedTextGUI gui, String adversaireNom,
                                   Label playerHealth, Label enemyHealth, BasicWindow combatWindow,
                                   AtomicInteger playerHP, AtomicInteger enemyHP,
@@ -1310,255 +1313,356 @@ public class LanternaApp {
             if (tourCounter.get() % 5 == 0) {
                 history.setLength(0);  // Effacer l'historique
                 history.append("==== TOUR " + tourCounter.get() + " ====\n"); // Ajouter le premier tour du nouveau cycle
-=======
-            // Incrémentation du compteur de tours seulement après l'action de l'ennemi
-            int currentTour = tourCounter.incrementAndGet();
-            tourLabel.setText("🕒 Tour : " + currentTour); // Mise à jour du tour
 
-            // Réinitialiser l'historique tous les 5 tours, mais garder le tour précédent
-            if (currentTour % 5 == 0) {
-                // Garder l'historique du tour précédent (par exemple, tour 4 avant tour 5)
-                String previousHistory = history.toString();
-                int lastTourIndex = previousHistory.lastIndexOf("==== TOUR " + (currentTour - 1) + " ====");
+                // Incrémentation du compteur de tours seulement après l'action de l'ennemi
+                int currentTour = tourCounter.incrementAndGet();
+                tourLabel.setText("🕒 Tour : " + currentTour); // Mise à jour du tour
 
-                if (lastTourIndex != -1) {
-                    // Garder uniquement l'historique jusqu'au tour précédent
-                    history.setLength(0); // Réinitialiser l'historique
-                    history.append(previousHistory.substring(lastTourIndex)); // Garder l'historique du dernier tour
-                }
+                // Réinitialiser l'historique tous les 5 tours, mais garder le tour précédent
+                if (currentTour % 5 == 0) {
+                    // Garder l'historique du tour précédent (par exemple, tour 4 avant tour 5)
+                    String previousHistory = history.toString();
+                    int lastTourIndex = previousHistory.lastIndexOf("==== TOUR " + (currentTour - 1) + " ====");
 
-                history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête du tour actuel
-
-            } else {
-                history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête des tours intermédiaires
-
-            }
-
-            historyLabel.setText(history.toString()); // Mise à jour de l'historique affiché
-
-            showMainActions(actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
-
-
-        }
-
-
-    }
-
-    /**
-     * Afficher l'ecran de comabt et mettre a jour dynamiquement l'affichage des deux cotés
-     * Pv joueur, historique, actions possibles, bouton quitter,detection fin de combat,passage de tour
-     * */
-    public static void lancerCombat(WindowBasedTextGUI gui, StateCombat state) {
-        AtomicBoolean shouldRun = new AtomicBoolean(true);//Le thread l'utilse pour savoir quand stopé
-        boolean[] forfaitEffectue = {false}; //boolean pour savoir si le user a quitter le comabt
-        int[] lasttour = {state.getTour()}; //Evite les relancements inutiles
-      
-        String adversaire = state.getOpponent(Session.getUsername());
-
-
-        BasicWindow combatWindow = new BasicWindow("Combat contre " + adversaire);
-        combatWindow.setHints(List.of(Window.Hint.CENTERED));
-
-        Panel mainPanel = new Panel(new GridLayout(1));
-        Label tourLabel = new Label("Tour : " + state.getTour());
-        Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
-        Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
-        Panel historyPanel = new Panel(new GridLayout(1));
-        Panel actionPanel = new Panel(new GridLayout(1));
-
-        historyPanel.addComponent(new Label("Historique :"));
-        for (String entry : state.getLog()) {
-            historyPanel.addComponent(new Label(entry));
-        }
-        //Va appeller les labels plus haut
-        mainPanel.addComponent(tourLabel);
-        mainPanel.addComponent(labelPvAdversaire);
-        mainPanel.addComponent(labelMesPv);
-        mainPanel.addComponent(historyPanel);
-        mainPanel.addComponent(actionPanel);
-
-        mainPanel.addComponent(new Button("Quitter le combat", () -> {
-            try {
-                HttpService.forfait(Session.getUsername(), Session.getToken());
-                forfaitEffectue[0] = true;
-            } catch (Exception e) {
-                System.out.println("Erreur forfait : " + e.getMessage());
-            }
-            shouldRun.set(false);
-            combatWindow.close();
-            LanternaApp.afficherMenuPrincipal(gui);
-        }));
-
-        //Ajout bouton action, le joueur qui doit jouer les voit, l'autre non
-        if (Session.getUsername().equals(state.getPlayerNow())) {
-            updateActionPanel(actionPanel, state, gui); //Va appeller la méthode
-        } else {
-            actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
-        }
-
-        combatWindow.setComponent(mainPanel);
-        gui.addWindow(combatWindow);
-
-        // Thread pour mise à jour sans tout refermer, afficher l'etat du comabt toute les 2 sec (tourne en arriere plan)
-        //Récupe le StateComabt a jour ( de JSON via GSON)
-        //Dans le cas de lan le Thread est utilse pour la mise a jour automatique de l'affichage, sans le Thread le joueur aurait du appuyer manuellement sur un bouton
-        new Thread(() -> {
-            while (shouldRun.get()) {
-                try {
-                    Thread.sleep(2000);
-                    String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
-                    Gson gson = new GsonBuilder()
-                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                            .create();
-                    StateCombat updated = gson.fromJson(json, StateCombat.class);
-                    if (updated == null) {
-                        //invokeLater permet de revenir au thread principale de lanterna pour mettre a jour l interface
-                        gui.getGUIThread().invokeLater(() -> {
-                            String winner = null;
-                            try{
-                                winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
-                            } catch (Exception e) {
-                                System.out.println("Erreur récup du gagnant : " +e.getMessage());
-                            }
-                            String message;
-                            if(forfaitEffectue[0]){
-                                message = "Vous avez quitté le comabt, votre adversaire a gagné";
-                            } else if(winner != null) {
-                                if (winner.equals(Session.getUsername())) {
-                                    message = "Comabt terminé, vous avez gagné";
-
-                                }else {
-                                    message = "Combat terminé, " + winner + "a gagné";
-                                }
-                            }else{
-                                message = "Comant terminé, mais le gagnat est inconnu";
-                            }
-
-                            MessageDialog.showMessageDialog(gui,"Fin du comabt", message);
-                            afficherMenuPrincipal(gui);
-                        });
-                        break;
+                    if (lastTourIndex != -1) {
+                        // Garder uniquement l'historique jusqu'au tour précédent
+                        history.setLength(0); // Réinitialiser l'historique
+                        history.append(previousHistory.substring(lastTourIndex)); // Garder l'historique du dernier tour
                     }
 
-                    if (updated.isFinished()) {
-                        gui.getGUIThread().invokeLater(() -> {
-                            combatWindow.close();
-                            String winner =null;
-                            try{
-                                winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
-                            } catch (Exception e) {
-                                System.out.println("Erreur récup du gagnant : " +e.getMessage());
-                            }
-                            String message;
-                            if(winner == null){
-                                message = "Combat terminé, mais le gagnant est inconnu.";
-                            } else if("Egalité".equals(winner)) {
+                    history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête du tour actuel
+
+                } else {
+                    history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête des tours intermédiaires
+
+                }
+
+                historyLabel.setText(history.toString()); // Mise à jour de l'historique affiché
+
+                showMainActions(actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+
+            }
+        }
+    }
+
+    private static Panel createBackpackPanel(WindowBasedTextGUI gui, Panel actionsPanel, AtomicInteger playerHP, AtomicInteger enemyHP,
+                                             Label playerHealth, Label enemyHealth, String adversaireNom, Personnage perso,
+                                             Label historyLabel, StringBuilder history, AtomicInteger tourCounter, Label tourLabel,
+                                             BasicWindow combatWindow,
+                                             Button showNormalAttacks, Button showSpecialAttacks, Button objectButton) {
+        Panel backpackPanel = new Panel(new GridLayout(1));
+        String username = Session.getUsername();
+
+        try {
+            String jsonbackpack = HttpService.getBackpack(username, Session.getToken());
+
+            JsonObject response = JsonParser.parseString(jsonbackpack).getAsJsonObject();
+            JsonArray dataArray = response.getAsJsonArray("data");
+
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
+
+            ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
+
+            if (objets.length == 0) {
+                backpackPanel.addComponent(new Label("Votre BackPack est vide."));
+            } else {
+                for (ObjectBase objlist : objets) {
+                    String objectId = objlist.getId();
+
+                    Button objButton = new Button(objlist.getName() + " (" + objlist.getType() + ")", () -> {
+                        switch (objlist.getType()) {
+                            case "Weapon":
+                                Weapon weapon = (Weapon) objlist;
+                                String weaponUseMessage = weapon.use();
+
+                                if (weaponUseMessage.contains("broken")) {
+                                    history.append("Vous avez tenté d'utiliser " + weapon.getName() + " mais elle est cassée.\n");
+                                } else {
+                                    int weaponDamage = weapon.getDamage();
+                                    enemyHP.addAndGet(-weaponDamage);
+                                    history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
+
+                                    // 🔥 MAJ MongoDB (fiabilité)
+                                    try {
+                                        String responseupdateobject = HttpService.updateObjectReliability(
+                                                username,
+                                                objectId,
+                                                weapon.getReliability(),
+                                                Session.getToken()
+                                        );
+                                        System.out.println("MAJ fiabilité arme : " + responseupdateobject);
+
+                                    } catch (Exception ex) {
+                                        ex.printStackTrace();
+                                        history.append("⚠️ Erreur de synchro fiabilité.\n");
+                                    }
+
+                                    backpackPanel.removeAllComponents();
+                                    // L'ennemi joue ensuite
+                                    enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                            playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                            actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+
+
+
+                                }
+                                break;
+
+                            case "HealingPotion":
+                                HealingPotion potion = (HealingPotion) objlist;
+                                int healAmount = potion.getHeal();
+                                playerHP.addAndGet(healAmount);
+                                history.append("Vous avez utilisé " + potion.getName() + " et récupéré " + healAmount + " PV.\n");
+                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                        playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+
+                                actionsPanel.removeAllComponents();
+                                actionsPanel.addComponent(showNormalAttacks);
+                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+                                actionsPanel.addComponent(showSpecialAttacks);
+                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+                                actionsPanel.addComponent(objectButton);
+                                break;
+
+                            default:
+                                history.append("Objet inconnu : " + objlist.getName() + ".\n");
+                                break;
+                        }
+                        historyLabel.setText(history.toString());
+                        showMainActions(actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+                    });
+
+                    backpackPanel.addComponent(objButton);
+                    backpackPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+                }
+            }
+
+        } catch (Exception e) {
+            MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de récupérer le BackPack : " + e.getMessage());
+        }
+
+        return backpackPanel;
+    }
+        /**
+         * Afficher l'ecran de comabt et mettre a jour dynamiquement l'affichage des deux cotés
+         * Pv joueur, historique, actions possibles, bouton quitter,detection fin de combat,passage de tour
+         * */
+        public static void lancerCombat (WindowBasedTextGUI gui, StateCombat state){
+            AtomicBoolean shouldRun = new AtomicBoolean(true);//Le thread l'utilse pour savoir quand stopé
+            boolean[] forfaitEffectue = {false}; //boolean pour savoir si le user a quitter le comabt
+            int[] lasttour = {state.getTour()}; //Evite les relancements inutiles
+
+            String adversaire = state.getOpponent(Session.getUsername());
+
+
+            BasicWindow combatWindow = new BasicWindow("Combat contre " + adversaire);
+            combatWindow.setHints(List.of(Window.Hint.CENTERED));
+
+            Panel mainPanel = new Panel(new GridLayout(1));
+            Label tourLabel = new Label("Tour : " + state.getTour());
+            Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
+            Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
+            Panel historyPanel = new Panel(new GridLayout(1));
+            Panel actionPanel = new Panel(new GridLayout(1));
+
+            historyPanel.addComponent(new Label("Historique :"));
+            for (String entry : state.getLog()) {
+                historyPanel.addComponent(new Label(entry));
+            }
+            //Va appeller les labels plus haut
+            mainPanel.addComponent(tourLabel);
+            mainPanel.addComponent(labelPvAdversaire);
+            mainPanel.addComponent(labelMesPv);
+            mainPanel.addComponent(historyPanel);
+            mainPanel.addComponent(actionPanel);
+
+            mainPanel.addComponent(new Button("Quitter le combat", () -> {
+                try {
+                    HttpService.forfait(Session.getUsername(), Session.getToken());
+                    forfaitEffectue[0] = true;
+                } catch (Exception e) {
+                    System.out.println("Erreur forfait : " + e.getMessage());
+                }
+                shouldRun.set(false);
+                combatWindow.close();
+                LanternaApp.afficherMenuPrincipal(gui);
+            }));
+
+            //Ajout bouton action, le joueur qui doit jouer les voit, l'autre non
+            if (Session.getUsername().equals(state.getPlayerNow())) {
+                updateActionPanel(actionPanel, state, gui); //Va appeller la méthode
+            } else {
+                actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+            }
+
+            combatWindow.setComponent(mainPanel);
+            gui.addWindow(combatWindow);
+
+            // Thread pour mise à jour sans tout refermer, afficher l'etat du comabt toute les 2 sec (tourne en arriere plan)
+            //Récupe le StateComabt a jour ( de JSON via GSON)
+            //Dans le cas de lan le Thread est utilse pour la mise a jour automatique de l'affichage, sans le Thread le joueur aurait du appuyer manuellement sur un bouton
+            new Thread(() -> {
+                while (shouldRun.get()) {
+                    try {
+                        Thread.sleep(2000);
+                        String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+                        Gson gson = new GsonBuilder()
+                                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                                .create();
+                        StateCombat updated = gson.fromJson(json, StateCombat.class);
+                        if (updated == null) {
+                            //invokeLater permet de revenir au thread principale de lanterna pour mettre a jour l interface
+                            gui.getGUIThread().invokeLater(() -> {
+                                String winner = null;
+                                try {
+                                    winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                                } catch (Exception e) {
+                                    System.out.println("Erreur récup du gagnant : " + e.getMessage());
+                                }
+                                String message;
+                                if (forfaitEffectue[0]) {
+                                    message = "Vous avez quitté le comabt, votre adversaire a gagné";
+                                } else if (winner != null) {
+                                    if (winner.equals(Session.getUsername())) {
+                                        message = "Comabt terminé, vous avez gagné";
+
+                                    } else {
+                                        message = "Combat terminé, " + winner + "a gagné";
+                                    }
+                                } else {
+                                    message = "Comant terminé, mais le gagnat est inconnu";
+                                }
+
+                                MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
+                                afficherMenuPrincipal(gui);
+                            });
+                            break;
+                        }
+
+                        if (updated.isFinished()) {
+                            gui.getGUIThread().invokeLater(() -> {
+                                combatWindow.close();
+                                String winner = null;
+                                try {
+                                    winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                                } catch (Exception e) {
+                                    System.out.println("Erreur récup du gagnant : " + e.getMessage());
+                                }
+                                String message;
+                                if (winner == null) {
+                                    message = "Combat terminé, mais le gagnant est inconnu.";
+                                } else if ("Egalité".equals(winner)) {
                                     message = "Combat terminé sur une égalité !";
                                 } else if (winner.equals(Session.getUsername())) {
                                     message = "Combat terminé, vous avez gagné !";
                                 } else {
-                                    message = "Combat terminé, " + winner  +  " a gagné.";
+                                    message = "Combat terminé, " + winner + " a gagné.";
                                 }
 
-                            MessageDialog.showMessageDialog(gui,"Fin du comabt", message);
-                            afficherMenuPrincipal(gui);
-                        });
-                        break;
-                    }
-
-                    //Ici a chaque invokeLater il y aura une mise a jour visuelle du tour, les pvs et historique
-                    gui.getGUIThread().invokeLater(() -> {
-                        tourLabel.setText("Tour : " + updated.getTour());
-                        labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
-                        labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
-
-                        historyPanel.removeAllComponents();
-                        historyPanel.addComponent(new Label("Historique :"));
-                        for (String log : updated.getLog()) {
-                            historyPanel.addComponent(new Label(log));
+                                MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
+                                afficherMenuPrincipal(gui);
+                            });
+                            break;
                         }
 
-                        // relancer l’interface avec les boutons en focntion des tours, si c le meme tour alors les boutons sont affichés pour le bon user
-                        //Si le tour a changé alors la on fait un remove soit pour retirer les boutons et afficher en attente..... soint pour retirer cette phrase et afficher les boutons.
-                        if (updated.getTour() != lasttour[0]) {
-                            lasttour[0] = updated.getTour();
-                            actionPanel.removeAllComponents();
-                            if (updated.getPlayerNow().equals(Session.getUsername())) {
-                                updateActionPanel(actionPanel, updated, gui); //Va appeller la méthode
-                            } else {
-                                actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+                        //Ici a chaque invokeLater il y aura une mise a jour visuelle du tour, les pvs et historique
+                        gui.getGUIThread().invokeLater(() -> {
+                            tourLabel.setText("Tour : " + updated.getTour());
+                            labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
+                            labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
+
+                            historyPanel.removeAllComponents();
+                            historyPanel.addComponent(new Label("Historique :"));
+                            for (String log : updated.getLog()) {
+                                historyPanel.addComponent(new Label(log));
                             }
-                        }
-                    });
 
-                } catch (Exception e) {
-                    e.printStackTrace();
+                            // relancer l’interface avec les boutons en focntion des tours, si c le meme tour alors les boutons sont affichés pour le bon user
+                            //Si le tour a changé alors la on fait un remove soit pour retirer les boutons et afficher en attente..... soint pour retirer cette phrase et afficher les boutons.
+                            if (updated.getTour() != lasttour[0]) {
+                                lasttour[0] = updated.getTour();
+                                actionPanel.removeAllComponents();
+                                if (updated.getPlayerNow().equals(Session.getUsername())) {
+                                    updateActionPanel(actionPanel, updated, gui); //Va appeller la méthode
+                                } else {
+                                    actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+                                }
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        }).start();
-    }
+            }).start();
+        }
 
-    //Rafraichissemnt auto des bouton essaie
-    private static void updateActionPanel(Panel actionPanel, StateCombat state, WindowBasedTextGUI gui) {
+        //Rafraichissemnt auto des bouton essaie
+        private static void updateActionPanel(Panel actionPanel, StateCombat state, WindowBasedTextGUI gui){
 
-        actionPanel.addComponent(new Label("Vos actions :"));
-        actionPanel.addComponent(new Button("Attaque normale ", () -> {
-            try {
-                HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
-            } catch (Exception e) {
-                MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-            }
-        }));
-        actionPanel.addComponent(new Button("Attaque spéciale ", () -> {
-            try {
-                HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
-            } catch (Exception e) {
-                MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-            }
-        }));
-        for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
-            actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
+            actionPanel.addComponent(new Label("Vos actions :"));
+            actionPanel.addComponent(new Button("Attaque normale ", () -> {
                 try {
-                    HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                    HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
                 } catch (Exception e) {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
             }));
+            actionPanel.addComponent(new Button("Attaque spéciale ", () -> {
+                try {
+                    HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
+                } catch (Exception e) {
+                    MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                }
+            }));
+            for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
+                actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
+                    try {
+                        HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                    } catch (Exception e) {
+                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                    }
+                }));
+            }
         }
-    }
-    private static void DisplayClassement(WindowBasedTextGUI gui) {
-        BasicWindow profileWindow = new BasicWindow("Classement");
-        profileWindow.setHints(Arrays.asList(Hint.CENTERED));
-        Panel panel = new Panel(new GridLayout(1));
-        panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
+        private static void DisplayClassement (WindowBasedTextGUI gui){
+            BasicWindow profileWindow = new BasicWindow("Classement");
+            profileWindow.setHints(Arrays.asList(Hint.CENTERED));
+            Panel panel = new Panel(new GridLayout(1));
+            panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
 
 
-        try {
-            String userJson = HttpService.getClassementPlayer(Session.getToken());
-            if (userJson == null) {
-             panel.addComponent(new Label("Erreur : impossible de récupérer le classement"));
-            }else  {
-                Type list = new TypeToken<List<UserInfo>>() {}.getType();
-                List<UserInfo> classement = new Gson().fromJson(userJson, list);
-                if (classement.isEmpty()){
-                    panel.addComponent(new Label("classement vide"));
+            try {
+                String userJson = HttpService.getClassementPlayer(Session.getToken());
+                if (userJson == null) {
+                    panel.addComponent(new Label("Erreur : impossible de récupérer le classement"));
                 } else {
-                    List<UserInfo> top3 = classement.size() > 3 ? classement.subList(0, 3) : classement;
-                    int pos = 1;
-                    for (UserInfo user : top3) {
-                        String resul = user.getUsername() + " Victoire : " + user.getGagner();
-                        panel.addComponent(new Label(resul));
-                        pos++;
-                        panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+                    Type list = new TypeToken<List<UserInfo>>() {
+                    }.getType();
+                    List<UserInfo> classement = new Gson().fromJson(userJson, list);
+                    if (classement.isEmpty()) {
+                        panel.addComponent(new Label("classement vide"));
+                    } else {
+                        List<UserInfo> top3 = classement.size() > 3 ? classement.subList(0, 3) : classement;
+                        int pos = 1;
+                        for (UserInfo user : top3) {
+                            String resul = user.getUsername() + " Victoire : " + user.getGagner();
+                            panel.addComponent(new Label(resul));
+                            pos++;
+                            panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
+                        }
                     }
                 }
+            } catch (Exception e) {
+                System.out.println("Impossible de  charger le classement: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println("Impossible de  charger le classement: " + e.getMessage());
+            panel.addComponent(new Button("Retour", profileWindow::close));
+            profileWindow.setComponent(panel);
+            gui.addWindowAndWait(profileWindow);
         }
-        panel.addComponent(new Button("Retour", profileWindow::close));
-        profileWindow.setComponent(panel);
-        gui.addWindowAndWait(profileWindow);
     }
-}
+
