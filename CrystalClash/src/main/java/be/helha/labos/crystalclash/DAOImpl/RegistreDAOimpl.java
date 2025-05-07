@@ -17,7 +17,7 @@ public class RegistreDAOimpl implements RegistreDAO{
      * Va dans la table users, select les users pour voir déjç ceux crées
      * */
     @Override
-    public boolean userExists(String username) throws Exception {
+        public boolean userExists(String username) throws Exception {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
             PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE username = ?");
             checkStmt.setString(1, username);
@@ -38,12 +38,14 @@ public class RegistreDAOimpl implements RegistreDAO{
     public void insertUser(String username, String hashedPassword) throws Exception {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
             PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO users (username, password, level, cristaux,is_connected) VALUES (?, ?, ?, ?,?)");
+                    "INSERT INTO users (username, password, level, cristaux,is_connected,gagner,perdu) VALUES (?, ?, ?, ?,?,?,?)");
             stmt.setString(1, username);
             stmt.setString(2, hashedPassword);
             stmt.setInt(3, 1);
             stmt.setInt(4, 100);
             stmt.setBoolean(5, false);//false direct car a l'inscription le user est co instante
+            stmt.setInt(6, 0);
+            stmt.setInt(7, 0);
             stmt.executeUpdate();
         }
     }

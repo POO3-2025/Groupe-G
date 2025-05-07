@@ -33,17 +33,18 @@ public class HttpService {
 
     /**
      * Envoie requete pour login user
+     *
      * @param password
      * @param username
-     * **/
+     **/
     public static String login(String username, String password) throws Exception {
         String json = String.format("{\"username\":\"%s\", \"password\":\"%s\"}", username, password);
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/login"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
-            .build();
+                .uri(URI.create(BASE_URL + "/login"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -52,10 +53,10 @@ public class HttpService {
 
     /**
      * envoie la requête à /register pour créer un nouvel utilisateur
-     *poste un JSON avec pseudo + mot de passe
+     * poste un JSON avec pseudo + mot de passe
      * Le serveur vérifie que l’utilisateur n’existe pas
-     *Le serveur vérifie que l’utilisateur n’existe pas
-     *Il renvoie un message (pas de token)
+     * Le serveur vérifie que l’utilisateur n’existe pas
+     * Il renvoie un message (pas de token)
      *
      * @param password
      * @param username
@@ -63,29 +64,31 @@ public class HttpService {
     public static String register(String username, String password) throws Exception {
         String json = String.format("{\"username\":\"%s\", \"password\":\"%s\"}", username, password);
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/register"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
-            .build();
+                .uri(URI.create(BASE_URL + "/register"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
         return response.body();
     }
+
     /**
      * Envoie requete pour avoir inventaire user
+     *
      * @param username
      * @param token
-     * **/
+     **/
 
     public static String getInventory(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/inventory/" + username))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token) // Envoie le token JWT dans l'en-tête
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/inventory/" + username))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token) // Envoie le token JWT dans l'en-tête
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -94,16 +97,17 @@ public class HttpService {
 
     /**
      * avoir info user
+     *
      * @param username
      * @param token
-     * **/
+     **/
     public static String getUserInfo(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/user/" + username))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token) // Envoie le token JWT dans l'en-tête
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/user/" + username))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token) // Envoie le token JWT dans l'en-tête
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -121,18 +125,18 @@ public class HttpService {
      */
     public static void selectCharacter(String username, String characterType, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/characters/select"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(
-                new Gson().toJson(Map.of(
-                    "username", username,
-                    "characterType", characterType,
-                    "token", token
+                .uri(URI.create(BASE_URL + "/characters/select"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(
+                        new Gson().toJson(Map.of(
+                                "username", username,
+                                "characterType", characterType,
+                                "token", token
+                        ))
                 ))
-            ))
-            .build();
+                .build();
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
@@ -152,11 +156,11 @@ public class HttpService {
      */
     public static String getCharacter(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/characters/" + username))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/characters/" + username))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -173,11 +177,11 @@ public class HttpService {
      */
     public static String getBackpack(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -191,23 +195,24 @@ public class HttpService {
 
     /**
      * acheter un item avec requete passant name et type ds le json
+     *
      * @param name
      * @param type
      * @param token
-     * **/
+     **/
     public static String buyItem(String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
-            "name", name,
-            "type", type
+                "name", name,
+                "type", type
         ));
 
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/shop/buy"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
+                .uri(URI.create(BASE_URL + "/shop/buy"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body(); // {"success":true,"message":"Epée achetée avec succès !"}
@@ -215,16 +220,17 @@ public class HttpService {
 
     /**
      * obtenir shop, token obligatoire car on afficher shop en focntion  du level du user
+     *
      * @param token
-     * **/
+     **/
 
     public static String getShops(String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/shop"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/shop"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body(); // retour JSON brut : [{"name":"Epée", "type":"Weapon",...
@@ -232,23 +238,24 @@ public class HttpService {
 
     /**
      * vend object json le meme
-     *  @param name
-     *   @param type
+     *
+     * @param name
+     * @param type
      * @param token
-     * **/
+     **/
     public static String sellObjetc(String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
-            "name", name,
-            "type", type
+                "name", name,
+                "type", type
         ));
 
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/inventory/sell"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
+                .uri(URI.create(BASE_URL + "/inventory/sell"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -257,24 +264,25 @@ public class HttpService {
 
     /**
      * Met objet de l'inventaire ds le back en envoyant requete
-     *  @param username
+     *
+     * @param username
      * @param name
      * @param token
      * @param type
-     * **/
+     **/
     public static String putInBackpack(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
-            "name", name,
-            "type", type
+                "name", name,
+                "type", type
         ));
 
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/add"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/add"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
@@ -282,24 +290,25 @@ public class HttpService {
 
     /**
      * Retire de back pour mettre dans inventaire, evoie requete
+     *
      * @param token
      * @param name
      * @param username
      * @param type
-     * **/
+     **/
     public static String removeFromBackpack(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
-            "name", name,
-            "type", type
+                "name", name,
+                "type", type
         ));
 
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/remove")) // on utilise le bon endpoint
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json)) // POST car tu fais une action qui modifie
-            .build();
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/remove")) // on utilise le bon endpoint
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json)) // POST car tu fais une action qui modifie
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
@@ -307,19 +316,20 @@ public class HttpService {
 
     /**
      * envoie requete pour jouer a la roulette
-     @param username
-     @param token
+     *
+     * @param username
+     * @param token
      **/
     public static String PlayRoulette(String username, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
-            "username", username
+                "username", username
         ));
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/roulette/play"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
+                .uri(URI.create(BASE_URL + "/roulette/play"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         System.out.println("Status: " + response.statusCode());
@@ -334,11 +344,11 @@ public class HttpService {
 
     public static String getCoffre(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/inventory/" + username + "/coffre"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/inventory/" + username + "/coffre"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
@@ -346,16 +356,16 @@ public class HttpService {
 
     public static String putInCoffre(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
-            "name", name,
-            "type", type
+                "name", name,
+                "type", type
         ));
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/inventory/" + username + "/coffre/add"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
+                .uri(URI.create(BASE_URL + "/inventory/" + username + "/coffre/add"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
@@ -378,37 +388,6 @@ public class HttpService {
     }
 
 
-    /**
-     * Démarre un combat en envoyant une requête au serveur.
-     * @param username Le nom d'utilisateur du joueur qui lance le combat.
-     * @param token Le token d'autorisation pour le joueur.
-     * @return La réponse JSON du serveur indiquant le résultat du combat.
-     * @throws Exception Si une erreur se produit lors de l'appel HTTP ou de la sérialisation.
-     */
-    public static String startCombat(String username, String token) throws Exception {
-        // Préparer le corps de la requête en JSON
-        String json = new Gson().toJson(Map.of("username", username));
-
-        // Créer la requête HTTP avec une timeout de 5 secondes
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/combat/start"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .POST(HttpRequest.BodyPublishers.ofString(json))  // Utilisation du JSON sérialisé
-            .build();
-
-        // Créer un client HTTP et envoyer la requête
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-        // Vérifier si la réponse est réussie
-        if (response.statusCode() != 200) {
-            throw new Exception("Erreur serveur: " + response.statusCode() + " - " + response.body());
-        }
-
-        // Retourner le corps de la réponse JSON
-        return response.body();
-    }
-
     /*
      * appelle le serveur via httpService.getInventory
      * dése cusstom les objets de mongo vers txt json
@@ -416,8 +395,8 @@ public class HttpService {
      * */
     public static Inventory refreshInventory() throws Exception {
         Gson gson = new GsonBuilder()
-            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-            .create();
+                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                .create();
         String jsonInventaire = HttpService.getInventory(Session.getUsername(), Session.getToken());
         return gson.fromJson(jsonInventaire, Inventory.class);
     }
@@ -457,13 +436,13 @@ public class HttpService {
 
         //Création de la requete avec de bons headers
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/users/logout"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json)) //Recoit la réponse en string
-            .build();
+                .uri(URI.create(BASE_URL + "/users/logout"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json)) //Recoit la réponse en string
+                .build();
         System.out.println("Envoi de logout pour JSON: " + json);
         //Envoie de la requete
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -472,13 +451,14 @@ public class HttpService {
             throw new RuntimeException("Erreur déconnexion du user: " + response.body());
         }
     }
+
     public static List<UserInfo> getConnectedUsers() throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/users/connected/list"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + Session.getToken()) // si besoin token pour sécuriser
-            .GET()
-            .build();
+                .uri(URI.create(BASE_URL + "/users/connected/list"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + Session.getToken()) // si besoin token pour sécuriser
+                .GET()
+                .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -494,29 +474,209 @@ public class HttpService {
         return Arrays.asList(users); //retourne le tb en liste modifiable si y a besoin
     }
 
-    public static String matcjmaking(String username, String token) throws Exception {
-        //crée chaine json avec le username a partir d une map
-        //Map.of juste une map qui ne peut etre modifiée apres, apres on seriale (objet java vers text json)
-        String json = new Gson().toJson(Map.of("username", username));
 
-        //Création de la requete avec de bons headers
+    public static String combatAttack(String username, String type, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username, "type", type));
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/matchmaking/find"))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json)) //Recoit la réponse en string
-            .build();
-        System.out.println("Envoi de logout pour JSON: " + json);
-        //Envoie de la requete
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+                .uri(URI.create(BASE_URL + "/combat/attack"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
-        if (response.statusCode() != 200) {
-            throw new RuntimeException(" " + response.body());
-        }
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
     }
 
+    public static String combatUseObject(String username, String objectId, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username, "objectId", objectId));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/use-object"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    public static String getCombatState(String username, String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/state/" + username))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    public static String startCombat(String username, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/start"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    /****************************Salle d'attente***************************/
+
+    public static void enterMatchmakingRoom(UserInfo userInfo, String token) throws Exception {
+        String json = new Gson().toJson(userInfo);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/matchmaking/enter"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur entrée matchmaking : " + response.body());
+        }
+    }
+
+    public static void exitMatchmakingRoom(String username, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/matchmaking/exit"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur entrée matchmaking : " + response.body());
+        }
+    }
+
+    public static List<UserInfo> getAvailableOpponents(String username, String token) throws Exception {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/matchmaking/available?username=" + username))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur entrée matchmaking : " + response.body());
+        }
+        return Arrays.asList(new Gson().fromJson(response.body(), UserInfo[].class));
+
+    }
+
+    public static String challengePlayer(String challenger, String challenged, String token) throws Exception, InterruptedException {
+        // Corps JSON
+        JsonObject json = new JsonObject();
+        json.addProperty("challenger", challenger);
+        json.addProperty("challenged", challenged);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/challenge"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur défi : " + response.body());
+        }
+
+        return response.body();
+
+    }
+
+    public static void forfait(String username, String token) throws Exception {
+        String json = new Gson().toJson(Map.of("username", username));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/forfait"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur lors du forfait : " + response.body());
+        }
+    }
+
+    //New
+    public static String getLastWinner(String username, String token) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/combat/Winner?username=" + username))
+                    .timeout(Duration.ofSeconds(5))
+                    .header("Authorization", "Bearer " + token)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                System.out.println("[DEBUG] Status winner = " + response.statusCode());
+                System.out.println("[DEBUG] Body winner = " + response.body());
+                return null;
+            }
+
+            return response.body();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static String getClassementPlayer( String token) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/combat/classement"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("Statut HTTP : " + response.statusCode());
+            System.out.println("Réponse brute : " + response.body());
+            if (response.statusCode() != 200) {
+
+                return null;
+            }
+            return response.body();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
 }
+
 

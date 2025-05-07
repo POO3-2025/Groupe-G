@@ -119,7 +119,10 @@ public class CharacterDAOImpl implements CharacterDAO {
             MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Characters");
 
+
+
             Document doc = collection.find(new Document("username", username).append("selected",true)).first();
+
             if (doc != null && doc.containsKey("backpack")) {
                 Document backpackDoc = (Document) doc.get("backpack");
                 doc.remove("_id"); // important
@@ -184,9 +187,11 @@ public class CharacterDAOImpl implements CharacterDAO {
                     System.err.println("Objet null ou sans type dans le backpack de " + username);
                     continue;
                 }
+   System.out.println("Objet cassé" + obj.getName());
 
                 if ((obj instanceof Weapon weapon && weapon.getReliability() == 0) || (obj instanceof Armor armor && armor.getReliability() == 0)){
                     System.out.println("Supprimer objet" + obj.getName());
+
                     continue;
                 }
 

@@ -4,6 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(scanBasePackages = {
+
+
         "be.helha.labos.crystalclash.server_auth",
         "be.helha.labos.crystalclash.Controller",
         "be.helha.labos.crystalclash.Services",
@@ -13,7 +15,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         "be.helha.labos.crystalclash.Service",
 })
 public class CrystalClashApplication {
+
     public static void main(String[] args) {
+        System.out.println("=== CrystalClash démarre ===");
         SpringApplication.run(CrystalClashApplication.class, args);
+
     }
 }
