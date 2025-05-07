@@ -79,7 +79,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                     .append("type", characterType)
                     .append("backpack", backpack)
                     .append("selected",IsFirst);
-            collection.insertOne(doc);
+            collection.insertOne(docu);
         }
     }
 
@@ -110,18 +110,16 @@ public class CharacterDAOImpl implements CharacterDAO {
     }
 
     /**
-     * Récupère le backpack du personnage du joueur
-     *
-     * @param username Nom d'utilisateur
-     * @return Le backpack du personnage
-     */
+    Récupère le backpack du personnage du joueur*
+    @param username Nom d'utilisateur
+            @return Le backpack du personnage*/
     @Override
     public BackPack getBackPackForCharacter(String username) {
         try {
             MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Characters");
 
-            Document doc = collection.find(new Document("username", username)).first();
+            Document doc = collection.find(new Document("username", username).append("selected",true)).first();
             if (doc != null && doc.containsKey("backpack")) {
                 Document backpackDoc = (Document) doc.get("backpack");
                 doc.remove("_id"); // important
@@ -180,14 +178,22 @@ public class CharacterDAOImpl implements CharacterDAO {
             // Construction de la liste d'objets à insérer dans Mongo
             List<Document> objetsDocuments = new ArrayList<>();
             for (ObjectBase obj : backPack.getObjets()) {
+
+
                 if (obj == null || obj.getType() == null) {
                     System.err.println("Objet null ou sans type dans le backpack de " + username);
                     continue;
                 }
 
+                if ((obj instanceof Weapon weapon && weapon.getReliability() == 0) || (obj instanceof Armor armor && armor.getReliability() == 0)){
+                    System.out.println("Supprimer objet" + obj.getName());
+                    continue;
+                }
+
                 Document doc = new Document()
+                        .append("id", obj.getId())
                         .append("name", obj.getName())
-                        .append("type", obj.getType())  // toujours présent
+                        .append("type", obj.getType())
                         .append("price", obj.getPrice())
                         .append("requiredLevel", obj.getRequiredLevel());
 
@@ -215,6 +221,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                         List<Document> contenuDocs = new ArrayList<>();
                         for (ObjectBase item : coffre.getContenu()) {
                             Document itemDoc = new Document()
+                                    .append("id", item.getId())
                                     .append("name", item.getName())
                                     .append("type", item.getType())
                                     .append("price", item.getPrice())
@@ -319,7 +326,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                             copie.setPrice(coffre.getPrice());
                             copie.setRequiredLevel(coffre.getRequiredLevel());
                             copie.setReliability(coffre.getReliability());
-                            copie.setContenu(new ArrayList<>(coffre.getContenu())); // Deep copy du contenu
+                            copie.setContenu(new ArrayList<>(coffre.getContenu()));
 
                             objectToAdd = copie;
                             isCoffre = true;
@@ -333,8 +340,8 @@ public class CharacterDAOImpl implements CharacterDAO {
                 return new ApiReponse("Objet non trouvé dans l'inventaire ni dans un coffre.", null);
             }
 
-            // 3. Ajouter au backpack
-            if (!backpack.ajouterObjet(objectToAdd)) {
+            // Ajouter au backpack
+            if (!backpack.AddObjects(objectToAdd)) {
                 return new ApiReponse("Erreur lors de l'ajout de l'objet au backpack.", null);
             }
 
@@ -387,7 +394,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                 return new ApiReponse("Objet non trouvé dans le backpack.", null);
             }
 
-            backpack.retirerObjet(objectToRemove);
+            backpack.removeObject(objectToRemove);
             if (inventory.getObjets().size() > 30) {
                 return new ApiReponse("Inventaire plein !", null);
             }
@@ -458,6 +465,53 @@ public class CharacterDAOImpl implements CharacterDAO {
     public void setInventoryService(InventoryService inventoryService) {
         this.inventoryService = inventoryService;
     }
+
+    /**
+     * Modifie la reliability d'un objet (weapon ou armor) dans le backpack du personnage du joueur
+     *
+     * @param username Nom d'utilisateur
+     * @param objectId ID de l'objet à modifier
+     * @param newReliability Nouvelle valeur de reliability
+     * @return Réponse de l'API
+     */
+    @Override
+    public ApiReponse updateReliabilityInBackPack(String username, String objectId, int newReliability) {
+        try {
+            BackPack backpack = getBackPackForCharacter(username);
+
+            boolean found = false;
+
+            for (ObjectBase obj : backpack.getObjets()) {
+                if (obj.getId().equals(objectId)) {
+                    // Vérifie que c'est bien une Weapon ou Armor
+                    if (obj instanceof Weapon weapon) {
+                        weapon.setReliability(newReliability);
+                        found = true;
+                        break;
+                    } else if (obj instanceof Armor armor) {
+                        armor.setReliability(newReliability);
+                        found = true;
+                        break;
+                    } else {
+                        return new ApiReponse("L'objet trouvé n'a pas de reliability (ce n'est ni une arme ni une armure).", null);
+                    }
+                }
+            }
+
+            if (!found) {
+                return new ApiReponse("Objet avec l'ID spécifié non trouvé dans le backpack.", null);
+            }
+
+            // Sauvegarder le backpack après modification
+            saveBackPackForCharacter(username, backpack);
+
+            return new ApiReponse("Reliability de l'objet modifiée avec succès.", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ApiReponse("Erreur lors de la modification de la reliability : " + e.getMessage(), null);
+        }
+    }
+
 }
 
 

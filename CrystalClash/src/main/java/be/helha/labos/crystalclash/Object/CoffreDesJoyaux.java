@@ -14,9 +14,9 @@ public class CoffreDesJoyaux extends ObjectBase {
 
     @Override
     public String use() {
-        if (!IsUsed()) return "The trunk has already been opened.";
+        if (!IsUsed()) return "The chest has already been opened.";
         Reducereliability();
-        return "You open the Jewel Chest and discover" + contenu.size() + " objets !";
+        return "You open the Coffre des Joyaux Chest and discover" + contenu.size() + " objets !";
     }
 
     public boolean AddObjects(ObjectBase object) {

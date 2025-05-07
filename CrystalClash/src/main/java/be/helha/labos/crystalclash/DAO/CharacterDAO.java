@@ -46,6 +46,9 @@ public interface CharacterDAO {
     ApiReponse addObjectToCoffre(String username, String name, String type);
 
     public void setInventoryService(InventoryService inventoryService);
+
+    ApiReponse updateReliabilityInBackPack(String username, String objectId, int newReliability);
+
 }
 
 

@@ -4,6 +4,7 @@ import be.helha.labos.crystalclash.Object.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -123,6 +124,7 @@ public class ObjectFactory {
 
         // Ajoute dynamiquement le type à l'objet (nom réel de la classe)
         obj.setType(obj.getClass().getSimpleName());
+        obj.setId(UUID.randomUUID().toString());
         return obj;
     }
 
@@ -216,6 +218,7 @@ public class ObjectFactory {
         }
 
         obj.setType(obj.getClass().getSimpleName());
+        obj.setId(UUID.randomUUID().toString());
         return obj;
     }
 
@@ -258,4 +261,6 @@ public class ObjectFactory {
 
         return map;
     }
+
+
 }
