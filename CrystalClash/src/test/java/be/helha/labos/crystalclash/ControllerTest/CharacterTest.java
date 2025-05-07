@@ -252,7 +252,7 @@ public class CharacterTest {
         // Ajouter un objet dans le backpack
         var objet = new be.helha.labos.crystalclash.Object.Weapon("Epee de test", 100,5,5,5);
         objet.setType("Weapon");
-        backpack.ajouterObjet(objet);
+        backpack.AddObjects(objet);
 
         characterService.saveBackPackForCharacter(username, backpack);
 
@@ -278,7 +278,7 @@ public class CharacterTest {
         String username = "CharacterTestUser";
 
         var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
-        mongo.getCollection("Characters").deleteMany(new org.bson.Document("username", username));
+        //mongo.getCollection("Characters").deleteMany(new org.bson.Document("username", username));
 
         // Simuler un utilisateur connecté (tout ce qu'il faut faire pour que le contrôleur fonctionne)
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, null);
@@ -293,15 +293,16 @@ public class CharacterTest {
         // Ajouter un objet dans le backpack
         var objet = new be.helha.labos.crystalclash.Object.Weapon("Epee de test", 100,5,5,5);
         objet.setType("Weapon");
-        backpack.ajouterObjet(objet);
+        backpack.AddObjects(objet);
 
         characterService.saveBackPackForCharacter(username, backpack);
+
         // Créer un coffre
         var coffre = new be.helha.labos.crystalclash.Object.CoffreDesJoyaux();
         coffre.setType("CoffreDesJoyaux");
 
         // Ajouter le coffre au backpack
-        backpack.ajouterObjet(coffre);
+        backpack.AddObjects(coffre);
         characterService.saveBackPackForCharacter(username, backpack);
 
         // Ajouter l'objet au coffre
@@ -346,11 +347,11 @@ public class CharacterTest {
         }
 
         // Ajouter le coffre plein au backpack
-        backpack.ajouterObjet(coffre);
+        backpack.AddObjects(coffre);
         // Ajouter un objet qu'on va tenter d'ajouter dans le coffre
         var objetEnTrop = new be.helha.labos.crystalclash.Object.Weapon("Objet de trop", 999, 1, 5, 5);
         objetEnTrop.setType("Weapon");
-        backpack.ajouterObjet(objetEnTrop);
+        backpack.AddObjects(objetEnTrop);
 
         characterService.saveBackPackForCharacter(username, backpack);
 
@@ -387,7 +388,7 @@ public class CharacterTest {
         for (int i = 1; i <= backpack.getCapaciteMax(); i++) {
             var obj = new be.helha.labos.crystalclash.Object.Weapon("Objet " + i, 10 * i, 1, 5, 5);
             obj.setType("Weapon");
-            backpack.ajouterObjet(obj);
+            backpack.AddObjects(obj);
         }
         characterService.saveBackPackForCharacter(username, backpack);
 
@@ -401,7 +402,7 @@ public class CharacterTest {
 
         inventoryDAO.saveInventoryForUser(username, inventory);
 
-        backpack.ajouterObjet(objetEnTrop);
+        backpack.AddObjects(objetEnTrop);
         characterService.saveBackPackForCharacter(username, backpack);
 
         // Vérification du contenu
