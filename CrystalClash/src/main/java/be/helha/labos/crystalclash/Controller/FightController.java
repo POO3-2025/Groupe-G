@@ -21,7 +21,10 @@ import java.util.*;
 @RestController
 @RequestMapping("/combat")
 public class FightController {
-
+    @PostConstruct
+    public void init() {
+        System.out.println("[DEBUG] FightController initialisé !");
+    }
     @Autowired
     private FightService fightService;
 
@@ -32,7 +35,7 @@ public class FightController {
     private CharacterService characterService;
 
 
-    @PostConstruct
+
 
 
     @PostMapping("/start")
