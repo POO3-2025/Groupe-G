@@ -1029,16 +1029,14 @@ public class LanternaApp {
                             perso.CompteurAttack(perso.getCompteurAttack() + 1);
                             updateToursRestants(perso, toursRestantsLabel);
 
-                            enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow, playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel);
+                            enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                    playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                    actionsPanel, showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
+
                         });
 
                         Button backButton = new Button("Retour", () -> {
-                            actionsPanel.removeAllComponents();
-                            actionsPanel.addComponent(showNormalAttacks[0]);
-                            actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                            actionsPanel.addComponent(showSpecialAttacks[0]);
-                            actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                            actionsPanel.addComponent(objectButton[0]);
+                            showMainActions(actionsPanel, showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
                         });
 
                         actionsPanel.addComponent(attackButton);
@@ -1062,7 +1060,10 @@ public class LanternaApp {
                                 perso.CompteurAttack(0);
                                 updateToursRestants(perso, toursRestantsLabel);
 
-                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow, playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel);
+                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                        playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                        actionsPanel, showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
+
                             } else {
                                 int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
                                 history.append("⏳ Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
@@ -1072,12 +1073,7 @@ public class LanternaApp {
                         });
 
                         Button backButton = new Button("Retour", () -> {
-                            actionsPanel.removeAllComponents();
-                            actionsPanel.addComponent(showNormalAttacks[0]);
-                            actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                            actionsPanel.addComponent(showSpecialAttacks[0]);
-                            actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                            actionsPanel.addComponent(objectButton[0]);
+                            showMainActions(actionsPanel, showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
                         });
 
                         actionsPanel.addComponent(attackButton);
@@ -1086,98 +1082,21 @@ public class LanternaApp {
 
 // Objet
                     objectButton[0] = new Button("Objet", () -> {
-                        String username = Session.getUsername();
+                        actionsPanel.removeAllComponents();
 
-                        try {
-                            String jsonbackpack = HttpService.getBackpack(username, Session.getToken());
+                        Panel backpackPanel = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
+                                playerHealth, enemyHealth, adversaireNom, perso,
+                                historyLabel, history, tourCounter, tourLabel, combatWindow,
+                                showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
 
-                            JsonObject response = JsonParser.parseString(jsonbackpack).getAsJsonObject();
-                            JsonArray dataArray = response.getAsJsonArray("data");
+                        actionsPanel.addComponent(backpackPanel);
 
-                            Gson gson = new GsonBuilder()
-                                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                                    .create();
+                        Button backButton = new Button("Retour", () -> {
+                            showMainActions(actionsPanel, showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
+                        });
 
-                            ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
-
-                            actionsPanel.removeAllComponents();
-
-                            if (objets.length == 0) {
-                                actionsPanel.addComponent(new Label("Votre BackPack est vide."));
-                            } else {
-                                for (ObjectBase objlist : objets) {
-                                    String objectId = objlist.getId(); // On récupère l'ID unique
-
-                                    Button objButton = new Button(objlist.getName() + " (" + objlist.getType() + ")", () -> {
-                                        switch (objlist.getType()) {
-                                            case "Weapon":
-                                                Weapon weapon = (Weapon) objlist;
-                                                String weaponUseMessage = weapon.use();
-
-                                                if (weaponUseMessage.contains("broken")) {
-                                                    history.append("Vous avez tenté d'utiliser " + weapon.getName() + " mais elle est cassée.\n");
-                                                } else {
-                                                    int weaponDamage = weapon.getDamage();
-                                                    enemyHP.addAndGet(-weaponDamage);
-                                                    history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
-
-                                                    // 🔥 ➡️ MAJ de la fiabilité (reliability) sur MongoDB avec l'ID unique
-                                                    try {
-                                                        String responseupdateobject = HttpService.updateObjectReliability(
-                                                                username,
-                                                                objectId,  // on utilise l'id ici
-                                                                weapon.getReliability(),
-                                                                Session.getToken()
-                                                        );
-
-                                                        System.out.println("Mise à jour de la fiabilité de l'arme : " + responseupdateobject);
-
-                                                    } catch (Exception ex) {
-                                                        ex.printStackTrace();
-                                                        history.append("⚠️ Erreur lors de la synchronisation de la fiabilité de l'arme avec la base de données.\n");
-                                                    }
-
-                                                    // L’ennemi joue ensuite
-                                                    enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow, playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel);
-                                                }
-                                                break;
-
-                                            case "HealingPotion":
-                                                HealingPotion potion = (HealingPotion) objlist;
-                                                int healAmount = potion.getHeal();
-                                                playerHP.addAndGet(healAmount);
-                                                history.append("Vous avez utilisé " + potion.getName() + " et récupéré " + healAmount + " PV.\n");
-                                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow, playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel);
-                                                break;
-
-                                            default:
-                                                history.append("Objet inconnu : " + objlist.getName() + ".\n");
-                                                break;
-                                        }
-                                        historyLabel.setText(history.toString());
-                                    });
-
-                                    actionsPanel.addComponent(objButton);
-                                    actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                                }
-                            }
-
-                            Button backButton = new Button("Retour", () -> {
-                                actionsPanel.removeAllComponents();
-                                actionsPanel.addComponent(showNormalAttacks[0]);
-                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                                actionsPanel.addComponent(showSpecialAttacks[0]);
-                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                                actionsPanel.addComponent(objectButton[0]);
-                            });
-
-                            actionsPanel.addComponent(backButton);
-
-                        } catch (Exception e) {
-                            MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de récupérer le BackPack : " + e.getMessage());
-                        }
+                        actionsPanel.addComponent(backButton);
                     });
-
 
 
 
@@ -1227,7 +1146,10 @@ public class LanternaApp {
                                   Label playerHealth, Label enemyHealth, BasicWindow combatWindow,
                                   AtomicInteger playerHP, AtomicInteger enemyHP,
                                   Label historyLabel, StringBuilder history,
-                                  AtomicInteger tourCounter, Label tourLabel) {
+                                  AtomicInteger tourCounter, Label tourLabel,
+                                  Panel actionsPanel,
+                                  Button showNormalAttacks, Button showSpecialAttacks, Button objectButton) {
+
 
         int enemyDamage = 5; // Dégâts infligés par l'ennemi
         playerHP.addAndGet(-enemyDamage); // Réduction des points de vie du joueur
@@ -1274,12 +1196,130 @@ public class LanternaApp {
                 history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête du tour actuel
             } else {
                 history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête des tours intermédiaires
+
             }
 
             historyLabel.setText(history.toString()); // Mise à jour de l'historique affiché
+
+            showMainActions(actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+
+
         }
+
+
     }
 
+
+    private static Panel createBackpackPanel(WindowBasedTextGUI gui, Panel actionsPanel, AtomicInteger playerHP, AtomicInteger enemyHP,
+                                             Label playerHealth, Label enemyHealth, String adversaireNom, Personnage perso,
+                                             Label historyLabel, StringBuilder history, AtomicInteger tourCounter, Label tourLabel,
+                                             BasicWindow combatWindow,
+                                             Button showNormalAttacks, Button showSpecialAttacks, Button objectButton) {
+        Panel backpackPanel = new Panel(new GridLayout(1));
+        String username = Session.getUsername();
+
+        try {
+            String jsonbackpack = HttpService.getBackpack(username, Session.getToken());
+
+            JsonObject response = JsonParser.parseString(jsonbackpack).getAsJsonObject();
+            JsonArray dataArray = response.getAsJsonArray("data");
+
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
+
+            ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
+
+            if (objets.length == 0) {
+                backpackPanel.addComponent(new Label("Votre BackPack est vide."));
+            } else {
+                for (ObjectBase objlist : objets) {
+                    String objectId = objlist.getId();
+
+                    Button objButton = new Button(objlist.getName() + " (" + objlist.getType() + ")", () -> {
+                        switch (objlist.getType()) {
+                            case "Weapon":
+                                Weapon weapon = (Weapon) objlist;
+                                String weaponUseMessage = weapon.use();
+
+                                if (weaponUseMessage.contains("broken")) {
+                                    history.append("Vous avez tenté d'utiliser " + weapon.getName() + " mais elle est cassée.\n");
+                                } else {
+                                    int weaponDamage = weapon.getDamage();
+                                    enemyHP.addAndGet(-weaponDamage);
+                                    history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
+
+                                    // 🔥 MAJ MongoDB (fiabilité)
+                                    try {
+                                        String responseupdateobject = HttpService.updateObjectReliability(
+                                                username,
+                                                objectId,
+                                                weapon.getReliability(),
+                                                Session.getToken()
+                                        );
+                                        System.out.println("MAJ fiabilité arme : " + responseupdateobject);
+
+                                    } catch (Exception ex) {
+                                        ex.printStackTrace();
+                                        history.append("⚠️ Erreur de synchro fiabilité.\n");
+                                    }
+
+                                    backpackPanel.removeAllComponents();
+                                    // L'ennemi joue ensuite
+                                    enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                            playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                            actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+
+
+
+                                }
+                                break;
+
+                            case "HealingPotion":
+                                HealingPotion potion = (HealingPotion) objlist;
+                                int healAmount = potion.getHeal();
+                                playerHP.addAndGet(healAmount);
+                                history.append("Vous avez utilisé " + potion.getName() + " et récupéré " + healAmount + " PV.\n");
+                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                        playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+
+                                actionsPanel.removeAllComponents();
+                                actionsPanel.addComponent(showNormalAttacks);
+                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+                                actionsPanel.addComponent(showSpecialAttacks);
+                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+                                actionsPanel.addComponent(objectButton);
+                                break;
+
+                            default:
+                                history.append("Objet inconnu : " + objlist.getName() + ".\n");
+                                break;
+                        }
+                        historyLabel.setText(history.toString());
+                        showMainActions(actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+                    });
+
+                    backpackPanel.addComponent(objButton);
+                    backpackPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+                }
+            }
+
+        } catch (Exception e) {
+            MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de récupérer le BackPack : " + e.getMessage());
+        }
+
+        return backpackPanel;
+    }
+
+    private static void showMainActions(Panel actionsPanel, Button normalAttack, Button specialAttack, Button objectButton) {
+        actionsPanel.removeAllComponents();
+        actionsPanel.addComponent(normalAttack);
+        actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+        actionsPanel.addComponent(specialAttack);
+        actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
+        actionsPanel.addComponent(objectButton);
+    }
 
 
 }
