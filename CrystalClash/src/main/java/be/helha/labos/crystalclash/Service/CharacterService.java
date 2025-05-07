@@ -77,4 +77,7 @@ public class CharacterService {
         return characterDAO.addObjectToCoffre(username, name, type);
     }
 
+
+
+
 }

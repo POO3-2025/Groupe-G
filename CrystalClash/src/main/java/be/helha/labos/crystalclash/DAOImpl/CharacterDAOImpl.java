@@ -454,6 +454,10 @@ public class CharacterDAOImpl implements CharacterDAO {
             return new ApiReponse("Erreur lors de l'ajout au coffre : " + e.getMessage(), null);
         }
     }
+
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
 }
 
 
