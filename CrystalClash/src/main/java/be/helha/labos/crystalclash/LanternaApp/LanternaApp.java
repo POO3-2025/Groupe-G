@@ -1280,17 +1280,33 @@ public class LanternaApp {
                                 int healAmount = potion.getHeal();
                                 playerHP.addAndGet(healAmount);
                                 history.append("Vous avez utilisé " + potion.getName() + " et récupéré " + healAmount + " PV.\n");
+
+                                // 🔥 Supprimer la potion de la base de données (Backpack MongoDB)
+                                try {
+                                    String responseDelete = HttpService.deleteObjectFromBackpack(username, objectId, Session.getToken());
+                                    System.out.println("Suppression potion : " + responseDelete);
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                    history.append("⚠️ Erreur lors de la suppression de la potion.\n");
+                                }
+
+                                // Vider et recharger l’affichage du backpack après suppression
+                                backpackPanel.removeAllComponents();
+                                Panel refreshedBackpack = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
+                                        playerHealth, enemyHealth, adversaireNom, perso,
+                                        historyLabel, history, tourCounter, tourLabel,
+                                        combatWindow,
+                                        showNormalAttacks, showSpecialAttacks, objectButton);
+
+                                actionsPanel.removeAllComponents();
+                                actionsPanel.addComponent(refreshedBackpack);
+
+                                // L'ennemi joue ensuite
                                 enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
                                         playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
                                         actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
-
-                                actionsPanel.removeAllComponents();
-                                actionsPanel.addComponent(showNormalAttacks);
-                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                                actionsPanel.addComponent(showSpecialAttacks);
-                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                                actionsPanel.addComponent(objectButton);
                                 break;
+
 
                             default:
                                 history.append("Objet inconnu : " + objlist.getName() + ".\n");

@@ -507,6 +507,43 @@ public class CharacterDAOImpl implements CharacterDAO {
             return new ApiReponse("Erreur lors de la modification de la reliability : " + e.getMessage(), null);
         }
     }
+    @Override
+    public ApiReponse deleteObjectFromBackPack(String username, String objectId) {
+        try {
+            // Récupérer le backpack actuel du personnage sélectionné
+            BackPack backpack = getBackPackForCharacter(username);
+
+            if (backpack == null || backpack.getObjets().isEmpty()) {
+                return new ApiReponse("Backpack vide ou introuvable.", null);
+            }
+
+            // Chercher l'objet à supprimer en utilisant l'objectId
+            ObjectBase objectToRemove = backpack.getObjets().stream()
+                    .filter(obj -> obj.getId().equals(objectId))  // On compare par l'ID de l'objet
+                    .findFirst()
+                    .orElse(null);
+
+            if (objectToRemove == null) {
+                return new ApiReponse("Objet non trouvé dans le backpack.", null);
+            }
+
+            // Supprimer l'objet
+            backpack.getObjets().remove(objectToRemove);
+
+            // Sauvegarder le nouveau backpack sans l'objet
+            saveBackPackForCharacter(username, backpack);
+
+            return new ApiReponse("Objet supprimé du backpack.", objectToRemove);
+
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la suppression de l'objet du backpack : " + e.getMessage());
+            e.printStackTrace();
+            return new ApiReponse("Erreur interne lors de la suppression de l'objet.", null);
+        }
+    }
+
+
+
 
 }
 

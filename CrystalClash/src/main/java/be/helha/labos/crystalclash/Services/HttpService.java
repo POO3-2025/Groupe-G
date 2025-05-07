@@ -27,6 +27,7 @@ import java.util.*;
  * */
 public class HttpService {
     //   private static final String BASE_URL = "https://bf8e-94-109-202-55.ngrok-free.app";
+
     //private static final String BASE_URL = "http://192.168.68.56:8080";
     private static final String BASE_URL = "http://localhost:8080";
 
@@ -443,6 +444,33 @@ public class HttpService {
         return response.body();
     }
 
+    /**
+     * Supprime définitivement un objet du backpack d'un utilisateur
+     * @param username nom de l'utilisateur
+     * @param objectId identifiant unique de l'objet à supprimer
+     * @param token JWT d'authentification
+     * @return réponse brute du serveur
+     * @throws Exception en cas d'erreur réseau ou serveur
+     */
+    public static String deleteObjectFromBackpack(String username, String objectId, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+                "id", objectId
+        ));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/delete/" + objectId)) //
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+
+
 
 
 
@@ -517,6 +545,9 @@ public class HttpService {
         }
         return response.body();
     }
+
+
+
 
 }
 

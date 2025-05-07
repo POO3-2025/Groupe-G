@@ -80,4 +80,9 @@ public class CharacterService {
     public ApiReponse updateReliabilityInBackPack(String username, String objectId, Integer newReliability) {
         return characterDAO.updateReliabilityInBackPack(username,objectId,newReliability);
     }
+
+    public ApiReponse deleteObjectFromBackPack(String username, String objectId) {
+        return characterDAO.deleteObjectFromBackPack(username, objectId);
+
+    }
 }

@@ -182,4 +182,21 @@ public class CharactersController {
     }
 
 
+    @PostMapping("/{username}/backpack/delete/{objectId}")
+    public ResponseEntity<ApiReponse> deleteObjectFromBackpack(
+            @PathVariable String username,
+            @PathVariable String objectId,
+            @RequestHeader("Authorization") String token) {
+
+        try {
+            // Optionnel : vérifier que le token est valide (si tu veux le gérer côté controller)
+            ApiReponse response = characterService.deleteObjectFromBackPack(username, objectId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiReponse("Erreur lors de la suppression de l'objet : " + e.getMessage(), null));
+        }
+    }
+
+
 }
