@@ -401,6 +401,34 @@ public class HttpService {
         return gson.fromJson(jsonInventaire, Inventory.class);
     }
 
+    public static String updateObjectReliability(String username, String objectId, int newReliability, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+                "reliability", newReliability
+        ));
+
+        // Construire l'URL correcte
+        String url = BASE_URL + "/characters/" + username + "/backpack/update/" + objectId;
+        System.out.println("URL: " + url); // Afficher l'URL pour déboguer
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .method("PUT", HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+
+
+
+
+
+
+
 
     /**********************Logout****************/
     public static void logout(String username, String token) throws Exception {

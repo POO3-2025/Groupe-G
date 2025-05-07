@@ -229,7 +229,6 @@ public class InventoryDAOImpl implements InventoryDAO {
                 return new ApiReponse("Aucun Coffre des Joyaux trouvé dans votre inventaire.", null);
             }
 
-            // Optionnel : simuler une fiabilité qui diminue à chaque ajout
             if (coffre.getReliability() <= 0) {
                 return new ApiReponse("Le coffre est brisé et ne peut plus être utilisé.", null);
             }
