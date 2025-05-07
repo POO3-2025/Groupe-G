@@ -62,6 +62,16 @@ public class UserService {
         }
     }
 
+    public void IncrementWinner(String username) throws Exception {
+        userDAO.IncrementWinner(username);
+
+    }
+
+    public void incrementDefeat(String username) throws Exception {
+        userDAO.IncrementDefeat(username);
+
+    }
+
 
 
 }

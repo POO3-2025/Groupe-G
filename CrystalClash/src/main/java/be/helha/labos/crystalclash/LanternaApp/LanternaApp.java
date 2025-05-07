@@ -1314,10 +1314,27 @@ public class LanternaApp {
                     StateCombat updated = gson.fromJson(json, StateCombat.class);
                     if (updated == null) {
                         gui.getGUIThread().invokeLater(() -> {
-                            String message = forfaitEffectue[0]
-                                    ? "Vous avez quitté le combat, votre adversaire a gagné !"
-                                    : "Combat terminé, mais le gagnant est inconnu.";
-                            MessageDialog.showMessageDialog(gui, "Fin du combat", message);
+                            String winner = null;
+                            try{
+                                winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                            } catch (Exception e) {
+                                System.out.println("Erreur récup du gagnant : " +e.getMessage());
+                            }
+                            String message;
+                            if(forfaitEffectue[0]){
+                                message = "Vous avez quitté le comabt, votre adversaire a gagné";
+                            } else if(winner != null) {
+                                if (winner.equals(Session.getUsername())) {
+                                    message = "Comabt terminé, vous avez gagné";
+
+                                }else {
+                                    message = "Combat terminé, " + winner + "a gagné";
+                                }
+                            }else{
+                                message = "Comant terminé, mais le gagnat est inconnu";
+                            }
+
+                            MessageDialog.showMessageDialog(gui,"Fin du comabt", message);
                             afficherMenuPrincipal(gui);
                         });
                         break;
@@ -1326,16 +1343,24 @@ public class LanternaApp {
                     if (updated.isFinished()) {
                         gui.getGUIThread().invokeLater(() -> {
                             combatWindow.close();
-                            String winner = updated.getWinner();
-                            String message;
-                            if (winner == null) {
-                                message = "Combat terminé, mais le gagnant est inconnu.";
-                            } else if ("Égalité".equals(winner)) {
-                                message = "Combat terminé sur une égalité !";
-                            } else {
-                                message = winner + " a gagné !";
+                            String winner =null;
+                            try{
+                                winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                            } catch (Exception e) {
+                                System.out.println("Erreur récup du gagnant : " +e.getMessage());
                             }
-                            MessageDialog.showMessageDialog(gui, "Fin du combat", message);
+                            String message;
+                            if(winner == null){
+                                message = "Combat terminé, mais le gagnant est inconnu.";
+                            } else if("Egalité".equals(winner)) {
+                                    message = "Combat terminé sur une égalité !";
+                                } else if (winner.equals(Session.getUsername())) {
+                                    message = "Combat terminé, vous avez gagné !";
+                                } else {
+                                    message = "Combat terminé, " + winner  +  " a gagné.";
+                                }
+
+                            MessageDialog.showMessageDialog(gui,"Fin du comabt", message);
                             afficherMenuPrincipal(gui);
                         });
                         break;

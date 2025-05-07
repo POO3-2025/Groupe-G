@@ -87,7 +87,7 @@ public class FightController {
     }
 
     @PostMapping("/use-object")
-    public ResponseEntity<?> useObject(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> useObject(@RequestBody Map<String, String> body) throws Exception {
         String player = body.get("username");
         String objectId = body.get("objectId");
 
@@ -142,7 +142,7 @@ public class FightController {
 
     //Endpoint si un joeur quitte le combat.
     @PostMapping("/forfait")
-    public ResponseEntity<?> forfait(@RequestBody Map<String, String> body, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> forfait(@RequestBody Map<String, String> body, @RequestHeader("Authorization") String token) throws Exception {
         String username = body.get("username");
         fightService.forfait(username);
         return ResponseEntity.ok(Map.of("message", "Forfait accepté !"));

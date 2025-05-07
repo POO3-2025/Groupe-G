@@ -25,6 +25,11 @@ public class BackPack {
         return objets;
     }
 
+    //Utilsié dans figthService pour changer l'etat de l'endurance de l'objet
+    public void setObjets(List<ObjectBase> objets) {
+        this.objets = objets;
+    }
+
     public int getCapaciteMax() {
         return CAPACITE_MAX;
     }

@@ -22,4 +22,10 @@ public interface UserDAO {
 
     void updateLevel(String username, int newLevel) throws Exception;
 
-}
+
+    //deux nouvelles méthodes
+    void IncrementWinner(String username) throws Exception;
+    void IncrementDefeat(String username) throws Exception;
+     void updateWin_Lose(String username, String New) throws Exception;
+
+    }

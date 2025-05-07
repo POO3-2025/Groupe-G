@@ -18,8 +18,8 @@ import java.util.*;
 public class FightService {
 
     private final FightDAO fightDAO;
-
-
+    @Autowired
+    private CharacterService characterService;
     @Autowired
     private UserService userService;
     //Pailre clés valeurs (String id ou nom et StateCombat l'etat du combat)
@@ -98,6 +98,7 @@ public class FightService {
                 return;
             }
             Damage = attack.getAttackSpecial();
+            attack.CompteurAttack(0); //remet compteur a zero
             state.addLog(Player + " utilise " + attack.getNameAttaqueSpecial() + " (" + Damage + " damage)");
         }
 
@@ -117,7 +118,7 @@ public class FightService {
 
     }
 
-    public void useObject(String Player, String objectId){
+    public void useObject(String Player, String objectId) throws Exception {
         System.out.println("[DEBUG] useObject() appelé par " + Player + " avec objet " + objectId);
 
         if (Player == null || objectId == null) return; // sécurité
@@ -163,16 +164,30 @@ public class FightService {
         }
         if (state.isFinished()) {
             String winner = state.getWinner();
+            String loser = state.getOpponent(winner);
             userService.rewardWinner(winner, 50, 1); // même récompense
+            userService.IncrementWinner(winner);
+            userService.incrementDefeat(loser);
             state.addLog(winner + " remporte le combat ! +1 niveau, +50 cristaux");
             combats.remove(winner);
             combats.remove(state.getOpponent(winner));
             return;
         }
+
+        //Test de mettre a jour le backPack pour l endurance des armes
+        //Va sauvegarder le back modfié avec les nouvelles valeurs d'endurerances
+        try{
+            BackPack backPack = new BackPack();
+            backPack.setObjets(backpack);
+            characterService.saveBackPackForCharacter(Player, backPack);
+        } catch (Exception e) {
+            System.out.println("Erreur lors de la mise à jour du backpack : " + e.getMessage());
+        }
+
         state.NextTurn();
     }
 
-    public void forfait(String username) {
+    public void forfait(String username) throws Exception {
         StateCombat state = combats.get(username);
         if (state == null) return;
 
@@ -186,7 +201,10 @@ public class FightService {
         if (state.isFinished()) {
             String winner = state.getWinner(); // ce sera l’adversaire puisque username a 0 PV
             if (winner != null) {
+                String loser = username;
                 userService.rewardWinner(winner, 50, 1);
+                userService.IncrementWinner(winner); // +1 victoire pour le gagnant
+                userService.incrementDefeat(loser);
                 state.addLog(username + " a abandonné le combat.");
                 state.addLog(winner + " remporte le combat par forfait ! +1 niveau, +50 cristaux");
                 derniersGagnants.put(winner, winner);

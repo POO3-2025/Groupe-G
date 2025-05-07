@@ -32,8 +32,8 @@ public class UserDAOImpl implements UserDAO {
                 user.setLevel(rs.getInt("level"));
                 user.setCristaux(rs.getInt("cristaux"));
                 user.setConnected(rs.getBoolean("is_connected"));
-                user.setConnected(rs.getBoolean("gagner"));
-                user.setConnected(rs.getBoolean("perdu"));
+                user.setGagner(rs.getInt("gagner"));
+                user.setPerdu(rs.getInt("perdu"));
 
                 return Optional.of(user);
             }
@@ -112,6 +112,29 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+    @Override
 
+    public void IncrementWinner(String username) throws Exception {
+        updateWin_Lose(username, "gagner");
+    }
+
+    public void IncrementDefeat(String username) throws Exception {
+        updateWin_Lose(username, "perdu");
+    }
+
+    @Override
+    public void updateWin_Lose(String username, String New) throws Exception {
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
+            PreparedStatement stmt = conn.prepareStatement("UPDATE users SET " + New  +" = " + New + " + 1 where username = ?");
+            stmt.setString(1, username);
+            int updatedRows = stmt.executeUpdate();
+            if (updatedRows == 0) {
+                throw new IllegalStateException("Aucun utilisateur mis à jour : " + username);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
 
 }
