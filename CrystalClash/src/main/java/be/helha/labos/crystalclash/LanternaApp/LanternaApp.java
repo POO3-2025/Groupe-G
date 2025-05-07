@@ -811,16 +811,17 @@ public class LanternaApp {
         Panel panel = new Panel(new GridLayout(1));
         panel.addComponent(new Label("Coffre de " + Session.getUsername()));
 
+        CoffreDesJoyaux coffre = null;
+        boolean depuisBackpack = false;
+
         try {
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                     .create();
 
+            // 1. Vérifie l'inventaire
             String jsonInventaire = HttpService.getInventory(Session.getUsername(), Session.getToken());
             Inventory inventory = gson.fromJson(jsonInventaire, Inventory.class);
-
-            CoffreDesJoyaux coffre = null;
-            boolean depuisBackpack = false;
 
             for (ObjectBase obj : inventory.getObjets()) {
                 if (obj instanceof CoffreDesJoyaux) {
@@ -829,25 +830,33 @@ public class LanternaApp {
                 }
             }
 
+            // 2. Si pas trouvé dans l'inventaire, vérifie dans le backpack
             if (coffre == null) {
                 String jsonBackpack = HttpService.getBackpack(Session.getUsername(), Session.getToken());
-                ObjectBase[] objetsBackpack = gson.fromJson(jsonBackpack, ObjectBase[].class);
-                for (ObjectBase obj : objetsBackpack) {
-                    if (obj instanceof CoffreDesJoyaux) {
-                        coffre = (CoffreDesJoyaux) obj;
-                        depuisBackpack = true;
-                        break;
+                JsonElement root = JsonParser.parseString(jsonBackpack);
+
+                if (root.isJsonArray()) {
+                    ObjectBase[] objetsBackpack = gson.fromJson(root, ObjectBase[].class);
+                    for (ObjectBase obj : objetsBackpack) {
+                        if (obj instanceof CoffreDesJoyaux) {
+                            coffre = (CoffreDesJoyaux) obj;
+                            depuisBackpack = true;
+                            break;
+                        }
                     }
+                } else {
+                    panel.addComponent(new Label("Aucun coffre trouvé dans le sac à dos ou dans l'inventaire"));
                 }
             }
 
+            // 3. Affichage du contenu ou message vide
             if (coffre != null) {
                 List<ObjectBase> contenu = coffre.getContenu();
                 if (contenu == null || contenu.isEmpty()) {
                     panel.addComponent(new Label("Le coffre est vide."));
                 } else {
                     panel.addComponent(new Label("Contenu :"));
-                    panel.addComponent(new Label("Nombre de place : " + coffre.getContenu().size() + " / " + coffre.getMaxCapacity()));
+                    panel.addComponent(new Label("Nombre de place : " + contenu.size() + " / " + coffre.getMaxCapacity()));
                     for (ObjectBase obj : contenu) {
                         String label = obj.getName() + " (" + obj.getType() + ")";
                         boolean finalDepuisBackpack = depuisBackpack;
@@ -859,12 +868,12 @@ public class LanternaApp {
                         }));
                     }
                 }
-            } else {
+            } else if (!panel.getChildren().stream().anyMatch(c -> c instanceof Label && ((Label) c).getText().contains("coffre"))) {
                 panel.addComponent(new Label("Vous ne possédez pas encore de Coffre des Joyaux."));
             }
 
         } catch (Exception e) {
-            panel.addComponent(new Label("Erreur lors du chargement du coffre : " + e.getMessage()));
+            panel.addComponent(new Label("Erreur inattendue : " + e.getClass().getSimpleName()));
         }
 
         panel.addComponent(new Button("Retour", coffreWindow::close));

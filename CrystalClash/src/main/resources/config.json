@@ -5,8 +5,8 @@
         "DBType": "mysql",
         "HostName": "127.0.0.1",
         "UserName": "root",
-        "Port": "3306",
-        "Password": "",
+        "Port": "8889",
+        "Password": "root",
         "DBName": "mysqlproduction"
       }
     },
