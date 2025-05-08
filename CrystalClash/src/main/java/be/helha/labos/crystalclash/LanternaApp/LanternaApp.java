@@ -250,6 +250,10 @@ public class LanternaApp {
             afficherBackPack(gui, () -> {
             }); // on relance une fois pour rafraîchir le contenu
         })));
+        mainPanel.addComponent(new Button("Voir Equipement", () -> afficherEquipement(gui, () -> {
+            afficherEquipement(gui, () -> {
+            });
+        })));
         mainPanel.addComponent(new Button("Voir personnage", () -> afficherPersonnage(gui)));
         mainPanel.addComponent(new Button("Voir mon inventaire", () -> {
             displayInventory(gui);
@@ -548,6 +552,22 @@ public class LanternaApp {
                 MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le BackPack : " + e.getMessage());
             }
         }));
+
+        // Vérification si l'objet est une armure avant d'ajouter le bouton "S'équiper"
+        if (obj.getType().equals("Armor")) {
+            panel.addComponent(new Button("S'équiper", () -> {
+                try {
+                    String result = HttpService.putInEquipment(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                    JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
+                    String message = resultJson.get("message").getAsString();
+                    MessageDialog.showMessageDialog(gui, "Equipement", message);
+                    window.close();
+                    refreshInventory.run();
+                } catch (Exception e) {
+                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de s'équiper de l'objet : " + e.getMessage());
+                }
+            }));
+        }
         if (hasCoffre) {
             panel.addComponent(new Button("Mettre dans le coffre", () -> {
                 try {
@@ -762,6 +782,80 @@ public class LanternaApp {
         window.setComponent(panel);
         gui.addWindowAndWait(window);
     }
+
+    private static void afficherEquipement(WindowBasedTextGUI gui, Runnable refreshEquipement) {
+        BasicWindow window = new BasicWindow("Mon Equipement");
+        window.setHints(Arrays.asList(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        String username = Session.getUsername();
+
+        UserInfo info = Session.getUserInfo();
+        if (info != null) {
+            panel.addComponent(new Label("Niveau : " + info.getLevel()));
+            panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
+            panel.addComponent(new Label("Personnage choisi : " + info.getSelectedCharacter()));
+        } else {
+            panel.addComponent(new Label("Aucune information disponible."));
+        }
+
+        try {
+            String json = HttpService.getEquipment(username, Session.getToken());
+
+            // Parse le JSON pour extraire "data"
+            JsonObject response = JsonParser.parseString(json).getAsJsonObject();
+            JsonArray dataArray = response.getAsJsonArray("data");
+
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
+
+            ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
+
+            if (objets.length == 0) {
+                panel.addComponent(new Label("Votre équipement est vide."));
+            } else {
+                panel.addComponent(new Label("Contenu de l'équipement :"));
+                for (ObjectBase obj : objets) {
+                    String label = obj.getName() + " (" + obj.getType() + ")";
+                    panel.addComponent(new Button(label, () -> {
+                        BasicWindow detailsWindow = new BasicWindow("Détails de l'objet");
+                        detailsWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+                        Panel detailsPanel = new Panel(new GridLayout(1));
+                        detailsPanel.addComponent(new Label(obj.getDetails()));
+                        detailsPanel.addComponent(new EmptySpace());
+
+                        detailsPanel.addComponent(new Button("Retirer de l'équipement", () -> {
+                            try {
+                                String reponse = HttpService.removeFromEquipment(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
+                                String message = result.get("message").getAsString();
+                                MessageDialog.showMessageDialog(gui, "Retrait", message);
+                                detailsWindow.close();
+                                window.close();
+                                refreshEquipement.run();
+                            } catch (Exception e) {
+                                MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer de l'équipement : " + e.getMessage());
+                            }
+                        }));
+
+                        detailsPanel.addComponent(new Button("Retour", detailsWindow::close));
+                        detailsWindow.setComponent(detailsPanel);
+                        gui.addWindowAndWait(detailsWindow);
+                    }));
+                }
+            }
+
+        } catch (Exception e) {
+            panel.addComponent(new Label("Erreur : " + e.getMessage()));
+        }
+
+        panel.addComponent(new Button("Retour", window::close));
+        window.setComponent(panel);
+        gui.addWindowAndWait(window);
+    }
+
 
     private static void PLayRoulette(WindowBasedTextGUI gui) {
         try {

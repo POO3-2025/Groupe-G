@@ -470,12 +470,81 @@ public class HttpService {
     }
 
 
+    /**
+     * Récupère l'armure du personnage d'un utilisateur
+     *
+     * @param username nom de l'utilisateur
+     * @param token    JWT d'authentification
+     * @return JSON brut contenant l'equipement
+     * @throws Exception en cas d'erreur réseau
+     */
+    public static String getEquipment(String username, String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/equipment"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur lors de la récupération de l'equipement : " + response.body());
+        }
+
+        return response.body(); // Contient un tableau JSON : [{"name":"...","price":...}, ...]
+    }
 
 
+    /**
+     * Met l'armure de l'inventaire ds l'equipement en envoyant requete
+     *  @param username
+     * @param name
+     * @param token
+     * @param type
+     **/
+    public static String putInEquipment(String username, String name, String type, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+                "name", name,
+                "type", type
+        ));
 
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/equipment/add"))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
 
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
 
+    /**
+     * Retire de l'equipement pour mettre dans inventaire, envoie requete
+     * @param token
+     * @param name
+     * @param username
+     * @param type
+     **/
+    public static String removeFromEquipment(String username, String name, String type, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+                "name", name,
+                "type", type
+        ));
 
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/equipment/remove")) // on utilise le bon endpoint
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json)) // POST car tu fais une action qui modifie
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
 
 
 

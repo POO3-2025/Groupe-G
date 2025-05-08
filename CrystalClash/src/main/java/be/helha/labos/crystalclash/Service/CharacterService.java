@@ -3,6 +3,7 @@ package be.helha.labos.crystalclash.Service;
 import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.DAO.CharacterDAO;
 import be.helha.labos.crystalclash.Object.BackPack;
+import be.helha.labos.crystalclash.Object.Equipment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -83,6 +84,25 @@ public class CharacterService {
 
     public ApiReponse deleteObjectFromBackPack(String username, String objectId) {
         return characterDAO.deleteObjectFromBackPack(username, objectId);
+    }
 
+    public void createEquipmentForCharacter(String username, String characterType){
+        characterDAO.createEquipmentForCharacter(username,characterType);
+    }
+
+    public Equipment getEquipmentForCharacter(String username){
+        return characterDAO.getEquipmentForCharacter(username);
+    }
+
+    public void saveEquipmentForCharacter(String username, Equipment equipment){
+        characterDAO.saveEquipmentForCharacter(username,equipment);
+    }
+
+    public ApiReponse addArmorToEquipment(String username, String name, String type){
+        return characterDAO.addArmorToEquipment(username, name, type);
+    }
+
+    public ApiReponse removeArmorFromEquipment(String username, String name){
+        return characterDAO.removeArmorFromEquipment(username,name);
     }
 }

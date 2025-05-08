@@ -66,22 +66,31 @@ public class CharacterDAOImpl implements CharacterDAO {
     public void saveCharacterForUser(String username, String characterType) {
         MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
         MongoCollection<Document> collection = mongoDB.getCollection("Characters");
+
         Document doc = new Document("username", username).append("type", characterType);
         Document existing = collection.find(doc).first();
 
         if (existing == null) {
             // Ajout du personnage + backpack vide
             Document backpack = new Document("objets", List.of());
-            //Si premier perso du user on le met a 1
+            Document equipment = new Document("armor", List.of());
+
+            // Si c'est le premier personnage de l'utilisateur, on le met à "selected" = true
             long count = collection.countDocuments(new Document("username", username));
-            boolean IsFirst = (count == 0);
+            boolean isFirst = (count == 0);
+
+            // Création du document du personnage
             Document docu = new Document("username", username)
                     .append("type", characterType)
                     .append("backpack", backpack)
-                    .append("selected",IsFirst);
+                    .append("equipment", equipment) // Ajout de l'équipement
+                    .append("selected", isFirst);
+
+            // Insertion du document dans la collection
             collection.insertOne(docu);
         }
     }
+
 
     /**
      * Crée un backPack pour un nouveau perso choisi
@@ -108,6 +117,27 @@ public class CharacterDAOImpl implements CharacterDAO {
         Document update = new Document("$set", new Document("backpack", backpack));
         collection.updateOne(filtre, update);
     }
+
+    @Override
+    public void createEquipmentForCharacter(String username, String characterType) {
+        MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
+        MongoCollection<Document> collection = mongoDB.getCollection("Characters");
+
+        // Filtre pour retrouver le document du personnage
+        Document filtre = new Document("username", username).append("type", characterType);
+        Document doc = collection.find(filtre).first();
+
+        // S'il existe déjà et qu'il a un équipement, ne rien faire
+        if (doc != null && doc.containsKey("equipment")) {
+            return; // Si un équipement existe déjà, on ne fait rien
+        }
+
+        // Si pas déjà, crée un équipement vide (pas d'armure initialement)
+        Document equipment = new Document("armor", List.of());
+        Document update = new Document("$set", new Document("equipment", equipment));
+        collection.updateOne(filtre, update);
+    }
+
 
     /**
     Récupère le backpack du personnage du joueur*
@@ -137,6 +167,246 @@ public class CharacterDAOImpl implements CharacterDAO {
 
         return new BackPack(); // retourne un backpack vide si erreur ou pas trouvé
     }
+
+    @Override
+    public Equipment getEquipmentForCharacter(String username) {
+        try {
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
+            MongoCollection<Document> collection = mongoDB.getCollection("Characters");
+
+            // Recherche du personnage par son nom d'utilisateur et sélectionné
+            Document doc = collection.find(new Document("username", username).append("selected", true)).first();
+
+            // Si le document existe et contient un équipement
+            if (doc != null && doc.containsKey("equipment")) {
+                // Récupérer la liste des équipements comme une ArrayList de Documents
+                List<Document> equipmentDocs = (List<Document>) doc.get("equipment");
+
+                // Si on a des équipements, désérialiser la liste dans un objet Equipment
+                if (equipmentDocs != null) {
+                    List<ObjectBase> objets = new ArrayList<>();
+                    Gson gson = new GsonBuilder()
+                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                            .create();
+
+                    // Désérialiser chaque document en un objet ObjectBase ou Armor
+                    for (Document equipmentDoc : equipmentDocs) {
+                        // Désérialisation individuelle de chaque armure
+                        ObjectBase obj = gson.fromJson(equipmentDoc.toJson(), ObjectBase.class);
+                        objets.add(obj);
+                    }
+
+                    // Créer un objet Equipment avec la liste des objets désérialisés
+                    Equipment equipment = new Equipment();
+                    equipment.setObjets(objets); // Mettre à jour la liste d'armures
+
+                    return equipment;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new Equipment(); // Retourne un équipement vide si une erreur se produit ou si aucun objet trouvé
+    }
+
+
+
+
+
+    @Override
+    public void saveEquipmentForCharacter(String username, Equipment equipment) {
+        try {
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
+            MongoCollection<Document> collection = mongoDB.getCollection("Characters");
+
+            // Construction de la liste d'armures à insérer dans Mongo
+            List<Document> objetsDocuments = new ArrayList<>();
+
+            for (ObjectBase obj : equipment.getObjets()) {
+                // Vérifier si l'objet est une instance d'Armor et si son type est valide
+                if (obj == null || !(obj instanceof Armor)) {
+                    System.err.println("Objet non valide ou non armure dans l'équipement de " + username);
+                    continue;
+                }
+
+                Armor armor = (Armor) obj;  // Cast vers Armor
+
+                // Si l'armure a une fiabilité de 0, on l'ignore
+                if (armor.getReliability() == 0) {
+                    System.out.println("Supprimer armure (fiabilité 0) : " + armor.getName());
+                    continue;
+                }
+
+                // Construction du document de l'armure à insérer
+                Document doc = new Document()
+                        .append("id", armor.getId())
+                        .append("name", armor.getName())
+                        .append("type", armor.getType()) // Assurez-vous que c'est bien "armor"
+                        .append("price", armor.getPrice())
+                        .append("requiredLevel", armor.getRequiredLevel())
+                        .append("reliability", armor.getReliability())
+                        .append("bonusPV", armor.getBonusPV());  // Bonus de PV de l'armure
+
+                objetsDocuments.add(doc);
+            }
+
+            // Mettre à jour l'équipement UNIQUEMENT pour le personnage sélectionné
+            Document filtre = new Document("username", username).append("selected", true);
+            Document update = new Document("$set", new Document("equipment", objetsDocuments));
+
+            // Ajout du contrôle d'insert/update correct de la liste d'armures
+            collection.updateOne(filtre, update);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Erreur lors de la sauvegarde de l'équipement pour " + username);
+        }
+    }
+
+
+
+
+
+
+    @Override
+    public ApiReponse addArmorToEquipment(String username, String name, String type) {
+        try {
+            // Récupérer l'inventaire et l'équipement du personnage
+            Inventory inventory = inventoryService.getInventoryForUser(username);
+            Equipment equipment = getEquipmentForCharacter(username);
+
+            // Vérifier si l'équipement contient déjà trop d'objets
+            if (equipment.getObjets().size() >= 1) {
+                return new ApiReponse("L'équipement est plein !", null);
+            }
+
+            ObjectBase objectToAdd = null;
+            boolean isCoffre = false; // Pour savoir si l'objet trouvé est dans un coffre
+
+            // Chercher l'objet directement dans l'inventaire
+            objectToAdd = inventory.getObjets().stream()
+                    .filter(obj -> obj.getName().equals(name) && obj.getType().equals(type))
+                    .filter(obj -> obj instanceof Armor) // Filtrer uniquement les armures
+                    .findFirst()
+                    .orElse(null);
+
+            // Si l'objet n'est pas trouvé directement, on vérifie dans les coffres
+            if (objectToAdd == null) {
+                for (ObjectBase obj : inventory.getObjets()) {
+                    if (obj instanceof CoffreDesJoyaux) {
+                        CoffreDesJoyaux coffre = (CoffreDesJoyaux) obj;
+
+                        // Chercher l'armure dans le coffre
+                        ObjectBase foundInCoffre = coffre.getContenu().stream()
+                                .filter(o -> o.getName().equals(name) && o.getType().equals(type))
+                                .filter(o -> o instanceof Armor) // Filtrer uniquement les armures dans le coffre
+                                .findFirst()
+                                .orElse(null);
+
+                        if (foundInCoffre != null) {
+                            coffre.getContenu().remove(foundInCoffre); // Retirer l'armure du coffre
+                            objectToAdd = foundInCoffre;
+                            break;
+                        }
+
+                        // Si le coffre lui-même correspond à l'armure
+                        if (coffre.getName().equals(name) && coffre.getType().equals(type)) {
+                            CoffreDesJoyaux copie = new CoffreDesJoyaux();
+                            copie.setName(coffre.getName());
+                            copie.setType(coffre.getType());
+                            copie.setPrice(coffre.getPrice());
+                            copie.setRequiredLevel(coffre.getRequiredLevel());
+                            copie.setReliability(coffre.getReliability());
+                            copie.setContenu(new ArrayList<>(coffre.getContenu()));
+
+                            objectToAdd = copie;
+                            isCoffre = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Si l'objet n'est toujours pas trouvé, retourner une erreur
+            if (objectToAdd == null) {
+                return new ApiReponse("Armure non trouvée dans l'inventaire ni dans un coffre.", null);
+            }
+
+            // Ajouter l'armure à l'équipement
+            if (!equipment.AddArmor(objectToAdd)) {
+                return new ApiReponse("Erreur lors de l'ajout de l'armure à l'équipement.", null);
+            }
+
+            // Retirer l'armure de l'inventaire ou du coffre, si nécessaire
+            if (!isCoffre) {
+                inventory.retirerObjet(objectToAdd);
+            } else {
+                inventory.getObjets().removeIf(obj -> obj instanceof CoffreDesJoyaux && obj.getName().equals(name));
+            }
+
+            // Sauvegarder les modifications
+            inventoryService.saveInventoryForUser(username, inventory);
+            saveEquipmentForCharacter(username, equipment);
+
+            return new ApiReponse("Armure ajoutée à l'équipement avec succès !", equipment);
+
+        } catch (Exception e) {
+            return new ApiReponse("Erreur lors de l'ajout de l'armure à l'équipement : " + e.getMessage(), null);
+        }
+    }
+
+    @Override
+    public ApiReponse removeArmorFromEquipment(String username, String name) {
+        try {
+            // Récupérer l'équipement et l'inventaire du personnage
+            Equipment equipment = getEquipmentForCharacter(username);
+            Inventory inventory = inventoryService.getInventoryForUser(username);
+
+            if (equipment == null) {
+                return new ApiReponse("Équipement introuvable.", null);
+            }
+            if (equipment.getObjets().isEmpty()) {
+                return new ApiReponse("Équipement vide !", null);
+            }
+
+            // Chercher l'armure dans l'équipement
+            ObjectBase objectToRemove = equipment.getObjets().stream()
+                    .filter(obj -> obj.getName().equals(name))
+                    .filter(obj -> obj instanceof Armor) // Filtrer pour s'assurer que c'est une armure
+                    .findFirst()
+                    .orElse(null);
+
+            if (objectToRemove == null) {
+                return new ApiReponse("Armure non trouvée dans l'équipement.", null);
+            }
+
+            // Retirer l'armure de l'équipement
+            equipment.removeArmor(objectToRemove);
+
+            // Vérifier si l'inventaire peut accueillir l'armure
+            if (inventory.getObjets().size() >= 30) {
+                return new ApiReponse("Inventaire plein !", null);
+            }
+
+            // Ajouter l'armure à l'inventaire
+            if (!inventory.ajouterObjet(objectToRemove)) {
+                return new ApiReponse("Erreur lors de l'ajout de l'armure à l'inventaire.", null);
+            }
+
+            // Sauvegarder les changements dans l'équipement et l'inventaire
+            saveEquipmentForCharacter(username, equipment);
+            inventoryService.saveInventoryForUser(username, inventory);
+
+            System.out.println("Armure retirée de l'équipement : " + objectToRemove.getName());
+            return new ApiReponse("Armure retirée de l'équipement avec succès !", equipment);
+
+        } catch (Exception e) {
+            return new ApiReponse("Erreur lors de la suppression de l'armure de l'équipement : " + e.getMessage(), null);
+        }
+    }
+
+
 
     /**
      * Met a jour le personnage sélectionné pour un utilisateur

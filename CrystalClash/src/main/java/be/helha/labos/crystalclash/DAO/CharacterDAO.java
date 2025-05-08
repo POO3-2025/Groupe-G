@@ -2,7 +2,9 @@ package be.helha.labos.crystalclash.DAO;
 
 
 import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
+import be.helha.labos.crystalclash.Object.Armor;
 import be.helha.labos.crystalclash.Object.BackPack;
+import be.helha.labos.crystalclash.Object.Equipment;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Service.UserService;
 
@@ -50,6 +52,16 @@ public interface CharacterDAO {
     ApiReponse updateReliabilityInBackPack(String username, String objectId, int newReliability);
 
     ApiReponse deleteObjectFromBackPack(String username, String objectId);
+
+    void createEquipmentForCharacter(String username, String characterType);
+
+    Equipment getEquipmentForCharacter(String username);
+
+    void saveEquipmentForCharacter(String username, Equipment equipment);
+
+    ApiReponse addArmorToEquipment(String username, String name, String type);
+
+    ApiReponse removeArmorFromEquipment(String username, String name);
 }
 
 
