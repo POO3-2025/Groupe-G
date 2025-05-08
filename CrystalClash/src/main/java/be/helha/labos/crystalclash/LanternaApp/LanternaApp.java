@@ -1108,6 +1108,13 @@ public class LanternaApp {
         Label toursRestantsLabel = new Label(""); // Label pour l’attaque spéciale
         statsPanel.addComponent(toursRestantsLabel);
 
+
+        AtomicInteger bonusNextAttack = new AtomicInteger(0);
+        AtomicBoolean turnPotionForce = new AtomicBoolean(false);   // Tour de la potion active
+        Label bonusattaque = new Label("Le bonus d'attaque est de " + bonusNextAttack.get());
+        statsPanel.addComponent(bonusattaque);
+
+
         try {
             String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
             JsonElement element = JsonParser.parseString(json);
@@ -1149,6 +1156,12 @@ public class LanternaApp {
 
                         Button attackButton = new Button(attaqueNormale, () -> {
                             int playerDamage = perso.getAttackBase();
+                            if (turnPotionForce.get()){
+                                playerDamage += bonusNextAttack.get();
+                                bonusNextAttack.set(0);
+                                turnPotionForce.set(false);
+                            }
+                            bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
                             enemyHP.addAndGet(-playerDamage);
                             playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
                             enemyHealth.setText(adversaireNom + " santé : " + enemyHP.get() + " HP");
@@ -1180,6 +1193,12 @@ public class LanternaApp {
                         Button attackButton = new Button(attaqueSpeciale, () -> {
                             if (perso.getCompteurAttack() >= perso.getRestrictionAttackSpecial()) {
                                 int playerDamage = perso.getAttackSpecial();
+                                if (turnPotionForce.get()){
+                                    playerDamage += bonusNextAttack.get();
+                                    bonusNextAttack.set(0);
+                                    turnPotionForce.set(false);
+                                }
+                                bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
                                 enemyHP.addAndGet(-playerDamage);
                                 playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
                                 enemyHealth.setText(adversaireNom + " santé : " + enemyHP.get() + " HP");
@@ -1213,11 +1232,11 @@ public class LanternaApp {
 // Objet
                     objectButton[0] = new Button("Objet", () -> {
                         actionsPanel.removeAllComponents();
-
+                        bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
                         Panel backpackPanel = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
                                 playerHealth, enemyHealth, adversaireNom, perso,
                                 historyLabel, history, tourCounter, tourLabel, combatWindow,
-                                showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
+                                showNormalAttacks[0], showSpecialAttacks[0], objectButton[0], bonusNextAttack, turnPotionForce, bonusattaque);
 
                         actionsPanel.addComponent(backpackPanel);
 
@@ -1349,10 +1368,11 @@ public class LanternaApp {
                                              Label playerHealth, Label enemyHealth, String adversaireNom, Personnage perso,
                                              Label historyLabel, StringBuilder history, AtomicInteger tourCounter, Label tourLabel,
                                              BasicWindow combatWindow,
-                                             Button showNormalAttacks, Button showSpecialAttacks, Button objectButton) {
+                                             Button showNormalAttacks, Button showSpecialAttacks, Button objectButton,
+                                             AtomicInteger bonusNextAttack, AtomicBoolean turnPotionForce, Label bonusattaque)
+    {
         Panel backpackPanel = new Panel(new GridLayout(1));
         String username = Session.getUsername();
-
         try {
             String jsonbackpack = HttpService.getBackpack(username, Session.getToken());
 
@@ -1381,6 +1401,12 @@ public class LanternaApp {
 
                                 // Calcul des dégâts
                                 int weaponDamage = weapon.getDamage();
+                                if (turnPotionForce.get()){
+                                    weaponDamage += bonusNextAttack.get();
+                                    bonusNextAttack.set(0);
+                                    turnPotionForce.set(false);
+                                    bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
+                                }
                                 enemyHP.addAndGet(-weaponDamage);
                                 history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
 
@@ -1417,6 +1443,10 @@ public class LanternaApp {
                             case "HealingPotion":
                                 HealingPotion potion = (HealingPotion) objlist;
                                 int healAmount = potion.getHeal();
+                                if (turnPotionForce.get()){
+                                    bonusNextAttack.set(0);
+                                    turnPotionForce.set(false);
+                                }
                                 playerHP.addAndGet(healAmount);
                                 history.append("Vous avez utilisé " + potion.getName() + " et récupéré " + healAmount + " PV.\n");
 
@@ -1435,7 +1465,7 @@ public class LanternaApp {
                                         playerHealth, enemyHealth, adversaireNom, perso,
                                         historyLabel, history, tourCounter, tourLabel,
                                         combatWindow,
-                                        showNormalAttacks, showSpecialAttacks, objectButton);
+                                        showNormalAttacks, showSpecialAttacks, objectButton, bonusNextAttack, turnPotionForce, bonusattaque);
 
                                 actionsPanel.removeAllComponents();
                                 actionsPanel.addComponent(refreshedBackpack);
@@ -1445,6 +1475,45 @@ public class LanternaApp {
                                         playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
                                         actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
                                 break;
+
+                            case "PotionOfStrenght":
+                                if (turnPotionForce.get()){
+                                    bonusNextAttack.set(0);
+                                    turnPotionForce.set(false);
+                                }
+                                PotionOfStrenght potionForce = (PotionOfStrenght) objlist;
+                                int bonusAttack = potionForce.getBonusATK();
+                                bonusNextAttack.set(bonusAttack);
+                                bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
+                                turnPotionForce.set(true);
+                                history.append("Vous avez utilisé " + potionForce.getName() + " et gagnerez +" + bonusAttack + " dégâts à votre prochaine attaque.\n");
+
+                                // 🔥 Supprimer la potion de la base de données (Backpack MongoDB)
+                                try {
+                                    String responseDelete = HttpService.deleteObjectFromBackpack(username, objectId, Session.getToken());
+                                    System.out.println("Suppression potion de force : " + responseDelete);
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                    history.append("⚠️ Erreur lors de la suppression de la potion.\n");
+                                }
+
+                                // Vider et recharger l’affichage du backpack après suppression
+                                backpackPanel.removeAllComponents();
+                                refreshedBackpack = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
+                                        playerHealth, enemyHealth, adversaireNom, perso,
+                                        historyLabel, history, tourCounter, tourLabel,
+                                        combatWindow, showNormalAttacks, showSpecialAttacks, objectButton,
+                                        bonusNextAttack, turnPotionForce, bonusattaque);
+
+                                actionsPanel.removeAllComponents();
+                                actionsPanel.addComponent(refreshedBackpack);
+
+                                // L'ennemi joue ensuite
+                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                        playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+                                break;
+
 
 
                             default:
