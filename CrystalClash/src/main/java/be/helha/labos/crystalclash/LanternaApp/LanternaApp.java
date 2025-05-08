@@ -1375,40 +1375,43 @@ public class LanternaApp {
                         switch (objlist.getType()) {
                             case "Weapon":
                                 Weapon weapon = (Weapon) objlist;
+
+                                // Utilisation de l'arme
                                 String weaponUseMessage = weapon.use();
 
-                                if (weaponUseMessage.contains("broken")) {
-                                    history.append("Vous avez tenté d'utiliser " + weapon.getName() + " mais elle est cassée.\n");
-                                } else {
-                                    int weaponDamage = weapon.getDamage();
-                                    enemyHP.addAndGet(-weaponDamage);
-                                    history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
+                                // Calcul des dégâts
+                                int weaponDamage = weapon.getDamage();
+                                enemyHP.addAndGet(-weaponDamage);
+                                history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
 
-                                    // 🔥 MAJ MongoDB (fiabilité)
-                                    try {
-                                        String responseupdateobject = HttpService.updateObjectReliability(
-                                                username,
-                                                objectId,
-                                                weapon.getReliability(),
-                                                Session.getToken()
-                                        );
-                                        System.out.println("MAJ fiabilité arme : " + responseupdateobject);
+                                // 🔥 MAJ MongoDB (fiabilité)
+                                try {
+                                    String responseupdateobject = HttpService.updateObjectReliability(
+                                            username,
+                                            objectId,
+                                            weapon.getReliability(),
+                                            Session.getToken()
+                                    );
+                                    System.out.println("MAJ fiabilité arme : " + responseupdateobject);
 
-                                    } catch (Exception ex) {
-                                        ex.printStackTrace();
-                                        history.append("⚠️ Erreur de synchro fiabilité.\n");
-                                    }
-
-                                    backpackPanel.removeAllComponents();
-
-                                    // L'ennemi joue ensuite
-                                    enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
-                                            playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
-                                            actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
-
-
-
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                    history.append("⚠️ Erreur de synchro fiabilité.\n");
                                 }
+
+                                // Vérification si l'arme est cassée et affichage du message après l'attaque
+                                if (weapon.getReliability()==0) {
+                                    history.append("Malheureusement " + weapon.getName() + " s'est brisée.\n");
+                                }
+
+                                // Vider le panel du backpack
+                                backpackPanel.removeAllComponents();
+
+                                // L'ennemi joue ensuite
+                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                        playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+
                                 break;
 
                             case "HealingPotion":
