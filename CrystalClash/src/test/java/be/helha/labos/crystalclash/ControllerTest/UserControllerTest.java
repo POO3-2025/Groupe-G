@@ -11,7 +11,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
@@ -137,12 +141,18 @@ public class UserControllerTest {
     @Order(3)
     @DisplayName("Test accès refusé avec token invalide")
     public void testAccessDeniedWithInvalidToken() throws Exception {
-        mockMvc.perform(get("/user/UserControllerTestUser")
-                        .header("Authorization", "Bearer faketoken"))
-                .andExpect(status().isForbidden()); //Accepte l'erreur 403 car mauvais token alors erreur
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/user/UserControllerTestUser"))
+                .header("Authorization", "Bearer faketoken")
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(403, response.statusCode());
     }
 
-    @AfterAll
+   /* @AfterAll
     public void resetMySQLUsers_AND_Mongo() throws Exception {
         var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
         var stmt = conn.prepareStatement("DELETE FROM users");
@@ -159,7 +169,7 @@ public class UserControllerTest {
 
         System.out.println("Toutes les données Mongo ont été supprimées.");
     }
-
+*/
 }
 
 
