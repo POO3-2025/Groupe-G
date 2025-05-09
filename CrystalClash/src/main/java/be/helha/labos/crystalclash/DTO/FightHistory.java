@@ -1,23 +1,23 @@
 package be.helha.labos.crystalclash.DTO;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+
 import java.time.Instant;
 import java.util.List;
 
 public class FightHistory {
     private String winnerName;
     private String loserName;
-    private Instant timestamp;
-    private List<String> combatLog;
+    private String  timestamp;
 
     public FightHistory() {
         // Constructeur vide requis pour la désé
     }
 
-    public FightHistory(String winnerName, String loserName, List<String> combatLog) {
+    public FightHistory(String winnerName, String loserName ) {
         this.winnerName = winnerName;
         this.loserName = loserName;
-        this.combatLog = combatLog;
-        this.timestamp = Instant.now(); //Instant t du combat
+        this.timestamp = Instant.now().toString(); //Instant t du combat
     }
 
     public String getWinnerName() {
@@ -36,19 +36,16 @@ public class FightHistory {
         this.loserName = loserName;
     }
 
-    public Instant getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Instant timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 
-    public List<String> getCombatLog() {
-        return combatLog;
-    }
-
-    public void setCombatLog(List<String> combatLog) {
-        this.combatLog = combatLog;
+    @JsonGetter("timestamp")
+    public String getTimestampAsString() {
+        return timestamp != null ? timestamp.toString() : null;
     }
 }

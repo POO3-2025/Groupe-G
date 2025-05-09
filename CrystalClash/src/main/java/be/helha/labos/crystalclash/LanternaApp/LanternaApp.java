@@ -25,6 +25,7 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.time.Instant;
 import java.util.*;
 import java.util.List;
 import java.util.ArrayList;
@@ -1584,6 +1585,16 @@ public class LanternaApp {
                                 }
 
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
+                                //Sauvergarde de comabt test
+                                FightHistory history = new FightHistory();
+                                history.setWinnerName(winner);
+                                history.setLoserName(loser);
+                                history.setTimestamp(Instant.now().toString());
+                                try {
+                                    HttpService.saveFight(winner,loser,Session.getToken());
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
                                 afficherMenuPrincipal(gui);
                             });
                             break;

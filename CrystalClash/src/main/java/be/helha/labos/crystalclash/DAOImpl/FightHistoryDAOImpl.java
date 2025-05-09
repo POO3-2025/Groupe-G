@@ -28,13 +28,13 @@ public class FightHistoryDAOImpl implements FightHistoryDAO {
     private UserService userService;
 
      //Setter le winner,loser et heure
-    private FightHistory documentToFight(Document doc) {
-        FightHistory fight = new FightHistory();
-        fight.setWinnerName(doc.getString("winnerName"));
-        fight.setLoserName(doc.getString("loserName"));
-        fight.setTimestamp(Instant.parse(doc.getString("timestamp")));
-        return fight;
-    }
+     private FightHistory documentToFight(Document doc) {
+         FightHistory fight = new FightHistory();
+         fight.setWinnerName(doc.getString("winnerName"));
+         fight.setLoserName(doc.getString("loserName"));
+         fight.setTimestamp(doc.getString("timestamp"));
+         return fight;
+     }
 
      //Sauver le combat et construire le doc
      public void saveFight(FightHistory fightHistory) {

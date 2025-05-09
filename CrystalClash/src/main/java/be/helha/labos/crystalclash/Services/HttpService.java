@@ -13,6 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -679,7 +680,7 @@ public class HttpService {
     //Historique de combat
     public static String getHistoriqueCombats(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/combat/history?username=" + username))
+            .uri(URI.create(BASE_URL + "/fight-history/username/" + username))
             .timeout(Duration.ofSeconds(5))
             .header("Authorization", "Bearer " + token)
             .GET()
@@ -694,7 +695,28 @@ public class HttpService {
         return response.body();
     }
 
+    public static void saveFight(String winnerName, String loserName, String token) throws Exception {
+        Map<String, String> payload = new HashMap<>();
+        payload.put("winnerName", winnerName);
+        payload.put("loserName", loserName);
+        payload.put("timestamp", LocalDateTime.now().toString());
 
+        String json = new Gson().toJson(payload);
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "fight-history/save"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur lors de l'enregistrement de l'historique : " + response.body());
+        }
+    }
 
 }
 
