@@ -4,8 +4,8 @@ import java.time.Instant;
 import java.util.List;
 
 public class FightHistory {
-    private String winner;
-    private String loser;
+    private String winnerName;
+    private String loserName;
     private Instant timestamp;
     private List<String> combatLog;
 
@@ -13,27 +13,27 @@ public class FightHistory {
         // Constructeur vide requis pour la désé
     }
 
-    public FightHistory(String winner, String loser, List<String> combatLog) {
-        this.winner = winner;
-        this.loser = loser;
+    public FightHistory(String winnerName, String loserName, List<String> combatLog) {
+        this.winnerName = winnerName;
+        this.loserName = loserName;
         this.combatLog = combatLog;
         this.timestamp = Instant.now(); //Instant t du combat
     }
 
-    public String getWinner() {
-        return winner;
+    public String getWinnerName() {
+        return winnerName;
     }
 
-    public void setWinner(String winner) {
-        this.winner = winner;
+    public void setWinnerName(String winnerName) {
+        this.winnerName = winnerName;
     }
 
-    public String getLoser() {
-        return loser;
+    public String getLoserName() {
+        return loserName;
     }
 
-    public void setLoser(String loser) {
-        this.loser = loser;
+    public void setLoserName(String loserName) {
+        this.loserName = loserName;
     }
 
     public Instant getTimestamp() {

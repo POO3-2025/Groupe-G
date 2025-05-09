@@ -676,6 +676,25 @@ public class HttpService {
         }
     }
 
+    //Historique de combat
+    public static String getHistoriqueCombats(String username, String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/combat/history?username=" + username))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .GET()
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Erreur récupération historique combats : " + response.body());
+        }
+
+        return response.body();
+    }
+
+
 
 }
 

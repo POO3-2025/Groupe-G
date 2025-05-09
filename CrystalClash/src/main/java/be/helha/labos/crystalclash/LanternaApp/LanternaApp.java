@@ -2,6 +2,7 @@ package be.helha.labos.crystalclash.LanternaApp;
 
 
 import be.helha.labos.crystalclash.Characters.Personnage;
+import be.helha.labos.crystalclash.DTO.FightHistory;
 import be.helha.labos.crystalclash.DTO.StateCombat;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
@@ -259,7 +260,7 @@ public class LanternaApp {
             afficherCoffre(gui, () -> {
             });
         })));
-
+        mainPanel.addComponent(new Button("Voir Historique", () -> afficherHistoriqueCombats(gui)));
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
         //Setcion classement
@@ -1684,5 +1685,36 @@ public class LanternaApp {
             profileWindow.setComponent(panel);
             gui.addWindowAndWait(profileWindow);
         }
+
+    private static void afficherHistoriqueCombats(WindowBasedTextGUI gui) {
+        BasicWindow window = new BasicWindow("Historique des Combats");
+        window.setHints(List.of(Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+
+        try {
+            String json = HttpService.getHistoriqueCombats(Session.getUsername(), Session.getToken());
+            Type listType = new TypeToken<List<FightHistory>>() {}.getType();
+            List<FightHistory> historiques = new Gson().fromJson(json, listType);
+
+            if (historiques.isEmpty()) {
+                panel.addComponent(new Label("Aucun combat trouvé."));
+            } else {
+                for (FightHistory h : historiques) {
+                    String gagnant = "Joueur " + h.getWinnerName();
+                    String perdant = "Joueur " + h.getLoserName();
+                    String ligne = "Date : " + h.getTimestamp() + " | Gagnant : " + gagnant + " | Perdant : " + perdant;
+                    panel.addComponent(new Label(ligne));
+                }
+            }
+        } catch (Exception e) {
+            panel.addComponent(new Label("Erreur : " + e.getMessage()));
+        }
+
+        panel.addComponent(new Button("Retour", window::close));
+        window.setComponent(panel);
+        gui.addWindowAndWait(window);
     }
+
+}
 

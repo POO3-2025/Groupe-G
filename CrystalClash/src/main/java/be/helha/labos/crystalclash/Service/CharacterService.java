@@ -58,8 +58,14 @@ public class CharacterService {
      * @param backPack
      * */
     public void  saveBackPackForCharacter(String username, BackPack backPack){
+        if(backPack == null || backPack.getObjets().size() >5) {
+            System.out.println("backpack invalide ou trop grand.");
+            return;
+        }
         characterDAO.saveBackPackForCharacter(username, backPack);
+
     }
+
     /**
      * @param username
      * @param name
