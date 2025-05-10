@@ -431,6 +431,7 @@ public class LanternaApp {
         panel.addComponent(new Label("Personnage de " + Session.getUsername()));
 
         try {
+            // Récupérer les informations du personnage
             String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
             JsonElement element = JsonParser.parseString(json);
 
@@ -438,9 +439,56 @@ public class LanternaApp {
                 JsonObject obj = element.getAsJsonObject();
 
                 if (obj.has("data") && !obj.get("data").isJsonNull()) {
+                    // Afficher le type de personnage
                     panel.addComponent(new Label("Type : " + obj.get("data").getAsString()));
                     Personnage perso = CharactersFactory.getCharacterByType(obj.get("data").getAsString());
-                    panel.addComponent(new Label("PV : " + perso.getPV()));
+
+                    // Afficher les PV de base
+                    String pvText = "PV : " + perso.getPV();
+
+                    // Récupérer l'équipement et calculer le bonus de PV si l'armure est présente
+                    String equipmentJson = HttpService.getEquipment(Session.getUsername(), Session.getToken());
+                    JsonObject equipmentResponse = JsonParser.parseString(equipmentJson).getAsJsonObject();
+                    JsonArray dataArray = equipmentResponse.getAsJsonArray("data");
+
+                    Gson gson = new GsonBuilder()
+                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                            .create();
+                    ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
+
+                    // Calcul du bonus de PV (si l'armure existe)
+                    int bonusPV = 0;
+                    for (ObjectBase objEquip : objets) {
+                        if (objEquip instanceof Armor) {
+                            Armor armor = (Armor) objEquip;
+                            bonusPV += armor.getBonusPV();
+                        }
+                    }
+
+                    // Créer un label qui contient les PV de base et le bonus à côté
+                    String bonusText = "";
+                    if (bonusPV > 0) {
+                        bonusText = " (+" + bonusPV + ")";
+                    }
+
+                    // Créer un label avec les PV de base et le bonus
+                    String fullText = pvText + bonusText;
+                    Label pvLabel = new Label(fullText);
+
+                    // Mettre la couleur verte pour le bonus uniquement
+                    if (bonusPV > 0) {
+                        // On utilise TextColor.ANSI.DEFAULT pour les PV de base (pas de couleur)
+                        // et TextColor.ANSI.GREEN pour le bonus
+                        String formattedText = pvText + " " + bonusText;
+                        pvLabel = new Label(formattedText);
+                        pvLabel.setForegroundColor(TextColor.ANSI.GREEN); // Couleur par défaut pour les PV de base
+                        pvLabel.addStyle(SGR.BOLD); // Appliquer le style gras à tout le label
+                    }
+
+                    // Afficher le label avec les PV et bonus dans le panel
+                    panel.addComponent(pvLabel);
+
+                    // Afficher les autres informations du personnage
                     panel.addComponent(new Label("Attaque Normale : " + perso.getNameAttackBase()));
                     panel.addComponent(new Label("Attaque Spéciale : " + perso.getNameAttaqueSpecial()));
                 }
@@ -457,6 +505,11 @@ public class LanternaApp {
         persoWindow.setComponent(panel);
         gui.addWindowAndWait(persoWindow);
     }
+
+
+
+
+
 
     /**
      * Affiche l'inventaire du joueur
