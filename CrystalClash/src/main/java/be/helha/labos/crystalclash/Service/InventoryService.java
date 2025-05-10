@@ -15,7 +15,7 @@ import java.util.Optional;
 @Service
 
 public class InventoryService {
-
+    @Autowired
     private UserService userService;
     private InventoryDAO inventoryDAO;
 

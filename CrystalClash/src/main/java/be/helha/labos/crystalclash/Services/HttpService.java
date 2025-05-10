@@ -695,28 +695,24 @@ public class HttpService {
         return response.body();
     }
 
-    public static void saveFight(String winnerName, String loserName, String token) throws Exception {
-        Map<String, String> payload = new HashMap<>();
-        payload.put("winnerName", winnerName);
-        payload.put("loserName", loserName);
-        payload.put("timestamp", LocalDateTime.now().toString());
-
-        String json = new Gson().toJson(payload);
-
+    //trophée
+    public static UserInfo fetchUserInfo(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "fight-history/save"))
+            .uri(URI.create(BASE_URL + "/user/" + username))
             .timeout(Duration.ofSeconds(5))
             .header("Authorization", "Bearer " + token)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .GET()
             .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
-        if (response.statusCode() != 200) {
-            throw new RuntimeException("Erreur lors de l'enregistrement de l'historique : " + response.body());
+        if (response.statusCode() == 200) {
+            return new Gson().fromJson(response.body(), UserInfo.class);
+        } else {
+            throw new RuntimeException("Erreur lors de la récupération des infos utilisateur : " + response.body());
         }
     }
+
 
 }
 

@@ -28,4 +28,7 @@ public interface UserDAO {
     void IncrementDefeat(String username) throws Exception;
      void updateWin_Lose(String username, String New) throws Exception;
 
+     //trophé
+     void incrementWinconsecutive(String username) throws Exception;
+    void resetWinconsecutiveConsecutive(String username) throws Exception;
     }

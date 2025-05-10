@@ -8,14 +8,12 @@ public class CoffreDesJoyaux extends ObjectBase {
     private final int CAPACITE_MAX = 10;
 
     public CoffreDesJoyaux() {
-        super("Coffre des Joyaux", 25, 1, 1);
+        super("Coffre des Joyaux", 25, 1, 50);
         this.contenu = new ArrayList<>();
     }
 
     @Override
     public String use() {
-        if (!IsUsed()) return "The chest has already been opened.";
-        Reducereliability();
         return "You open the Coffre des Joyaux Chest and discover" + contenu.size() + " objets !";
     }
 

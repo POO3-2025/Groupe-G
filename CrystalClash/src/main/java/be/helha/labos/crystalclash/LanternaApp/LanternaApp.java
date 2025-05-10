@@ -260,6 +260,15 @@ public class LanternaApp {
             afficherCoffre(gui, () -> {
             });
         })));
+
+        mainPanel.addComponent(new Button("Mes trophées", () -> {
+            try {
+                UserInfo user = HttpService.fetchUserInfo(Session.getUsername(), Session.getToken());
+                afficherTrophees(gui, user);
+            } catch (Exception e) {
+                MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de charger les trophées : " + e.getMessage());
+            }
+        }));
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
         //Setcion classement
@@ -1585,13 +1594,6 @@ public class LanternaApp {
                                 }
 
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
-
-                                try {
-                                    HttpService.saveFight(winner,loser,Session.getToken());
-
-                                } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                }
                                 afficherMenuPrincipal(gui);
                             });
                             break;
@@ -1651,6 +1653,18 @@ public class LanternaApp {
                 actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
                     try {
                         HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+
+                        //SI ouverture du coffre faut charger le new etat du combat
+                        if(obj instanceof CoffreDesJoyaux){
+                            String json = HttpService.getCombatState(Session.getUsername(),Session.getToken());
+                            Gson gson = new GsonBuilder()
+                                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                                .create();
+                            StateCombat updated = gson.fromJson(json, StateCombat.class);
+                            //Pannel mis a jour apres ouverture du coffre
+                            actionPanel.removeAllComponents();
+                            updateActionPanel(actionPanel,updated,gui);
+                        }
                     } catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                     }
@@ -1694,5 +1708,34 @@ public class LanternaApp {
             gui.addWindowAndWait(profileWindow);
         }
 
+
+        //Generer bar pour trophé premier test
+        public static String generateBar(int actuel,int objectif){
+            //longeur bar
+            int total = 20;
+            int filling  = (int) ((double) actuel / objectif * total);
+            //Pas dépasser la bar
+            filling = Math.min(filling, total);
+            String barre =  "[" + "█".repeat(filling) + " ".repeat(total - filling) + "] ";
+            return barre + actuel + "/" + objectif;
+        }
+
+    public static void afficherTrophees(WindowBasedTextGUI gui, UserInfo user) {
+        BasicWindow window = new BasicWindow("Vos Trophées");
+        Panel panel = new Panel(new GridLayout(1));
+
+        panel.addComponent(new Label("Progression des trophées :"));
+
+        //Bronze
+        int victoires = user.getGagner();
+        String bronze = generateBar(victoires, 1);
+        panel.addComponent(new Label("Trophée Bronze - Victoires : " + bronze));
+
+        int tours15 = user.getDernierCombatTours(); // ou nbTours moyen
+        String bronzeTours = generateBar(tours15 <= 15 ? 1 : 0, 1);
+        panel.addComponent(new Label("Combat < 15 tours : " + bronzeTours));
+
+
+    }
 }
 
