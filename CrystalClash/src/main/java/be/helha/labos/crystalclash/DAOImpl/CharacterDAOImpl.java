@@ -10,6 +10,7 @@ import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -17,6 +18,7 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -170,45 +172,70 @@ public class CharacterDAOImpl implements CharacterDAO {
 
     @Override
     public Equipment getEquipmentForCharacter(String username) {
+        Equipment equipment = new Equipment(); // On prépare l'équipement (même si vide en cas d'erreur)
+
         try {
+            // Connexion à la base MongoDB
             MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("Characters");
 
-            // Recherche du personnage par son nom d'utilisateur et sélectionné
+            // Recherche du personnage sélectionné par nom d'utilisateur
             Document doc = collection.find(new Document("username", username).append("selected", true)).first();
 
-            // Si le document existe et contient un équipement
             if (doc != null && doc.containsKey("equipment")) {
-                // Récupérer la liste des équipements comme une ArrayList de Documents
-                List<Document> equipmentDocs = (List<Document>) doc.get("equipment");
+                Document equipmentDoc = (Document) doc.get("equipment");
 
-                // Si on a des équipements, désérialiser la liste dans un objet Equipment
-                if (equipmentDocs != null) {
-                    List<ObjectBase> objets = new ArrayList<>();
+                // Vérifie la présence du champ "armor"
+                if (equipmentDoc.containsKey("armor")) {
+                    Object armorField = equipmentDoc.get("armor");
+                    System.out.println("Raw armor field: " + armorField);
+                    System.out.println("Class of armor field: " + armorField.getClass());
+
+                    // Prépare Gson avec le désérialiseur polymorphique
                     Gson gson = new GsonBuilder()
                             .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                             .create();
 
-                    // Désérialiser chaque document en un objet ObjectBase ou Armor
-                    for (Document equipmentDoc : equipmentDocs) {
-                        // Désérialisation individuelle de chaque armure
-                        ObjectBase obj = gson.fromJson(equipmentDoc.toJson(), ObjectBase.class);
-                        objets.add(obj);
+                    // Désérialisation propre de la liste d'armures
+                    if (armorField instanceof List<?>) {
+                        @SuppressWarnings("unchecked")
+                        List<Document> armorDocs = (List<Document>) armorField;
+
+                        // Conversion correcte en JSON
+                        String armorJson = gson.toJson(armorDocs);
+                        System.out.println("Armor JSON: " + armorJson);
+
+                        // Désérialise la liste en objets Java
+                        Type armorListType = new TypeToken<List<ObjectBase>>() {}.getType();
+                        List<ObjectBase> armorList = gson.fromJson(armorJson, armorListType);
+                        System.out.println("Armor list deserialized: " + armorList);
+
+                        // Ajoute chaque armure dans l'équipement
+                        for (ObjectBase armor : armorList) {
+                            equipment.AddArmor(armor);
+                        }
+
+                        System.out.println("Equipment récupéré : " + equipment.getObjets());
+                    } else {
+                        System.out.println("Le champ 'armor' n'est pas une liste valide.");
                     }
-
-                    // Créer un objet Equipment avec la liste des objets désérialisés
-                    Equipment equipment = new Equipment();
-                    equipment.setObjets(objets); // Mettre à jour la liste d'armures
-
-                    return equipment;
+                } else {
+                    System.out.println("Le champ 'armor' est absent de l'équipement.");
                 }
+            } else {
+                System.out.println("Aucun personnage trouvé ou pas d'équipement.");
             }
+
         } catch (Exception e) {
+            System.err.println("Erreur lors de la récupération de l'équipement pour " + username);
             e.printStackTrace();
         }
 
-        return new Equipment(); // Retourne un équipement vide si une erreur se produit ou si aucun objet trouvé
+        return equipment; // Retourne l'équipement (vide si erreur ou pas d'armure)
     }
+
+
+
 
 
 
@@ -251,11 +278,10 @@ public class CharacterDAOImpl implements CharacterDAO {
                 objetsDocuments.add(doc);
             }
 
-            // Mettre à jour l'équipement UNIQUEMENT pour le personnage sélectionné
             Document filtre = new Document("username", username).append("selected", true);
-            Document update = new Document("$set", new Document("equipment", objetsDocuments));
+            Document EquipmentUpdate = new Document("armor", objetsDocuments);
+            Document update = new Document("$set", new Document("equipment", EquipmentUpdate));
 
-            // Ajout du contrôle d'insert/update correct de la liste d'armures
             collection.updateOne(filtre, update);
 
         } catch (Exception e) {
@@ -275,9 +301,9 @@ public class CharacterDAOImpl implements CharacterDAO {
             // Récupérer l'inventaire et l'équipement du personnage
             Inventory inventory = inventoryService.getInventoryForUser(username);
             Equipment equipment = getEquipmentForCharacter(username);
-
+            System.out.println(equipment);
             // Vérifier si l'équipement contient déjà trop d'objets
-            if (equipment.getObjets().size() >= 1) {
+            if (equipment.getObjets().size() > 0) {
                 return new ApiReponse("L'équipement est plein !", null);
             }
 
@@ -457,7 +483,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                     System.err.println("Objet null ou sans type dans le backpack de " + username);
                     continue;
                 }
-   System.out.println("Objet cassé" + obj.getName());
+                System.out.println("Objet cassé" + obj.getName());
 
                 if ((obj instanceof Weapon weapon && weapon.getReliability() == 0) || (obj instanceof Armor armor && armor.getReliability() == 0)){
                     System.out.println("Supprimer objet" + obj.getName());
@@ -537,7 +563,7 @@ public class CharacterDAOImpl implements CharacterDAO {
             }
 
             // Construction et exécution de l’update
-            Document filtre = new Document("username", username);
+            Document filtre = new Document("username", username).append("selected", true);
             Document backpackUpdate = new Document("objets", objetsDocuments);
             Document update = new Document("$set", new Document("backpack", backpackUpdate));
 
@@ -779,6 +805,51 @@ public class CharacterDAOImpl implements CharacterDAO {
 
             // Sauvegarder le backpack après modification
             saveBackPackForCharacter(username, backpack);
+
+            return new ApiReponse("Reliability de l'objet modifiée avec succès.", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ApiReponse("Erreur lors de la modification de la reliability : " + e.getMessage(), null);
+        }
+    }
+
+    /**
+     * Modifie la reliability d'un objet (weapon ou armor) dans le backpack du personnage du joueur
+     *
+     * @param username Nom d'utilisateur
+     * @param objectId ID de l'objet à modifier
+     * @param newReliability Nouvelle valeur de reliability
+     * @return Réponse de l'API
+     */
+    @Override
+    public ApiReponse updateReliabilityInEquipment(String username, String objectId, int newReliability) {
+        try {
+            Equipment equipment = getEquipmentForCharacter(username);
+            System.out.println("je passe par la, characterDAO");
+            boolean found = false;
+
+            for (ObjectBase obj : equipment.getObjets()) {
+                if (obj.getId().equals(objectId)) {
+                    // Vérifie que c'est bien une Weapon ou Armor
+                    if (obj instanceof Armor armor) {
+                        System.out.println("Objet trouvé: " + obj.getName() + ", ID: " + obj.getId() + ", Classe: " + obj.getClass().getName());
+
+                        armor.setReliability(newReliability);
+                        System.out.println("Nouvelle reliability mise à jour: " + armor.getReliability());
+
+                        found = true;
+                        break;
+                    } else {
+                        return new ApiReponse("L'objet trouvé n'a pas de reliability.", null);
+                    }
+                }
+            }
+            if (!found) {
+                return new ApiReponse("Objet avec l'ID spécifié non trouvé dans le backpack.", null);
+            }
+
+            // Sauvegarder le backpack après modification
+            saveEquipmentForCharacter(username, equipment);
 
             return new ApiReponse("Reliability de l'objet modifiée avec succès.", null);
         } catch (Exception e) {

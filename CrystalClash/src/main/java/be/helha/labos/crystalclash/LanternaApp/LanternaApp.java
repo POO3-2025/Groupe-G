@@ -1275,8 +1275,37 @@ public class LanternaApp {
 
                     Personnage perso = CharactersFactory.getCharacterByType(characterType);
 
-                    AtomicInteger playerHP = new AtomicInteger(perso.getPV());
+                    // Récupérer l'équipement et calculer le bonus de PV si l'armure est présente
+                    String equipmentJson = HttpService.getEquipment(Session.getUsername(), Session.getToken());
+                    JsonObject equipmentResponse = JsonParser.parseString(equipmentJson).getAsJsonObject();
+                    JsonArray dataArray = equipmentResponse.getAsJsonArray("data");
+
+                    Gson gson = new GsonBuilder()
+                            .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                            .create();
+                    ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
+
+                    // Calcul du bonus de PV (si l'armure existe)
+                    int bonusPV = 0;
+                    for (ObjectBase objEquip : objets) {
+                        if (objEquip instanceof Armor) {
+                            Armor armor = (Armor) objEquip;
+                            bonusPV += armor.getBonusPV();
+                        }
+                    }
+
+                    // Initialiser les PV avec le bonus
+                    AtomicInteger playerHP = new AtomicInteger(perso.getPV() + bonusPV);
+
+                    // Afficher la santé avec le bonus
                     Label playerHealth = new Label("Votre santé : " + playerHP.get() + " HP");
+                    statsPanel.addComponent(playerHealth);
+
+                    // Afficher dans l'historique le bonus appliqué
+                    if(bonusPV > 0) {
+                        history.append("Bonus d'armure appliqué : +" + bonusPV + " PV.\n");
+                        historyLabel.setText(history.toString());
+                    }
 
                     statsPanel.addComponent(playerHealth);
                     statsPanel.addComponent(enemyHealth);
@@ -1460,6 +1489,10 @@ public class LanternaApp {
         history.append(adversaireNom + " a infligé " + enemyDamage + " PV.\n");
         historyLabel.setText(history.toString());
 
+        UpdateReliabilityArmorPanel (history);
+        historyLabel.setText(history.toString());
+
+
         // Vérification de la fin du combat
         if (playerHP.get() <= 0) {
             history.append("\nVous avez été vaincu par " + adversaireNom + ".\n");
@@ -1509,6 +1542,50 @@ public class LanternaApp {
         showMainActions(actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
     }
 
+    private static void UpdateReliabilityArmorPanel (StringBuilder history) {
+
+        String username = Session.getUsername();
+        try {
+            String jsonequipment = HttpService.getEquipment(username, Session.getToken());
+
+            JsonObject response = JsonParser.parseString(jsonequipment).getAsJsonObject();
+            JsonArray dataArray = response.getAsJsonArray("data");
+
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
+
+            ObjectBase[] objets = gson.fromJson(dataArray, ObjectBase[].class);
+            for (ObjectBase objlist : objets) {
+                String objectId = objlist.getId();
+                Armor armor = (Armor) objlist;
+                // Utilisation de l'armure
+                String armorUseMessage = armor.use();
+
+                // 🔥 MAJ MongoDB (fiabilité)
+                try {
+                    String responseupdateobject = HttpService.updateArmorReliability(
+                            username,
+                            objectId,
+                            armor.getReliability(),
+                            Session.getToken()
+                    );
+                    System.out.println("MAJ fiabilité armure : " + responseupdateobject);
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    history.append("⚠️ Erreur de synchro fiabilité.\n");
+                }
+
+                // Vérification si l'arme est cassée et affichage du message après l'attaque
+                if (armor.getReliability() == 0) {
+                    history.append("Malheureusement " + armor.getName() + " s'est brisée.\n");
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
     private static Panel createBackpackPanel(WindowBasedTextGUI gui, Panel actionsPanel, AtomicInteger playerHP, AtomicInteger enemyHP,
@@ -1660,8 +1737,6 @@ public class LanternaApp {
                                         playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
                                         actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
                                 break;
-
-
 
                             default:
                                 history.append("Objet inconnu : " + objlist.getName() + ".\n");

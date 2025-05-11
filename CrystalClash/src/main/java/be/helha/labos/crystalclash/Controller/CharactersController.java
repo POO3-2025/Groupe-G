@@ -168,7 +168,7 @@ public class CharactersController {
         }
     }
     /**
-     * Modifie la reliability d'un objet (Weapon ou Armor) dans le backpack d'un personnage
+     * Modifie la reliability d'un objet (Weapon) dans le backpack d'un personnage
      */
     @PutMapping("/{username}/backpack/update/{objectId}")
     public ResponseEntity<ApiReponse> updateObjectReliability(
@@ -178,12 +178,30 @@ public class CharactersController {
     ) {
         Integer newReliability = payload.get("reliability");
 
-        System.out.println("Je passe par la");
         if (newReliability == null) {
             return ResponseEntity.badRequest().body(new ApiReponse("Le champ 'reliability' est requis.", null));
         }
 
         ApiReponse response = characterService.updateReliabilityInBackPack(username, objectId, newReliability);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Modifie la reliability d'un objet (Armor) dans l'equipement d'un personnage
+     */
+    @PutMapping("/{username}/equipment/update/{objectId}")
+    public ResponseEntity<ApiReponse> updateArmorReliability(
+            @PathVariable String username,
+            @PathVariable String objectId,
+            @RequestBody Map<String, Integer> payload
+    ) {
+        Integer newReliability = payload.get("reliability");
+
+        if (newReliability == null) {
+            return ResponseEntity.badRequest().body(new ApiReponse("Le champ 'reliability' est requis.", null));
+        }
+        System.out.println("je passe par la, controller");
+        ApiReponse response = characterService.updateReliabilityInEquipment(username, objectId, newReliability);
         return ResponseEntity.ok(response);
     }
 

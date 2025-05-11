@@ -444,6 +444,27 @@ public class HttpService {
         return response.body();
     }
 
+    public static String updateArmorReliability(String username, String objectId, int newReliability, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+                "reliability", newReliability
+        ));
+
+        // Construire l'URL correcte
+        String url = BASE_URL + "/characters/" + username + "/equipment/update/" + objectId;
+        System.out.println("URL: " + url); // Afficher l'URL pour déboguer
+        System.out.println("je passe par la, httpservice");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .method("PUT", HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
     /**
      * Supprime définitivement un objet du backpack d'un utilisateur
      * @param username nom de l'utilisateur

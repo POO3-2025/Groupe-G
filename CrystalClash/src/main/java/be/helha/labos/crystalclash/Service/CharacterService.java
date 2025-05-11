@@ -82,6 +82,10 @@ public class CharacterService {
         return characterDAO.updateReliabilityInBackPack(username,objectId,newReliability);
     }
 
+    public ApiReponse updateReliabilityInEquipment(String username, String objectId, Integer newReliability) {
+        return characterDAO.updateReliabilityInEquipment(username,objectId,newReliability);
+    }
+
     public ApiReponse deleteObjectFromBackPack(String username, String objectId) {
         return characterDAO.deleteObjectFromBackPack(username, objectId);
     }

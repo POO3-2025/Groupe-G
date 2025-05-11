@@ -51,6 +51,8 @@ public interface CharacterDAO {
 
     ApiReponse updateReliabilityInBackPack(String username, String objectId, int newReliability);
 
+    ApiReponse updateReliabilityInEquipment(String username, String objectId, int newReliability);
+
     ApiReponse deleteObjectFromBackPack(String username, String objectId);
 
     void createEquipmentForCharacter(String username, String characterType);
