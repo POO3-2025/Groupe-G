@@ -86,9 +86,15 @@ public class FightService {
 
            // objet avec les noms user, et le reste a null
             StateCombat endState = new StateCombat(winner, losser, null, null, null, null);
-            endState.setPv(winner, 1); // Juste pour éviter que les deux soient à 0
+            endState.setWinner(winner);
+            endState.setLoser(losser);
+           endState.setPv(winner, 1); // Juste pour éviter que les deux soient à 0
             endState.setPv(losser, 0); // Le perdant a 0
             endState.addLog(winner + " remporte le combat !");
+
+            endState.setWinner(winner);
+            endState.setLoser(losser);
+
             return endState;
         }
 
@@ -158,6 +164,8 @@ public class FightService {
             derniersGagnants.put(loser, winner);
             combats.remove(winner);
             combats.remove(loser);
+            state.setWinner(winner);
+            state.setLoser(loser);
             return;
         }
         state.NextTurn();
@@ -245,6 +253,8 @@ public class FightService {
             userService.resetWinConsecutives(loser);
             combats.remove(winner);
             combats.remove(loser);
+            state.setWinner(winner);
+            state.setLoser(loser);
         }
 
         //Test de mettre a jour le backPack pour l endurance des armes
@@ -276,6 +286,8 @@ public class FightService {
             String winner = state.getWinner(); // ce sera l’adversaire puisque username a 0 PV
             if (winner != null) {
                 String loser = username;
+                state.setWinner(winner);
+                state.setLoser(loser);
                 userService.rewardWinner(winner, 50, 1);
                 userService.IncrementWinner(winner); // +1 victoire pour le gagnant
                 userService.incrementDefeat(loser);
@@ -287,6 +299,7 @@ public class FightService {
                 userService.resetWinConsecutives(loser);
                 combats.remove(username);
                 combats.remove(opponent);
+
             }
         }
     }

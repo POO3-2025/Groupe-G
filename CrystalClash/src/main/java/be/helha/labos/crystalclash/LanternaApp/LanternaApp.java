@@ -1647,14 +1647,8 @@ public class LanternaApp {
 
 
                                 String winner = updated.getWinner();
-                                String loser = winner != null && winner.equals(Session.getUsername())
-                                    ?updated.getOpponent(Session.getUsername())
-                                    :Session.getUsername();
-                                try {
-                                    winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
-                                } catch (Exception e) {
-                                    System.out.println("Erreur récup du gagnant : " + e.getMessage());
-                                }
+                                String loser = updated.getLoser();
+
                                 if (winner != null && winner.equals(loser)) {
                                     MessageDialog.showMessageDialog(gui, "Défaite", "Vous êtes mort... Vos PV sont tombés à 0.");
                                 }
@@ -1662,12 +1656,10 @@ public class LanternaApp {
                                 String message;
                                 if (winner == null) {
                                     message = "Combat terminé, mais le gagnant est inconnu.";
-                                } else if ("Egalité".equals(winner)) {
-                                    message = "Combat terminé sur une égalité !";
                                 } else if (winner.equals(Session.getUsername())) {
                                     message = "Combat terminé, vous avez gagné !";
                                 } else {
-                                    message = "Combat terminé, " + winner + " a gagné.";
+                                    message = "Combat terminé, vous avez perdu contre " + winner + ".";
                                 }
                                 combatWindow.close();
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
