@@ -203,6 +203,15 @@ public class FightService {
         }else if(obj instanceof PotionOfStrenght){
             int bonus = ((PotionOfStrenght) obj).getBonusATK();
             state.addLog(Player + " boit une " + obj.getName() + " et gagne +" + bonus + " en attaque !");
+        }else if (obj instanceof CoffreDesJoyaux) {
+            CoffreDesJoyaux coffre = (CoffreDesJoyaux) obj;
+            List<ObjectBase> objets = coffre.getContenu();
+
+            for (ObjectBase item : objets) {
+                backpack.add(item); // objets visibles dans lanterna
+            }
+
+            state.addLog(Player + " ouvre un Coffre des Joyaux et obtient " + objets.size() + " objets !");
         }
 
         obj.Reducereliability();
@@ -225,6 +234,9 @@ public class FightService {
             state.addLog(winner + " remporte le combat ! +1 niveau, +50 cristaux");
             derniersGagnants.put(winner, winner);
             derniersGagnants.put(loser, winner);
+            //trophé
+            userService.incrementWimConsecutive(winner);
+            userService.resetWinConsecutives(loser);
             combats.remove(winner);
             combats.remove(loser);
         }
@@ -238,8 +250,9 @@ public class FightService {
         } catch (Exception e) {
             System.out.println("Erreur lors de la mise à jour du backpack : " + e.getMessage());
         }
-
-        state.NextTurn();
+        if (!(obj instanceof CoffreDesJoyaux)) {
+            state.NextTurn();
+        }
     }
 
     public void forfait(String username) throws Exception {
@@ -264,6 +277,8 @@ public class FightService {
                 state.addLog(winner + " remporte le combat par forfait ! +1 niveau, +50 cristaux");
                 derniersGagnants.put(winner, winner);
                 derniersGagnants.put(state.getOpponent(winner), winner);//Opponent gagnant
+                userService.incrementWimConsecutive(winner);
+                userService.resetWinConsecutives(loser);
                 combats.remove(username);
                 combats.remove(opponent);
             }

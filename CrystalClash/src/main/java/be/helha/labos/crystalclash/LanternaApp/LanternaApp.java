@@ -3,10 +3,12 @@ package be.helha.labos.crystalclash.LanternaApp;
 
 import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.DTO.StateCombat;
+import be.helha.labos.crystalclash.DTO.Trophee;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.*;
+import be.helha.labos.crystalclash.Service.TropheeService;
 import be.helha.labos.crystalclash.Services.HttpService;
 import be.helha.labos.crystalclash.User.UserInfo;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
@@ -24,6 +26,7 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.time.Instant;
 import java.util.*;
 import java.util.List;
 import java.util.ArrayList;
@@ -259,6 +262,8 @@ public class LanternaApp {
             afficherCoffre(gui, () -> {
             });
         })));
+
+        mainPanel.addComponent(new Button("Mes trophées", () -> afficherTrophees(gui)));
 
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
@@ -1633,13 +1638,26 @@ public class LanternaApp {
 
                         if (updated.isFinished()) {
                             gui.getGUIThread().invokeLater(() -> {
-                                combatWindow.close();
-                                String winner = null;
+
+                                //Mettre a jour l affich des pv a 0 avant fermeture de la fenetre
+                                tourLabel.setText("Tour : " + updated.getTour());
+                                labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
+                                labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
+
+
+                                String winner = updated.getWinner();
+                                String loser = winner != null && winner.equals(Session.getUsername())
+                                    ?updated.getOpponent(Session.getUsername())
+                                    :Session.getUsername();
                                 try {
                                     winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
                                 } catch (Exception e) {
                                     System.out.println("Erreur récup du gagnant : " + e.getMessage());
                                 }
+                                if (winner != null && winner.equals(loser)) {
+                                    MessageDialog.showMessageDialog(gui, "Défaite", "Vous êtes mort... Vos PV sont tombés à 0.");
+                                }
+
                                 String message;
                                 if (winner == null) {
                                     message = "Combat terminé, mais le gagnant est inconnu.";
@@ -1711,6 +1729,18 @@ public class LanternaApp {
                 actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
                     try {
                         HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+
+                        //SI ouverture du coffre faut charger le new etat du combat
+                        if(obj instanceof CoffreDesJoyaux){
+                            String json = HttpService.getCombatState(Session.getUsername(),Session.getToken());
+                            Gson gson = new GsonBuilder()
+                                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                                .create();
+                            StateCombat updated = gson.fromJson(json, StateCombat.class);
+                            //Pannel mis a jour apres ouverture du coffre
+                            actionPanel.removeAllComponents();
+                            updateActionPanel(actionPanel,updated,gui);
+                        }
                     } catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                     }
@@ -1753,5 +1783,102 @@ public class LanternaApp {
             profileWindow.setComponent(panel);
             gui.addWindowAndWait(profileWindow);
         }
+
+
+        /**
+         * @param actuel = value actuel atteinte
+         * @param objectif = value cible a atteindre
+         **/
+        //Generer bar pour trophé premier test
+        public static String generateBar(int actuel,int objectif){
+            //longeur bar
+            int total = 20; //20 caract
+            //calcul la proportion atteinte et la transfomer en nombre de "blocs" a remplir
+            int filling  = (int) ((double) actuel / objectif * total);
+            //Pas dépasser la bar
+            filling = Math.min(filling, total);
+            String barre =  "[" + "█".repeat(filling) + " ".repeat(total - filling) + "] ";
+            return barre + actuel + "/" + objectif; //Jsute texte de progression
+        }
+
+        /**
+         * @param gui
+         * Afficher les trophées en faisant appele au service fetchUserInfo ()(direct la reponse objet userJson pas besoin de la parser)
+         *
+         * */
+        public static void afficherTrophees(WindowBasedTextGUI gui) {
+        BasicWindow window = new BasicWindow("Vos Trophées");
+        window.setHints(List.of(Window.Hint.CENTERED)); //Centrés
+        Panel panel = new Panel(new GridLayout(1));
+
+        panel.addComponent(new Label("Progression des trophées :"));
+
+        try {
+            UserInfo user = HttpService.fetchUserInfo(Session.getUsername(), Session.getToken());
+
+            //nbr de tour
+            int nombreTours = user.getDernierCombatTours();
+            int win = user.getGagner();
+            int winConcecutive = user.getWinconsecutive();
+            int cristaux = user.getCristaux();
+
+
+            //   BRONZE
+            Button bronzeBtn = new Button("Bronze : " + generateBar(win, 1), () -> {
+                Panel details = new Panel(new GridLayout(1));
+                details.addComponent(new Label("Conditions du trophée Bronze :"));
+                details.addComponent(new Label("Gagner 1 combat : " + generateBar(win, 1)));
+                details.addComponent(new Label("Combat en ≤ 15 tours : " + generateBar(nombreTours <= 15 ? 1 : 0, 1)));
+                MessageDialog.showMessageDialog(gui, "Trophée Bronze", detailsToString(details));
+            });
+            panel.addComponent(bronzeBtn);
+
+            Button SilverBtn = new Button("Silver :" +generateBar(winConcecutive,1), () -> {
+                Panel details = new Panel(new GridLayout(1));
+                details.addComponent(new Label("Conditions du trophée Silver :"));
+                details.addComponent(new Label("5 victoires consécutives : " + generateBar(winConcecutive, 5)));
+                details.addComponent(new Label("Gagnez 200 cristaux : " + generateBar(cristaux,200)));
+                details.addComponent(new Label("Combat en ≤ 10 tours : " + generateBar(nombreTours <= 10 ? 1 : 0, 1)));
+                MessageDialog.showMessageDialog(gui, "Trophée Silver", detailsToString(details));
+            });
+            panel.addComponent(SilverBtn);
+
+            Button OrBtn = new Button("Or :" +generateBar(winConcecutive,1), () -> {
+                Panel details = new Panel(new GridLayout(1));
+                details.addComponent(new Label("Conditions du trophée Or :"));
+                details.addComponent(new Label("10 victoires consécutives : " + generateBar(winConcecutive, 10)));
+                details.addComponent(new Label("Gagnez 500 cristaux : " + generateBar(cristaux,500)));
+                details.addComponent(new Label("Combat en ≤ 6 tours : " + generateBar(nombreTours <= 6 ? 1 : 0, 1)));
+                details.addComponent(new Label("Avoir utilisé un bazooka : " + generateBar(user.getUtilisationBazooka() > 0 ? 1 : 0, 1)));
+                MessageDialog.showMessageDialog(gui, "Trophée Silver", detailsToString(details));
+            });
+            panel.addComponent(OrBtn);
+
+        } catch (Exception e) {
+            panel.addComponent(new Label("Erreur lors du chargement des trophées : " + e.getMessage()));
+        }
+
+        panel.addComponent(new EmptySpace());
+        panel.addComponent(new Button("Retour", window::close));
+
+        window.setComponent(panel);
+        gui.addWindowAndWait(window);
     }
+
+    /**
+     * @param panel
+     *juste a servir a convertir le contenu visuel  label en String
+     * **/
+    private static String detailsToString(Panel panel) {
+        StringBuilder sb = new StringBuilder();
+        //Recup les boutons,labels,...
+        for (Component comp : panel.getChildren()) {
+            //Verif que Component ont un label
+            if (comp instanceof Label label) {
+                sb.append(label.getText()).append("\n");//Recup le text et ajoute le text recup a la cahine finale avec retour ligne
+            }
+        }
+        return sb.toString();
+    }
+}
 
