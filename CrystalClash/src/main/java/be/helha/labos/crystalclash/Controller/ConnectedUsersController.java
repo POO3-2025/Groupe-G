@@ -52,11 +52,13 @@ public class ConnectedUsersController {
     * matchmakingWaitingRoom qui est Map<String, UserInfo>
     * */
     @PostMapping("/matchmaking/enter")
-    public ResponseEntity<Void> enterMatchMaking(@RequestBody UserInfo userInfo){
+    public ResponseEntity<Map<String, String>> enterMatchMaking(@RequestBody UserInfo userInfo){
         if(userInfo.getUsername() != null && !userInfo.getUsername().isBlank()){
             matchmakingWaitingRoom.put(userInfo.getUsername(), userInfo);
         }
-        return ResponseEntity.ok().build();
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Utilisateur ajouté à la salle d'attente");
+        return ResponseEntity.ok(response);
     }
 
     /**

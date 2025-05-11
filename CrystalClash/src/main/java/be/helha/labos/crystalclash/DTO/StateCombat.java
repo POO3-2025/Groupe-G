@@ -33,6 +33,10 @@ public class StateCombat {
     @JsonProperty("logCombat")
     private List<String> logCombat = new ArrayList<>(); //Contient user joue, tour et historique des actions
     private int tour = 1;
+    @JsonProperty("winner")
+    private String winner;
+    @JsonProperty("loser")
+    private String loser;
 
     public StateCombat(String player1, String player2, Personnage character1, Personnage character2,
                        List<ObjectBase> bp1, List<ObjectBase> bp2) {
@@ -112,11 +116,21 @@ public class StateCombat {
     }
 
     public String getWinner() {
-        if (player1 == null || player2 == null) return null;
-        if (pv1 <= 0) return player2;
-        if (pv2 <= 0) return player1;
-        return null;
+        return winner;
     }
+
+    public void setWinner(String winner) {
+        this.winner = winner;
+    }
+
+    public String getLoser() {
+        return loser;
+    }
+
+    public void setLoser(String loser) {
+        this.loser = loser;
+    }
+
 
     public String getPlayer1() {
         return player1;
@@ -124,5 +138,15 @@ public class StateCombat {
 
     public String getPlayer2() {
         return player2;
+    }
+
+    private boolean combatDisplayed = false;
+
+    public boolean isCombatDisplayed() {
+        return combatDisplayed;
+    }
+
+    public void setCombatDisplayed(boolean combatDisplayed) {
+        this.combatDisplayed = combatDisplayed;
     }
 }

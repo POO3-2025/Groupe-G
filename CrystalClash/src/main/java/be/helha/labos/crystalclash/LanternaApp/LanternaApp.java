@@ -1859,8 +1859,9 @@ public class LanternaApp {
                             gui.getGUIThread().invokeLater(() -> {
                                 String winner = null;
                                 try {
-                                    winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
-                                } catch (Exception e) {
+                                    String reponseJson  = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                                    JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
+                                    winner = jsonObject.get("winner").getAsString();                                } catch (Exception e) {
                                     System.out.println("Erreur récup du gagnant : " + e.getMessage());
                                 }
                                 String message;
@@ -1878,6 +1879,7 @@ public class LanternaApp {
                                 }
 
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
+                                combatWindow.close();
                                 afficherMenuPrincipal(gui);
                             });
                             break;
@@ -1892,18 +1894,14 @@ public class LanternaApp {
                                 labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
 
-                                String winner = updated.getWinner();
-                                String loser = winner != null && winner.equals(Session.getUsername())
-                                    ?updated.getOpponent(Session.getUsername())
-                                    :Session.getUsername();
+                                String winner;
                                 try {
                                     winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
                                 } catch (Exception e) {
                                     System.out.println("Erreur récup du gagnant : " + e.getMessage());
+                                    winner = null;
                                 }
-                                if (winner != null && winner.equals(loser)) {
-                                    MessageDialog.showMessageDialog(gui, "Défaite", "Vous êtes mort... Vos PV sont tombés à 0.");
-                                }
+
 
                                 String message;
                                 if (winner == null) {
@@ -1915,7 +1913,7 @@ public class LanternaApp {
                                 } else {
                                     message = "Combat terminé, " + winner + " a gagné.";
                                 }
-
+                                combatWindow.close();
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
                                 afficherMenuPrincipal(gui);
                             });
@@ -1979,14 +1977,9 @@ public class LanternaApp {
 
                         //SI ouverture du coffre faut charger le new etat du combat
                         if(obj instanceof CoffreDesJoyaux){
-                            String json = HttpService.getCombatState(Session.getUsername(),Session.getToken());
-                            Gson gson = new GsonBuilder()
-                                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                                .create();
-                            StateCombat updated = gson.fromJson(json, StateCombat.class);
-                            //Pannel mis a jour apres ouverture du coffre
-                            actionPanel.removeAllComponents();
-                            updateActionPanel(actionPanel,updated,gui);
+                            actionPanel.addComponent(new Button("Ouvrir le coffre", () -> {
+                                displayChest(gui, (CoffreDesJoyaux) obj);
+                            }));
                         }
                     } catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
@@ -1994,6 +1987,36 @@ public class LanternaApp {
                 }));
             }
         }
+
+        /**
+         * Méthode pour un affiche propre lors du combat si coffre utilisé
+         **/
+         public static void displayChest(WindowBasedTextGUI gui, CoffreDesJoyaux coffre){
+             BasicWindow coffreWindow = new BasicWindow("Coffre des Joyaux");
+
+             Panel panel = new Panel(new GridLayout(1));
+             panel.removeAllComponents();
+             panel.addComponent(new Label("Objets contenus dans le coffre :"));
+
+             //Regarde si new insatnce ou memes objets mais non dupliqués
+             for (ObjectBase obj : coffre.getContenu()) {
+                 panel.addComponent(new Button(obj.getName(), () -> {
+                     try {
+                         HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                         coffreWindow.close(); // ferme après usage
+                     } catch (Exception e) {
+                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                     }
+                 }));
+             }
+
+             panel.addComponent(new Button("Fermer", coffreWindow::close));
+
+             coffreWindow.setComponent(panel);
+             //attendre jusqué fermeture
+             gui.addWindowAndWait(coffreWindow);
+         }
+
         private static void DisplayClassement (WindowBasedTextGUI gui){
             BasicWindow profileWindow = new BasicWindow("Classement");
             profileWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -2075,7 +2098,7 @@ public class LanternaApp {
                 Panel details = new Panel(new GridLayout(1));
                 details.addComponent(new Label("Conditions du trophée Bronze :"));
                 details.addComponent(new Label("Gagner 1 combat : " + generateBar(win, 1)));
-                details.addComponent(new Label("Combat en ≤ 15 tours : " + generateBar(nombreTours <= 15 ? 1 : 0, 1)));
+                details.addComponent(new Label("Combat en ≤ 15 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 15 ? 1 : 0, 1)));
                 MessageDialog.showMessageDialog(gui, "Trophée Bronze", detailsToString(details));
             });
             panel.addComponent(bronzeBtn);
@@ -2085,7 +2108,8 @@ public class LanternaApp {
                 details.addComponent(new Label("Conditions du trophée Silver :"));
                 details.addComponent(new Label("5 victoires consécutives : " + generateBar(winConcecutive, 5)));
                 details.addComponent(new Label("Gagnez 200 cristaux : " + generateBar(cristaux,200)));
-                details.addComponent(new Label("Combat en ≤ 10 tours : " + generateBar(nombreTours <= 10 ? 1 : 0, 1)));
+                details.addComponent(new Label("Combat en ≤ 10 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 10 ? 1 : 0, 1)
+                ));
                 MessageDialog.showMessageDialog(gui, "Trophée Silver", detailsToString(details));
             });
             panel.addComponent(SilverBtn);
@@ -2095,7 +2119,7 @@ public class LanternaApp {
                 details.addComponent(new Label("Conditions du trophée Or :"));
                 details.addComponent(new Label("10 victoires consécutives : " + generateBar(winConcecutive, 10)));
                 details.addComponent(new Label("Gagnez 500 cristaux : " + generateBar(cristaux,500)));
-                details.addComponent(new Label("Combat en ≤ 6 tours : " + generateBar(nombreTours <= 6 ? 1 : 0, 1)));
+                details.addComponent(new Label("Combat en ≤ 6 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 6 ? 1 : 0, 1)));
                 details.addComponent(new Label("Avoir utilisé un bazooka : " + generateBar(user.getUtilisationBazooka() > 0 ? 1 : 0, 1)));
                 MessageDialog.showMessageDialog(gui, "Trophée Silver", detailsToString(details));
             });

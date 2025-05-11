@@ -78,14 +78,31 @@ public class FightController {
         String player = body.get("username");
         String type = body.get("type");
 
-        System.out.println("[DEBUG] /attack appelé avec username=" + player + ", type=" + type);
+        fightService.HandleAttach(player, type);
+
+        StateCombat state = fightService.getCombat(player);
+
+        if (state == null) {
+            return ResponseEntity.status(410).body("Combat terminé.");
+        }
 
         if (player == null || type == null) {
             return ResponseEntity.badRequest().body("Paramètres manquants !");
         }
 
-        fightService.HandleAttach(player, type);
-        return ResponseEntity.ok(fightService.getCombat(player));
+         //Map qui va stock la reponse du json (un custom car sinon trop gros)
+        Map<String, Object> response = new HashMap<>();
+        response.put("playerNow", state.getPlayerNow());
+        response.put("tour", state.getTour());
+        response.put("finished", state.isFinished());
+        response.put("winner", state.getWinner());
+        response.put("loser", state.getLoser());
+        response.put("pv1", state.getPv(state.getPlayer1()));
+        response.put("pv2", state.getPv(state.getPlayer2()));
+        response.put("log", state.getLog());
+
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/use-object")
@@ -99,8 +116,28 @@ public class FightController {
             return ResponseEntity.badRequest().body("Paramètres manquants !");
         }
 
+
+        //récupère l'état avant modif
+        StateCombat state = fightService.getCombat(player);
+        if (state == null) {
+            return ResponseEntity.status(410).body("Combat terminé ou introuvable.");
+        }
+        //appel useobjet
         fightService.useObject(player, objectId);
-        return ResponseEntity.ok(fightService.getCombat(player));
+
+        //Map qui va stock la reponse du json (un custom car sinon trop gros)
+        Map<String, Object> response = new HashMap<>();
+        response.put("playerNow", state.getPlayerNow());
+        response.put("tour", state.getTour());
+        response.put("finished", state.isFinished());
+        response.put("winner", state.getWinner());
+        response.put("loser", state.getLoser());
+        response.put("pv1", state.getPv(state.getPlayer1()));
+        response.put("pv2", state.getPv(state.getPlayer2()));
+        response.put("log", state.getLog());
+
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/state/{username}")
@@ -152,14 +189,13 @@ public class FightController {
     }
 
 
-    //Petit GetMapping Pour le dernier winner
     @GetMapping("/Winner")
-    public ResponseEntity<String> getLastWinner(@RequestParam String username) {
+    public ResponseEntity<Map<String, String>> getLastWinner(@RequestParam String username) {
         String winner = fightService.getLastWinner(username);
         if (winner == null) {
-            return ResponseEntity.status(404).body("Aucun gagnant trouvé pour " + username);
+            return ResponseEntity.status(404).body(Map.of("error", "Aucun gagnant trouvé pour " + username));
         }
-        return ResponseEntity.ok(winner);
+        return ResponseEntity.ok(Map.of("winner", winner));
     }
 
 
