@@ -190,7 +190,7 @@ public class ObjectFactory {
                 break;
 
             case "venin d'ombre":
-                obj = new PotionOfStrenght("Venin d'Ombre", 25, 2, 5);
+                obj = new PotionOfStrenght("Venin d Ombre", 25, 2, 5);
                 break;
             case "fiole des abysses":
                 obj = new PotionOfStrenght("Fiole des Abysses", 35, 4, 10);
@@ -249,7 +249,7 @@ public class ObjectFactory {
         map.put("larme de licorne", new HealingPotion("Larme de Licorne", 30, 4, 25));
         map.put("fluide du phenix", new HealingPotion("Fluide du Phenix", 60, 6, 50));
 
-        map.put("venin d'ombre", new PotionOfStrenght("Venin d'Ombre", 25, 2, 5));
+        map.put("venin d'ombre", new PotionOfStrenght("Venin d Ombre", 25, 2, 5));
         map.put("fiole des abysses", new PotionOfStrenght("Fiole des Abysses", 35, 4, 10));
         map.put("colere du dragon", new PotionOfStrenght("Colere du Dragon", 40, 6, 20));
 
