@@ -1296,9 +1296,10 @@ public class LanternaApp {
 
                     // Initialiser les PV avec le bonus
                     AtomicInteger playerHP = new AtomicInteger(perso.getPV() + bonusPV);
+                    int playerHPmax = perso.getPV() + bonusPV;
 
                     // Afficher la santé avec le bonus
-                    Label playerHealth = new Label("Votre santé : " + playerHP.get() + " HP");
+                    Label playerHealth = new Label("Votre santé : " + playerHP.get() + "/" + playerHPmax + " HP");
                     statsPanel.addComponent(playerHealth);
 
                     // Afficher dans l'historique le bonus appliqué
@@ -1350,7 +1351,7 @@ public class LanternaApp {
 
                             enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
                                     playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
-                                    actionsPanel, showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
+                                    actionsPanel, showNormalAttacks[0], showSpecialAttacks[0], objectButton[0], perso, playerHPmax);
 
                         });
 
@@ -1387,7 +1388,7 @@ public class LanternaApp {
 
                                 enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
                                         playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
-                                        actionsPanel, showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
+                                        actionsPanel, showNormalAttacks[0], showSpecialAttacks[0], objectButton[0],  perso, playerHPmax);
 
                             } else {
                                 int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
@@ -1412,7 +1413,8 @@ public class LanternaApp {
                         Panel backpackPanel = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
                                 playerHealth, enemyHealth, adversaireNom, perso,
                                 historyLabel, history, tourCounter, tourLabel, combatWindow,
-                                showNormalAttacks[0], showSpecialAttacks[0], objectButton[0], bonusNextAttack, turnPotionForce, bonusattaque);
+                                showNormalAttacks[0], showSpecialAttacks[0], objectButton[0],
+                                bonusNextAttack, turnPotionForce, bonusattaque, playerHPmax);
 
                         actionsPanel.addComponent(backpackPanel);
 
@@ -1479,14 +1481,17 @@ public class LanternaApp {
                                   Label historyLabel, StringBuilder history,
                                   AtomicInteger tourCounter, Label tourLabel,
                                   Panel actionsPanel,
-                                  Button showNormalAttacks, Button showSpecialAttacks, Button objectButton) {
+                                  Button showNormalAttacks, Button showSpecialAttacks, Button objectButton, Personnage perso, int playerHPmax) {
 
         int enemyDamage = 5; // Dégâts infligés par l'ennemi
         playerHP.addAndGet(-enemyDamage);
-        playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
+        playerHealth.setText("Votre santé : " + playerHP.get() + "/" + playerHPmax + " HP");
 
         // Ajouter l’attaque ennemie dans l’historique
         history.append(adversaireNom + " a infligé " + enemyDamage + " PV.\n");
+
+
+
         historyLabel.setText(history.toString());
 
         UpdateReliabilityArmorPanel (history);
@@ -1593,7 +1598,7 @@ public class LanternaApp {
                                              Label historyLabel, StringBuilder history, AtomicInteger tourCounter, Label tourLabel,
                                              BasicWindow combatWindow,
                                              Button showNormalAttacks, Button showSpecialAttacks, Button objectButton,
-                                             AtomicInteger bonusNextAttack, AtomicBoolean turnPotionForce, Label bonusattaque)
+                                             AtomicInteger bonusNextAttack, AtomicBoolean turnPotionForce, Label bonusattaque, int playerHPmax)
     {
         Panel backpackPanel = new Panel(new GridLayout(1));
         String username = Session.getUsername();
@@ -1660,7 +1665,7 @@ public class LanternaApp {
                                 // L'ennemi joue ensuite
                                 enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
                                         playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
-                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton,  perso, playerHPmax);
 
                                 break;
 
@@ -1689,7 +1694,8 @@ public class LanternaApp {
                                         playerHealth, enemyHealth, adversaireNom, perso,
                                         historyLabel, history, tourCounter, tourLabel,
                                         combatWindow,
-                                        showNormalAttacks, showSpecialAttacks, objectButton, bonusNextAttack, turnPotionForce, bonusattaque);
+                                        showNormalAttacks, showSpecialAttacks, objectButton, bonusNextAttack,
+                                        turnPotionForce, bonusattaque, playerHPmax);
 
                                 actionsPanel.removeAllComponents();
                                 actionsPanel.addComponent(refreshedBackpack);
@@ -1697,7 +1703,7 @@ public class LanternaApp {
                                 // L'ennemi joue ensuite
                                 enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
                                         playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
-                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton,  perso, playerHPmax);
                                 break;
 
                             case "PotionOfStrenght":
@@ -1727,7 +1733,7 @@ public class LanternaApp {
                                         playerHealth, enemyHealth, adversaireNom, perso,
                                         historyLabel, history, tourCounter, tourLabel,
                                         combatWindow, showNormalAttacks, showSpecialAttacks, objectButton,
-                                        bonusNextAttack, turnPotionForce, bonusattaque);
+                                        bonusNextAttack, turnPotionForce, bonusattaque, playerHPmax);
 
                                 actionsPanel.removeAllComponents();
                                 actionsPanel.addComponent(refreshedBackpack);
@@ -1735,7 +1741,7 @@ public class LanternaApp {
                                 // L'ennemi joue ensuite
                                 enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
                                         playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
-                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton,  perso, playerHPmax);
                                 break;
 
                             default:
