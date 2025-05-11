@@ -1113,6 +1113,13 @@ public class LanternaApp {
         Label toursRestantsLabel = new Label(""); // Label pour l’attaque spéciale
         statsPanel.addComponent(toursRestantsLabel);
 
+
+        AtomicInteger bonusNextAttack = new AtomicInteger(0);
+        AtomicBoolean turnPotionForce = new AtomicBoolean(false);   // Tour de la potion active
+        Label bonusattaque = new Label("Le bonus d'attaque est de " + bonusNextAttack.get());
+        statsPanel.addComponent(bonusattaque);
+
+
         try {
             String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
             JsonElement element = JsonParser.parseString(json);
@@ -1154,6 +1161,12 @@ public class LanternaApp {
 
                         Button attackButton = new Button(attaqueNormale, () -> {
                             int playerDamage = perso.getAttackBase();
+                            if (turnPotionForce.get()){
+                                playerDamage += bonusNextAttack.get();
+                                bonusNextAttack.set(0);
+                                turnPotionForce.set(false);
+                            }
+                            bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
                             enemyHP.addAndGet(-playerDamage);
                             playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
                             enemyHealth.setText(adversaireNom + " santé : " + enemyHP.get() + " HP");
@@ -1185,6 +1198,12 @@ public class LanternaApp {
                         Button attackButton = new Button(attaqueSpeciale, () -> {
                             if (perso.getCompteurAttack() >= perso.getRestrictionAttackSpecial()) {
                                 int playerDamage = perso.getAttackSpecial();
+                                if (turnPotionForce.get()){
+                                    playerDamage += bonusNextAttack.get();
+                                    bonusNextAttack.set(0);
+                                    turnPotionForce.set(false);
+                                }
+                                bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
                                 enemyHP.addAndGet(-playerDamage);
                                 playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
                                 enemyHealth.setText(adversaireNom + " santé : " + enemyHP.get() + " HP");
@@ -1218,11 +1237,11 @@ public class LanternaApp {
 // Objet
                     objectButton[0] = new Button("Objet", () -> {
                         actionsPanel.removeAllComponents();
-
+                        bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
                         Panel backpackPanel = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
                                 playerHealth, enemyHealth, adversaireNom, perso,
                                 historyLabel, history, tourCounter, tourLabel, combatWindow,
-                                showNormalAttacks[0], showSpecialAttacks[0], objectButton[0]);
+                                showNormalAttacks[0], showSpecialAttacks[0], objectButton[0], bonusNextAttack, turnPotionForce, bonusattaque);
 
                         actionsPanel.addComponent(backpackPanel);
 
@@ -1291,82 +1310,74 @@ public class LanternaApp {
                                   Panel actionsPanel,
                                   Button showNormalAttacks, Button showSpecialAttacks, Button objectButton) {
 
-
         int enemyDamage = 5; // Dégâts infligés par l'ennemi
-        playerHP.addAndGet(-enemyDamage); // Réduction des points de vie du joueur
-        playerHealth.setText("Votre santé : " + playerHP.get() + " HP"); // Mise à jour de l'affichage des PV
+        playerHP.addAndGet(-enemyDamage);
+        playerHealth.setText("Votre santé : " + playerHP.get() + " HP");
 
-        // Ajout de l'attaque de l'ennemi à l'historique
+        // Ajouter l’attaque ennemie dans l’historique
         history.append(adversaireNom + " a infligé " + enemyDamage + " PV.\n");
-        historyLabel.setText(history.toString()); // Mise à jour de l'historique à l'écran
+        historyLabel.setText(history.toString());
 
         // Vérification de la fin du combat
         if (playerHP.get() <= 0) {
-            // Si le joueur est vaincu
             history.append("\nVous avez été vaincu par " + adversaireNom + ".\n");
             historyLabel.setText(history.toString());
 
             MessageDialog.showMessageDialog(gui, "Défaite", "Vous avez été vaincu par " + adversaireNom + " !");
-            combatWindow.close(); // Fermeture de la fenêtre de combat
-            afficherMenuPrincipal(gui); // Retour au menu principal
+            combatWindow.close();
+            afficherMenuPrincipal(gui);
+            return;
         } else if (enemyHP.get() <= 0) {
-            // Si l'ennemi est vaincu
             history.append("\nVous avez vaincu " + adversaireNom + " !\n");
             historyLabel.setText(history.toString());
 
             MessageDialog.showMessageDialog(gui, "Victoire", "Vous avez vaincu " + adversaireNom + " !");
-            combatWindow.close(); // Fermeture de la fenêtre de combat
-            afficherMenuPrincipal(gui); // Retour au menu principal
-        } else {
+            combatWindow.close();
+            afficherMenuPrincipal(gui);
+            return;
+        }
 
-            // Passer au tour suivant
-            tourCounter.incrementAndGet();
-            tourLabel.setText("Tour : " + tourCounter.get());
+        // Passer au tour suivant
+        int currentTour = tourCounter.incrementAndGet();
+        tourLabel.setText("🕒 Tour : " + currentTour);
 
-            // Réinitialiser l'historique tous les 5 tours
-            if (tourCounter.get() % 5 == 0) {
-                history.setLength(0);  // Effacer l'historique
-                history.append("==== TOUR " + tourCounter.get() + " ====\n"); // Ajouter le premier tour du nouveau cycle
+        if (currentTour % 5 == 0) {
+            // On veut garder le contenu du tour précédent (tour - 1)
+            int previousTour = currentTour - 1;
+            String marker = "==== TOUR " + previousTour + " ====";
 
-                // Incrémentation du compteur de tours seulement après l'action de l'ennemi
-                int currentTour = tourCounter.incrementAndGet();
-                tourLabel.setText("🕒 Tour : " + currentTour); // Mise à jour du tour
-
-                // Réinitialiser l'historique tous les 5 tours, mais garder le tour précédent
-                if (currentTour % 5 == 0) {
-                    // Garder l'historique du tour précédent (par exemple, tour 4 avant tour 5)
-                    String previousHistory = history.toString();
-                    int lastTourIndex = previousHistory.lastIndexOf("==== TOUR " + (currentTour - 1) + " ====");
-
-                    if (lastTourIndex != -1) {
-                        // Garder uniquement l'historique jusqu'au tour précédent
-                        history.setLength(0); // Réinitialiser l'historique
-                        history.append(previousHistory.substring(lastTourIndex)); // Garder l'historique du dernier tour
-                    }
-
-                    history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête du tour actuel
-
-                } else {
-                    history.append("\n==== TOUR " + currentTour + " ====\n"); // Ajouter l'en-tête des tours intermédiaires
-
-                }
-
-                historyLabel.setText(history.toString()); // Mise à jour de l'historique affiché
-
-                showMainActions(actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
-
+            int lastTourIndex = history.lastIndexOf(marker);
+            if (lastTourIndex != -1) {
+                // Récupérer à partir de "==== TOUR X ===="
+                String lastTourContent = history.substring(lastTourIndex);
+                history.setLength(0); // Effacer tout
+                history.append(lastTourContent); // Coller contenu du tour précédent
+            } else {
+                // Sécurité : si jamais on ne trouve pas (ça ne devrait pas arriver)
+                history.setLength(0);
             }
         }
+
+        // Ajouter le nouveau tour (que ce soit un reset ou pas)
+        history.append("\n==== TOUR " + currentTour + " ====\n");
+
+        historyLabel.setText(history.toString());
+
+        // Réafficher les actions du joueur
+        showMainActions(actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
     }
+
+
 
     private static Panel createBackpackPanel(WindowBasedTextGUI gui, Panel actionsPanel, AtomicInteger playerHP, AtomicInteger enemyHP,
                                              Label playerHealth, Label enemyHealth, String adversaireNom, Personnage perso,
                                              Label historyLabel, StringBuilder history, AtomicInteger tourCounter, Label tourLabel,
                                              BasicWindow combatWindow,
-                                             Button showNormalAttacks, Button showSpecialAttacks, Button objectButton) {
+                                             Button showNormalAttacks, Button showSpecialAttacks, Button objectButton,
+                                             AtomicInteger bonusNextAttack, AtomicBoolean turnPotionForce, Label bonusattaque)
+    {
         Panel backpackPanel = new Panel(new GridLayout(1));
         String username = Session.getUsername();
-
         try {
             String jsonbackpack = HttpService.getBackpack(username, Session.getToken());
 
@@ -1389,57 +1400,126 @@ public class LanternaApp {
                         switch (objlist.getType()) {
                             case "Weapon":
                                 Weapon weapon = (Weapon) objlist;
+
+                                // Utilisation de l'arme
                                 String weaponUseMessage = weapon.use();
 
-                                if (weaponUseMessage.contains("broken")) {
-                                    history.append("Vous avez tenté d'utiliser " + weapon.getName() + " mais elle est cassée.\n");
-                                } else {
-                                    int weaponDamage = weapon.getDamage();
-                                    enemyHP.addAndGet(-weaponDamage);
-                                    history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
-
-                                    // 🔥 MAJ MongoDB (fiabilité)
-                                    try {
-                                        String responseupdateobject = HttpService.updateObjectReliability(
-                                                username,
-                                                objectId,
-                                                weapon.getReliability(),
-                                                Session.getToken()
-                                        );
-                                        System.out.println("MAJ fiabilité arme : " + responseupdateobject);
-
-                                    } catch (Exception ex) {
-                                        ex.printStackTrace();
-                                        history.append("⚠️ Erreur de synchro fiabilité.\n");
-                                    }
-
-                                    backpackPanel.removeAllComponents();
-                                    // L'ennemi joue ensuite
-                                    enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
-                                            playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
-                                            actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
-
-
-
+                                // Calcul des dégâts
+                                int weaponDamage = weapon.getDamage();
+                                if (turnPotionForce.get()){
+                                    weaponDamage += bonusNextAttack.get();
+                                    bonusNextAttack.set(0);
+                                    turnPotionForce.set(false);
+                                    bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
                                 }
+                                enemyHP.addAndGet(-weaponDamage);
+                                history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
+
+                                // 🔥 MAJ MongoDB (fiabilité)
+                                try {
+                                    String responseupdateobject = HttpService.updateObjectReliability(
+                                            username,
+                                            objectId,
+                                            weapon.getReliability(),
+                                            Session.getToken()
+                                    );
+                                    System.out.println("MAJ fiabilité arme : " + responseupdateobject);
+
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                    history.append("⚠️ Erreur de synchro fiabilité.\n");
+                                }
+
+                                // Vérification si l'arme est cassée et affichage du message après l'attaque
+                                if (weapon.getReliability()==0) {
+                                    history.append("Malheureusement " + weapon.getName() + " s'est brisée.\n");
+                                }
+
+                                // Vider le panel du backpack
+                                backpackPanel.removeAllComponents();
+
+                                // L'ennemi joue ensuite
+                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                        playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+
                                 break;
 
                             case "HealingPotion":
                                 HealingPotion potion = (HealingPotion) objlist;
                                 int healAmount = potion.getHeal();
+                                if (turnPotionForce.get()){
+                                    bonusNextAttack.set(0);
+                                    turnPotionForce.set(false);
+                                }
                                 playerHP.addAndGet(healAmount);
                                 history.append("Vous avez utilisé " + potion.getName() + " et récupéré " + healAmount + " PV.\n");
+
+                                // 🔥 Supprimer la potion de la base de données (Backpack MongoDB)
+                                try {
+                                    String responseDelete = HttpService.deleteObjectFromBackpack(username, objectId, Session.getToken());
+                                    System.out.println("Suppression potion : " + responseDelete);
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                    history.append("⚠️ Erreur lors de la suppression de la potion.\n");
+                                }
+
+                                // Vider et recharger l’affichage du backpack après suppression
+                                backpackPanel.removeAllComponents();
+                                Panel refreshedBackpack = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
+                                        playerHealth, enemyHealth, adversaireNom, perso,
+                                        historyLabel, history, tourCounter, tourLabel,
+                                        combatWindow,
+                                        showNormalAttacks, showSpecialAttacks, objectButton, bonusNextAttack, turnPotionForce, bonusattaque);
+
+                                actionsPanel.removeAllComponents();
+                                actionsPanel.addComponent(refreshedBackpack);
+
+                                // L'ennemi joue ensuite
                                 enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
                                         playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
                                         actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
+                                break;
+
+                            case "PotionOfStrenght":
+                                if (turnPotionForce.get()){
+                                    bonusNextAttack.set(0);
+                                    turnPotionForce.set(false);
+                                }
+                                PotionOfStrenght potionForce = (PotionOfStrenght) objlist;
+                                int bonusAttack = potionForce.getBonusATK();
+                                bonusNextAttack.set(bonusAttack);
+                                bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
+                                turnPotionForce.set(true);
+                                history.append("Vous avez utilisé " + potionForce.getName() + " et gagnerez +" + bonusAttack + " dégâts à votre prochaine attaque.\n");
+
+                                // 🔥 Supprimer la potion de la base de données (Backpack MongoDB)
+                                try {
+                                    String responseDelete = HttpService.deleteObjectFromBackpack(username, objectId, Session.getToken());
+                                    System.out.println("Suppression potion de force : " + responseDelete);
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                    history.append("⚠️ Erreur lors de la suppression de la potion.\n");
+                                }
+
+                                // Vider et recharger l’affichage du backpack après suppression
+                                backpackPanel.removeAllComponents();
+                                refreshedBackpack = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
+                                        playerHealth, enemyHealth, adversaireNom, perso,
+                                        historyLabel, history, tourCounter, tourLabel,
+                                        combatWindow, showNormalAttacks, showSpecialAttacks, objectButton,
+                                        bonusNextAttack, turnPotionForce, bonusattaque);
 
                                 actionsPanel.removeAllComponents();
-                                actionsPanel.addComponent(showNormalAttacks);
-                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                                actionsPanel.addComponent(showSpecialAttacks);
-                                actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
-                                actionsPanel.addComponent(objectButton);
+                                actionsPanel.addComponent(refreshedBackpack);
+
+                                // L'ennemi joue ensuite
+                                enemyTurn(gui, adversaireNom, playerHealth, enemyHealth, combatWindow,
+                                        playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                                        actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
                                 break;
+
+
 
                             default:
                                 history.append("Objet inconnu : " + objlist.getName() + ".\n");

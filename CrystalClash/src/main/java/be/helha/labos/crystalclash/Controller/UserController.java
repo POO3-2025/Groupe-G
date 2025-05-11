@@ -1,6 +1,7 @@
 package be.helha.labos.crystalclash.Controller;
 
 import be.helha.labos.crystalclash.Service.CharacterService;
+import be.helha.labos.crystalclash.Service.ShopService;
 import be.helha.labos.crystalclash.Service.UserService;
 import be.helha.labos.crystalclash.User.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,6 @@ public class UserController {
     @Autowired
     private CharacterService characterService;
     @Autowired
-
     private UserService userService;
 
     /**
@@ -48,6 +48,15 @@ public class UserController {
             return ResponseEntity.status(500).body(Map.of("message", "Erreur serveur"));
         }
     }
+
+   public void setCharacterService(CharacterService characterService) {
+        this.characterService = characterService;
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
 
 
 

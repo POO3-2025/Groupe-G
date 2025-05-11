@@ -24,9 +24,10 @@ public class CharactersController {
     private CharacterService characterService;
 
     /**
-     * @param payload Permet de selectionné un personnage
-     *                passe plusieurs vérfi
-     */
+     * @param payload
+     *Permet de selectionné un personnage
+     * passe plusieurs vérfi
+     * */
     @PostMapping("/select")
     public ResponseEntity<ApiReponse> selectCharacter(@RequestBody Map<String, String> payload) {
         String username = payload.get("username");
@@ -90,8 +91,9 @@ public class CharactersController {
     /**
      * @param username
      * @return
-     * @throws Exception Récupérer le backpack du personnage
-     */
+     * @throws Exception
+     * Récupérer le backpack du personnage
+     * */
     @GetMapping("/{username}/backpack")
     public ResponseEntity<Map<String, Object>> getBackpack(@PathVariable String username) {
         try {
@@ -111,8 +113,9 @@ public class CharactersController {
     }
 
     /**
-     * @param username Ajoute un objet au backpack du personnage
-     */
+     * @param username
+     * Ajoute un objet au backpack du personnage
+     * */
     @PostMapping("/{username}/backpack/add")
     public ResponseEntity<ApiReponse> addObjectToBackpack(@PathVariable String username, @RequestBody Map<String, String> payload) {
         String name = payload.get("name");
@@ -142,11 +145,11 @@ public class CharactersController {
     /**
      * @param username
      * @return
-     * @throws Exception Récupérer le personnage sélectionné pour l'utilisateur
-     */
+     * @throws Exception
+     * Récupérer le personnage sélectionné pour l'utilisateur
+     * */
     @PostMapping("/{username}/backpack/coffre/add")
-    public ResponseEntity<ApiReponse> addObjectToCoffreInBackPack(@PathVariable String username, @RequestBody Map<String, String> payload) {
-        {
+    public ResponseEntity<ApiReponse> addObjectToCoffreInBackPack(@PathVariable String username, @RequestBody Map<String, String> payload) { {
             String name = payload.get("name");
             String type = payload.get("type");
 
@@ -185,6 +188,23 @@ public class CharactersController {
 
     public void setCharacterServices(CharacterService characterService) {
         this.characterService = characterService;
+    }
+
+
+    @PostMapping("/{username}/backpack/delete/{objectId}")
+    public ResponseEntity<ApiReponse> deleteObjectFromBackpack(
+            @PathVariable String username,
+            @PathVariable String objectId,
+            @RequestHeader("Authorization") String token) {
+
+        try {
+            // Optionnel : vérifier que le token est valide (si tu veux le gérer côté controller)
+            ApiReponse response = characterService.deleteObjectFromBackPack(username, objectId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiReponse("Erreur lors de la suppression de l'objet : " + e.getMessage(), null));
+        }
     }
 
 

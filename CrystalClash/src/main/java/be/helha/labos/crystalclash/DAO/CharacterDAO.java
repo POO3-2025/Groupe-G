@@ -49,6 +49,7 @@ public interface CharacterDAO {
 
     ApiReponse updateReliabilityInBackPack(String username, String objectId, int newReliability);
 
+    ApiReponse deleteObjectFromBackPack(String username, String objectId);
 }
 
 

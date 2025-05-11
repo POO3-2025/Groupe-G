@@ -89,8 +89,8 @@ public class ShopDAOImplTest {
         // Crée un utilisateur test en base MySQL
         var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
         var stmt = conn.prepareStatement("""
-            INSERT INTO users (username, password, level, cristaux, is_connected)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (username, password, level, cristaux, is_connected,gagner,perdu)
+            VALUES (?, ?, ?, ?, ?, ?,?)
             ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         """);
         stmt.setString(1, "testuseShop");
@@ -98,6 +98,8 @@ public class ShopDAOImplTest {
         stmt.setInt(3, 5);
         stmt.setInt(4, 100);
         stmt.setBoolean(5, false);
+        stmt.setInt(6, 0); // valeur par défaut pour 'gagner'
+        stmt.setInt(7, 0); // valeur par défaut pour 'perdu'
         stmt.executeUpdate();
         stmt.close();
         conn.close();
