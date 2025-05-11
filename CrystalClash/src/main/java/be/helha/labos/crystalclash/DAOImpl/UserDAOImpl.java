@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Optional;
 
 @Repository
@@ -130,6 +131,36 @@ public class UserDAOImpl implements UserDAO {
             int updatedRows = stmt.executeUpdate();
             if (updatedRows == 0) {
                 throw new IllegalStateException("Aucun utilisateur mis à jour : " + username);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Override
+    public void incrementWinconsecutive(String username) throws SQLException {
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
+            PreparedStatement stmt = conn.prepareStatement("UPDATE users SET Winconsecutive = Winconsecutive + 1 WHERE username = ?");
+            stmt.setString(1, username);
+            int updatedRows = stmt.executeUpdate();
+            if (updatedRows == 0) {
+                throw new IllegalStateException("Aucune incrementation effectuée : " + username);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Override
+    public void resetWinconsecutiveConsecutive(String username) throws Exception{
+        try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
+            PreparedStatement stmt = conn.prepareStatement("UPDATE users SET Winconsecutive = 0  WHERE username = ?");
+            stmt.setString(1, username);
+            int updatedRows = stmt.executeUpdate();
+            if (updatedRows == 0) {
+                throw new IllegalStateException("Aucun reset éffectué : " + username);
             }
         } catch (Exception e) {
             e.printStackTrace();

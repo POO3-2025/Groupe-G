@@ -72,6 +72,14 @@ public class UserService {
 
     }
 
+    //Trophé
+    public void incrementWimConsecutive(String username) throws Exception {
+        userDAO.incrementWinconsecutive(username);
+    }
+
+    public void resetWinConsecutives(String username) throws Exception {
+        userDAO.resetWinconsecutiveConsecutive(username);
+    }
 
 
 }

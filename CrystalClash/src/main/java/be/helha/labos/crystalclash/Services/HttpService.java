@@ -13,6 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -567,8 +568,6 @@ public class HttpService {
         return response.body();
     }
 
-
-
     /**********************Logout****************/
     public static void logout(String username, String token) throws Exception {
         String json = new Gson().toJson(Map.of("username", username));
@@ -779,6 +778,10 @@ public class HttpService {
         }
     }
 
+    /**
+     * @param token
+     * Récup le classement des joueur par rapport a leurs nbr de victoires.
+     * **/
     public static String getClassementPlayer( String token) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -799,6 +802,29 @@ public class HttpService {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+
+    /**
+     *@param username
+     * @param token
+     * trophée, recoit direct l'objet userInfo, pas besoin qu on le parse nous même dans le code
+      **/
+    public static UserInfo fetchUserInfo(String username, String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/user/" + username))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .GET()
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+            return new Gson().fromJson(response.body(), UserInfo.class);
+        } else {
+            throw new RuntimeException("Erreur lors de la récupération des infos utilisateur : " + response.body());
         }
     }
 

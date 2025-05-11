@@ -3,10 +3,14 @@ package be.helha.labos.crystalclash.ControllerTest;
 
 import be.helha.labos.crystalclash.Controller.InventoryController;
 import be.helha.labos.crystalclash.Controller.RouletteController;
+import be.helha.labos.crystalclash.DAO.RouletteDAO;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.RouletteDAOImpl;
+import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Service.RouletteService;
+import be.helha.labos.crystalclash.Service.UserService;
 import be.helha.labos.crystalclash.server_auth.*;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
@@ -31,20 +35,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static com.mongodb.client.model.Filters.eq;
 
 import static org.junit.jupiter.api.Assertions.*;
-@SpringBootTest(classes = CrystalClashApplication.class)
-@AutoConfigureMockMvc
+
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RouletteControllerTest {
 
 
-    @Autowired
-    private MockMvc mockMvc;
-
     private RouletteController rouletteController;
+    public UserService userService;
+    public RouletteDAO rouletteDAO;
+    public RouletteService rouletteService;
 
-    @Autowired
     private InventoryService inventoryService;
+    private InventoryDAOImpl inventoryDAO;
     /*
     *¨Rediriger les co de prod vers les bases des test
     * Ici on va leurer la connection
@@ -80,6 +83,25 @@ public class RouletteControllerTest {
                             .add(key, mysqlTestConfig.getAsJsonObject("BDCredentials").get(key));
                 });
 
+        var userDAO = new be.helha.labos.crystalclash.DAOImpl.UserDAOImpl();
+        userService = new UserService(userDAO);
+
+        inventoryDAO = new InventoryDAOImpl();
+        inventoryDAO.setUserService(userService);
+
+        inventoryService = new InventoryService(inventoryDAO);
+        inventoryService.setUserService(userService);
+
+
+        rouletteDAO = new RouletteDAOImpl();
+
+        rouletteService = new RouletteService();
+        rouletteService.setRouletteDAO(rouletteDAO);
+        rouletteService.setUserService(userService);
+        rouletteService.setInventoryService(inventoryService);
+
+        rouletteController = new RouletteController();
+        rouletteController.setRouletteService(rouletteService);
     }
     //Clean la roulette avant pour certains tests
     @BeforeEach
@@ -128,7 +150,7 @@ public class RouletteControllerTest {
         String username = "RouletteTestUser10";
         var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
         mongo.getCollection("Inventory").deleteMany(new org.bson.Document("username", username));
-        inventoryService.createInventoryForUser(username);
+
 
     }
 
@@ -144,14 +166,18 @@ public class RouletteControllerTest {
     @Test
     @Order(1)
     @DisplayName("Test jouer a la roulette OK")
-    @WithMockUser(username = "RouletteTestUser10")
     public void testPlayRoulette_success() throws Exception {
-        mockMvc.perform(post("/roulette/play"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.objet").exists());
-    }
+        // Créer un utilisateur de test (tu peux aussi le créer dans ta DB avec JDBC comme tu le fais déjà)
+        String username = "RouletteTestUser10";
 
+        // Appel direct
+        ObjectBase result = rouletteService.PlayRoulette(username);
+
+        inventoryService.createInventoryForUser(username);
+        // Vérifications
+        assertNotNull(result);
+        System.out.println("Objet obtenu : " + result.getName() + " (" + result.getType() + ")");
+    }
 
     /*
     * Voir si l'inventaire du user est bien mis a jout avec l'objet gagné dedans.
@@ -165,25 +191,25 @@ public class RouletteControllerTest {
     @DisplayName("Test inventaire update avec objet gagné")
     @WithMockUser(username = "RouletteTestUser10")
     public void testPlayRoulette_inventoryUpdatedInMongo() throws Exception {
-        mockMvc.perform(post("/roulette/play"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.objet").exists());
+        // Créer un utilisateur de test (tu peux aussi le créer dans ta DB avec JDBC comme tu le fais déjà)
+        String username = "RouletteTestUser10";
 
-        MongoDatabase db = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
-        MongoCollection<Document> collection = db.getCollection("Inventory");
+        inventoryService.createInventoryForUser(username);
 
-        Document userInventory = collection.find(eq("username", "RouletteTestUser10")).first();
+        // Appel direct
+        ObjectBase result = rouletteService.PlayRoulette(username);
 
-        assertNotNull(userInventory, "L'inventaire de l'utilisateur doit exister dans MongoDB");
+        Inventory inventory = inventoryService.getInventoryForUser(username);
 
-        //Va chercher l mot clé objet dans l'inventaire et retourne l'objet
-        //List car on sait deja que objet contient une liste de document
-        @SuppressWarnings("unchecked")
-        List<Document> items = (List<Document>) userInventory.get("objets");
 
-        assertNotNull(items, "Le champ 'items' doit exister dans l'inventaire");
-        assertFalse(items.isEmpty(), "L'inventaire ne doit pas être vide après avoir gagné un objet");
+        List<ObjectBase> objets = inventory.getObjets();
+
+        boolean found = objets.stream().anyMatch(o ->
+                o.getName().equals(result.getName()) &&
+                        o.getType().equals(result.getType()) &&
+                        o.getPrice() == result.getPrice()
+        );
+        assertTrue(found);
     }
 
     /*
@@ -193,20 +219,22 @@ public class RouletteControllerTest {
     @Test
     @Order(3)
     @DisplayName("Test si user peut ne bien joué qu une fois")
-    @WithMockUser(username = "RouletteTestUser10")
     public void testPlayRoulette_onlyOncePerDay() throws Exception {
-        // Premier appel : devrait réussir
-        mockMvc.perform(post("/roulette/play"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.objet").exists());
+        String username = "RouletteTestUser10";
 
-        // Deuxième appel : devrait échouer
-        mockMvc.perform(post("/roulette/play"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Déjà joué aujourd'hui gourmand va !"));
+        ObjectBase result = rouletteService.PlayRoulette(username);
+        assertNotNull(result, "Le premier tirage doit réussir");
+
+        // Deuxième appel : doit échouer
+        Exception exception = assertThrows(Exception.class, () -> {
+            rouletteService.PlayRoulette(username);
+        });
+
+        assertTrue(exception.getMessage().contains("Déjà joué aujourd'hui"),
+                "Le deuxième tirage doit échouer avec le bon message");
+
     }
+
 
     @AfterAll
     public void resetMySQLUsers_AND_Mongo() throws Exception {
@@ -225,5 +253,4 @@ public class RouletteControllerTest {
 
         System.out.println("Toutes les données Mongo ont été supprimées.");
     }
-
 }

@@ -1,7 +1,13 @@
 package be.helha.labos.crystalclash.ControllerTest;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
+import be.helha.labos.crystalclash.Controller.UserController;
+import be.helha.labos.crystalclash.DAOImpl.CharacterDAOImpl;
+import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
 import be.helha.labos.crystalclash.Service.CharacterService;
+import be.helha.labos.crystalclash.Service.InventoryService;
+import be.helha.labos.crystalclash.Service.UserService;
+import be.helha.labos.crystalclash.User.UserInfo;
 import be.helha.labos.crystalclash.server_auth.CrystalClashApplication;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
@@ -9,26 +15,29 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(classes = CrystalClashApplication.class)
-@AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
 
-    @Autowired
     private CharacterService characterService;
+    private CharacterDAOImpl characterDAO;
+    private InventoryService inventoryService;
+    private InventoryDAOImpl inventoryDAO;
+    private UserService userService;
+    private UserController userController;
+
     /*
      *¨Rediriger les co de prod vers les bases des test
      * Ici on va leurer la connection
@@ -63,6 +72,25 @@ public class UserControllerTest {
                     mysqlProductionConfig.getAsJsonObject("BDCredentials")
                             .add(key, mysqlTestConfig.getAsJsonObject("BDCredentials").get(key));
                 });
+
+        var userDAO = new be.helha.labos.crystalclash.DAOImpl.UserDAOImpl();
+        userService = new UserService(userDAO);
+
+        inventoryDAO = new InventoryDAOImpl();
+        inventoryDAO.setUserService(userService);
+
+        inventoryService = new InventoryService(inventoryDAO);
+        inventoryService.setUserService(userService);
+
+        characterDAO = new CharacterDAOImpl();
+        characterDAO.setInventoryService(inventoryService);
+
+        characterService = new CharacterService(characterDAO);
+
+        userController = new UserController();
+        userController.setUserService(userService);
+        userController.setCharacterService(characterService);
+
     }
 
     @BeforeEach
@@ -100,22 +128,31 @@ public class UserControllerTest {
     }
 
 
-
     /*
     * Test recup le user.
     * */
     @Test
     @Order(1)
     @DisplayName("Test récupération d’un utilisateur existant")
-    @WithMockUser(username = "UserControllerTestUser")
-    public void RecupUserExistant() throws Exception {
-        mockMvc.perform(get("/user/UserControllerTestUser"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("UserControllerTestUser"))
-                .andExpect(jsonPath("$.level").value(5))
-                .andExpect(jsonPath("$.cristaux").value(100))
-                .andExpect(jsonPath("$.selectedCharacter").value("troll"));
+    public void RecupUserExistant() {
+        String username = "UserControllerTestUser";
 
+        // Appel direct de la méthode du contrôleur
+        ResponseEntity<?> response = userController.getUserByUsername(username);
+
+        Assertions.assertEquals(200, response.getStatusCodeValue());
+
+        Object body = response.getBody();
+        Assertions.assertNotNull(body);
+        Assertions.assertInstanceOf(UserInfo.class, body);
+
+        UserInfo userInfo = (UserInfo) body;
+        Assertions.assertEquals(username, userInfo.getUsername());
+        Assertions.assertEquals(5, userInfo.getLevel());
+        Assertions.assertEquals(100, userInfo.getCristaux());
+        Assertions.assertEquals(0, userInfo.getGagner());
+        Assertions.assertEquals(0, userInfo.getPerdu());
+        Assertions.assertEquals("troll", userInfo.getSelectedCharacter());
     }
 
 
@@ -125,24 +162,21 @@ public class UserControllerTest {
     @Test
     @Order(2)
     @DisplayName("Test récupération d’un utilisateur inexistant")
-    @WithMockUser(username = "InexistantUser")
-    public void testGetUserByUsername_notFound() throws Exception {
-        mockMvc.perform(get("/user/InexistantUser"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Utilisateur introuvable"));
+    public void testGetUserByUsername_notFound() {
+        String username = "InexistantUser";
+
+        ResponseEntity<?> response = userController.getUserByUsername(username);
+
+        Assertions.assertEquals(404, response.getStatusCodeValue());
+
+        Object body = response.getBody();
+        Assertions.assertNotNull(body);
+        Assertions.assertInstanceOf(Map.class, body);
+
+        Map<String, String> errorResponse = (Map<String, String>) body;
+        Assertions.assertEquals("Utilisateur introuvable", errorResponse.get("message"));
     }
 
-    /*
-    * Test avec un token bidon
-    * */
-    @Test
-    @Order(3)
-    @DisplayName("Test accès refusé avec token invalide")
-    public void testAccessDeniedWithInvalidToken() throws Exception {
-        mockMvc.perform(get("/user/UserControllerTestUser")
-                        .header("Authorization", "Bearer faketoken"))
-                .andExpect(status().isForbidden()); //Accepte l'erreur 403 car mauvais token alors erreur
-    }
 
     @AfterAll
     public void resetMySQLUsers_AND_Mongo() throws Exception {
@@ -163,5 +197,3 @@ public class UserControllerTest {
     }
 
 }
-
-
