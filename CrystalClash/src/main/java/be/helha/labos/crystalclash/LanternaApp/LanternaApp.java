@@ -1926,22 +1926,23 @@ public class LanternaApp {
                             labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
-                            historyPanel.removeAllComponents();
-                            historyPanel.addComponent(new Label("Historique :"));
-                            for (String log : updated.getLog()) {
-                                historyPanel.addComponent(new Label(log));
-                            }
-
-                            // relancer l’interface avec les boutons en focntion des tours, si c le meme tour alors les boutons sont affichés pour le bon user
-                            //Si le tour a changé alors la on fait un remove soit pour retirer les boutons et afficher en attente..... soint pour retirer cette phrase et afficher les boutons.
-                            if (updated.getTour() != lasttour[0]) {
-                                lasttour[0] = updated.getTour();
-                                actionPanel.removeAllComponents();
-                                if (updated.getPlayerNow().equals(Session.getUsername())) {
-                                    updateActionPanel(actionPanel, updated, gui); //Va appeller la méthode
-                                } else {
-                                    actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+                                historyPanel.removeAllComponents();
+                                historyPanel.addComponent(new Label("Historique :"));
+                                for (String log : updated.getLog()) {
+                                    historyPanel.addComponent(new Label(log));
                                 }
+
+                                // relancer l’interface avec les boutons en focntion des tours, si c le meme tour alors les boutons sont affichés pour le bon user
+                                //Si le tour a changé alors la on fait un remove soit pour retirer les boutons et afficher en attente..... soint pour retirer cette phrase et afficher les boutons.
+                                if (updated.getTour() != lasttour[0]) {
+                                    lasttour[0] = updated.getTour();
+                                    actionPanel.removeAllComponents();
+                                    if (updated.getPlayerNow().equals(Session.getUsername())) {
+                                        updateActionPanel(actionPanel, updated, gui); //Va appeller la méthode
+                                    } else {
+                                        actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+                                    }
+
                             }
                         });
 
@@ -1970,52 +1971,18 @@ public class LanternaApp {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
             }));
+
             for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
                 actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
                     try {
                         HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
 
-                        //SI ouverture du coffre faut charger le new etat du combat
-                        if(obj instanceof CoffreDesJoyaux){
-                            actionPanel.addComponent(new Button("Ouvrir le coffre", () -> {
-                                displayChest(gui, (CoffreDesJoyaux) obj);
-                            }));
-                        }
                     } catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                     }
                 }));
             }
         }
-
-        /**
-         * Méthode pour un affiche propre lors du combat si coffre utilisé
-         **/
-         public static void displayChest(WindowBasedTextGUI gui, CoffreDesJoyaux coffre){
-             BasicWindow coffreWindow = new BasicWindow("Coffre des Joyaux");
-
-             Panel panel = new Panel(new GridLayout(1));
-             panel.removeAllComponents();
-             panel.addComponent(new Label("Objets contenus dans le coffre :"));
-
-             //Regarde si new insatnce ou memes objets mais non dupliqués
-             for (ObjectBase obj : coffre.getContenu()) {
-                 panel.addComponent(new Button(obj.getName(), () -> {
-                     try {
-                         HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
-                         coffreWindow.close(); // ferme après usage
-                     } catch (Exception e) {
-                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                     }
-                 }));
-             }
-
-             panel.addComponent(new Button("Fermer", coffreWindow::close));
-
-             coffreWindow.setComponent(panel);
-             //attendre jusqué fermeture
-             gui.addWindowAndWait(coffreWindow);
-         }
 
         private static void DisplayClassement (WindowBasedTextGUI gui){
             BasicWindow profileWindow = new BasicWindow("Classement");
