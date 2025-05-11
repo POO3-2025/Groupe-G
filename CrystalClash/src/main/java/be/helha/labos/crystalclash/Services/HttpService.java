@@ -334,17 +334,6 @@ public class HttpService {
         return response.body();
     }
 
-    public static String getCoffre(String username, String token) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/inventory/" + username + "/coffre"))
-                .timeout(Duration.ofSeconds(5))
-                .header("Authorization", "Bearer " + token)
-                .GET()
-                .build();
-
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
-    }
 
     public static String putInCoffre(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
@@ -411,18 +400,6 @@ public class HttpService {
         return response.body();
     }
 
-    /*
-     * appelle le serveur via httpService.getInventory
-     * dése cusstom les objets de mongo vers txt json
-     * et retourne bien tout
-     * */
-    public static Inventory refreshInventory() throws Exception {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                .create();
-        String jsonInventaire = HttpService.getInventory(Session.getUsername(), Session.getToken());
-        return gson.fromJson(jsonInventaire, Inventory.class);
-    }
 
     public static String updateObjectReliability(String username, String objectId, int newReliability, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
@@ -469,16 +446,6 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
     }
-
-
-
-
-
-
-
-
-
-
 
     /**********************Logout****************/
     public static void logout(String username, String token) throws Exception {
@@ -563,7 +530,6 @@ public class HttpService {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.body();
     }
-
 
 
     /****************************Salle d'attente***************************/

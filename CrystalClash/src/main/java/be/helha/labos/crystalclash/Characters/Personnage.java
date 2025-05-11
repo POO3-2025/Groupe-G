@@ -20,6 +20,7 @@ public class Personnage {
 
     /**
      * Constructeur de la classe Personnage
+     *
      * @param Name
      * @param PV
      * @param AttackBase
@@ -29,7 +30,7 @@ public class Personnage {
      * @param RestrictionAttackSpecial
      */
     public Personnage(String Name, int PV, int AttackBase,
-                      String NameAttackBase, int AttackSpecial, String NameAttaqueSpecial,int RestrictionAttackSpecial) {
+                      String NameAttackBase, int AttackSpecial, String NameAttaqueSpecial, int RestrictionAttackSpecial) {
         this.Name = Name;
         this.PV = PV;
         this.AttackBase = AttackBase;
@@ -40,67 +41,75 @@ public class Personnage {
     }
 
     public void tackle(Personnage target) {
-    System.out.println(this.Name + " attaque " + target.getName() + " avec une attaque normale !");
-    target.receiveDamage(AttackBase);
-    CompteurAttack++;
-}
+        System.out.println(this.Name + " attaque " + target.getName() + " avec une attaque normale !");
+        target.receiveDamage(AttackBase);
+        CompteurAttack++;
+    }
 
-public  void AttackSpecial(Personnage target){
-    System.out.println(Name + " n’a pas d’attaque spéciale ou ne peut pas l’utiliser.");
-};
+    public void AttackSpecial(Personnage target) {
+        System.out.println(Name + " n’a pas d’attaque spéciale ou ne peut pas l’utiliser.");
+    }
 
-public  boolean CanUseSpecialAttack(){
-    return false;
-};
+    ;
 
-public void receiveDamage(int damage) {
-    this.PV -= damage;
-    System.out.println(Name + " subit " + damage + " points de dégâts. PV restants : " + PV);
-}
+    public boolean CanUseSpecialAttack() {
+        return false;
+    }
 
-public String getName() {
-    return Name;
-}
+    ;
 
-public void setName(String Name) {
-    this.Name = Name;
-}
+    public void receiveDamage(int damage) {
+        this.PV -= damage;
+        System.out.println(Name + " subit " + damage + " points de dégâts. PV restants : " + PV);
+    }
 
-public int getPV() {
-    return PV;
-}
+    public String getName() {
+        return Name;
+    }
 
-public void setPV(int PV) {
-    this.PV = PV;
-}
+    public void setName(String Name) {
+        this.Name = Name;
+    }
 
-public int getAttackBase() {
-    return AttackBase;
-}
+    public int getPV() {
+        return PV;
+    }
 
-public void AttackBase(int AttackBase) {
-    this.AttackBase = AttackBase;
-}
+    public void setPV(int PV) {
+        this.PV = PV;
+    }
 
-public int getCompteurAttack() {
-    return CompteurAttack;
-}
+    public int getAttackBase() {
+        return AttackBase;
+    }
 
-public void CompteurAttack(int CompteurAttack) {
-    this.CompteurAttack = CompteurAttack;
-}
-public String getNameAttackBase() {
-    return NameAttackBase;
-}
-public int getAttackSpecial() {
-    return AttackSpecial;
-}
-public String getNameAttaqueSpecial() {
-    return NameAttaqueSpecial;
-}
-public int getRestrictionAttackSpecial() {
-    return RestrictionAttackSpecial;
-}
+    public void AttackBase(int AttackBase) {
+        this.AttackBase = AttackBase;
+    }
+
+    public int getCompteurAttack() {
+        return CompteurAttack;
+    }
+
+    public void CompteurAttack(int CompteurAttack) {
+        this.CompteurAttack = CompteurAttack;
+    }
+
+    public String getNameAttackBase() {
+        return NameAttackBase;
+    }
+
+    public int getAttackSpecial() {
+        return AttackSpecial;
+    }
+
+    public String getNameAttaqueSpecial() {
+        return NameAttaqueSpecial;
+    }
+
+    public int getRestrictionAttackSpecial() {
+        return RestrictionAttackSpecial;
+    }
 
 }
 
