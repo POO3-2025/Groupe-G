@@ -1923,33 +1923,26 @@ public class LanternaApp {
                         //Ici a chaque invokeLater il y aura une mise a jour visuelle du tour, les pvs et historique
                         gui.getGUIThread().invokeLater(() -> {
                             tourLabel.setText("Tour : " + updated.getTour());
-                            if(updated.getTour() == 3){
-                                historyPanel.removeAllComponents();
-                                historyPanel.addComponent(new Label("Historique vidé au tour 3."));
-
-                                //efface tempo les actions dispo
-                                actionPanel.removeAllComponents();
-                                actionPanel.addComponent(new Label("Interface remise à zéro à ce tour."));
-                            }
                             labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
-                            historyPanel.removeAllComponents();
-                            historyPanel.addComponent(new Label("Historique :"));
-                            for (String log : updated.getLog()) {
-                                historyPanel.addComponent(new Label(log));
-                            }
-
-                            // relancer l’interface avec les boutons en focntion des tours, si c le meme tour alors les boutons sont affichés pour le bon user
-                            //Si le tour a changé alors la on fait un remove soit pour retirer les boutons et afficher en attente..... soint pour retirer cette phrase et afficher les boutons.
-                            if (updated.getTour() != lasttour[0]) {
-                                lasttour[0] = updated.getTour();
-                                actionPanel.removeAllComponents();
-                                if (updated.getPlayerNow().equals(Session.getUsername())) {
-                                    updateActionPanel(actionPanel, updated, gui); //Va appeller la méthode
-                                } else {
-                                    actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+                                historyPanel.removeAllComponents();
+                                historyPanel.addComponent(new Label("Historique :"));
+                                for (String log : updated.getLog()) {
+                                    historyPanel.addComponent(new Label(log));
                                 }
+
+                                // relancer l’interface avec les boutons en focntion des tours, si c le meme tour alors les boutons sont affichés pour le bon user
+                                //Si le tour a changé alors la on fait un remove soit pour retirer les boutons et afficher en attente..... soint pour retirer cette phrase et afficher les boutons.
+                                if (updated.getTour() != lasttour[0]) {
+                                    lasttour[0] = updated.getTour();
+                                    actionPanel.removeAllComponents();
+                                    if (updated.getPlayerNow().equals(Session.getUsername())) {
+                                        updateActionPanel(actionPanel, updated, gui); //Va appeller la méthode
+                                    } else {
+                                        actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+                                    }
+
                             }
                         });
 
@@ -1978,6 +1971,17 @@ public class LanternaApp {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
             }));
+
+            for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
+                actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
+                    try {
+                        HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+
+                    } catch (Exception e) {
+                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                    }
+                }));
+            }
         }
 
         private static void DisplayClassement (WindowBasedTextGUI gui){

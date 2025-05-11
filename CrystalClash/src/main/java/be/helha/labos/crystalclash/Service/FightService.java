@@ -71,28 +71,37 @@ public class FightService {
         StateCombat state = combats.get(username);
         if (state != null) {
             if (state.isFinished()) {
-                // Si le combat est terminé mais pas encore affiché une dernière fois
+                // avoir bien winner et loser
+                if (state.getWinner() == null || state.getLoser() == null) {
+                    String winner = (state.getPv(state.getPlayer1()) > 0) ? state.getPlayer1() : state.getPlayer2();
+                    String loser = state.getOpponent(winner);
+                    state.setWinner(winner);
+                    state.setLoser(loser);
+                }
+
                 if (!state.isCombatDisplayed()) {
                     state.setCombatDisplayed(true);
                     return state;
                 }
 
-                // Si déjà affiché une fois, on peut le supprimer
+                // Combat déjà affiché une fois , alors suppression
                 String winner = state.getWinner();
                 String loser = state.getLoser();
-                derniersGagnants.put(winner, winner);
-                derniersGagnants.put(loser, winner);
-                combats.remove(winner);
-                combats.remove(loser);
+                if (winner != null && loser != null) {
+                    derniersGagnants.put(winner, winner);
+                    derniersGagnants.put(loser, winner);
+                    combats.remove(winner);
+                    combats.remove(loser);
+                }
                 return null;
             }
 
             return state;
         }
 
-        // Le combat a déjà été supprimé
         return null;
     }
+
 
 
 
@@ -241,6 +250,9 @@ public class FightService {
             combats.remove(loser);
             state.setWinner(winner);
             state.setLoser(loser);
+
+        }else {
+            state.NextTurn();
         }
 
         //Test de mettre a jour le backPack pour l endurance des armes
@@ -262,31 +274,35 @@ public class FightService {
         String opponent = state.getOpponent(username);
         if (opponent == null) return;
 
-        // Mettre les PV du joueur qui abandonne à 0 pour terminer le combat
+        // met  PV du joueur qui abandonne à 0 pour terminer le combat
         state.setPv(username, 0);
 
-        // Vérification que le combat est bien terminé
-        if (state.isFinished()) {
-            String winner = state.getWinner(); // ce sera l’adversaire puisque username a 0 PV
-            if (winner != null) {
-                String loser = username;
-                state.setWinner(winner);
-                state.setLoser(loser);
-                userService.rewardWinner(winner, 50, 1);
-                userService.IncrementWinner(winner); // +1 victoire pour le gagnant
-                userService.incrementDefeat(loser);
-                state.addLog(username + " a abandonné le combat.");
-                state.addLog(winner + " remporte le combat par forfait ! +1 niveau, +50 cristaux");
-                derniersGagnants.put(winner, winner);
-                derniersGagnants.put(state.getOpponent(winner), winner);//Opponent gagnant
-                userService.incrementWimConsecutive(winner);
-                userService.resetWinConsecutives(loser);
-                combats.remove(username);
-                combats.remove(opponent);
+        // Définir winner/loser si pas fait
+        if (state.getWinner() == null) {
+            state.setWinner(opponent);
+        }
+        if (state.getLoser() == null) {
+            state.setLoser(username);
+        }
 
-            }
+        if (state.isFinished()) {
+            String winner = state.getWinner();
+            String loser = state.getLoser();
+
+            userService.rewardWinner(winner, 50, 1);
+            userService.IncrementWinner(winner); // +1 victoire pour le gagnant
+            userService.incrementDefeat(loser);
+            state.addLog(username + " a abandonné le combat.");
+            state.addLog(winner + " remporte le combat par forfait ! +1 niveau, +50 cristaux");
+            derniersGagnants.put(winner, winner);
+            derniersGagnants.put(loser, winner);
+            userService.incrementWimConsecutive(winner);
+            userService.resetWinConsecutives(loser);
+            combats.remove(username);
+            combats.remove(opponent);
         }
     }
+
 
     public List<UserInfo> getClassementPlayer() {
     return fightDAO.getClassementPlayer();
