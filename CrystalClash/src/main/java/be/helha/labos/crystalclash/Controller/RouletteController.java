@@ -2,6 +2,8 @@ package be.helha.labos.crystalclash.Controller;
 
 import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.Object.ObjectBase;
+import be.helha.labos.crystalclash.Service.CharacterService;
+import be.helha.labos.crystalclash.Service.RegistreService;
 import be.helha.labos.crystalclash.Service.RouletteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -51,4 +53,7 @@ public class RouletteController {
         }
     }
 
+    public void setRouletteService(RouletteService rouletteService) {
+        this.rouletteService = rouletteService;
+    }
 }

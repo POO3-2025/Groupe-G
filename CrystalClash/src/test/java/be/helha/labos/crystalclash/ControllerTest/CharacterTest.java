@@ -17,6 +17,7 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -100,15 +101,17 @@ public class CharacterTest {
         // Crée un utilisateur test en base MySQL
         var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
         var stmt = conn.prepareStatement("""
-            INSERT INTO users (username, password, level, cristaux, is_connected)
-            VALUES (?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
-        """);
+        INSERT INTO users (username, password, level, cristaux, is_connected, gagner, perdu)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
+    """);
         stmt.setString(1, "CharacterTestUser");
         stmt.setString(2, "password");
         stmt.setInt(3, 5);
         stmt.setInt(4, 100);
         stmt.setBoolean(5, false);
+        stmt.setInt(6, 0);
+        stmt.setInt(7, 0);
         stmt.executeUpdate();
         stmt.close();
         conn.close();

@@ -34,18 +34,17 @@ public class HttpService {
 
     /**
      * Envoie requete pour login user
-     *
      * @param password
      * @param username
      **/
     public static String login(String username, String password) throws Exception {
         String json = String.format("{\"username\":\"%s\", \"password\":\"%s\"}", username, password);
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/login"))
-                .timeout(Duration.ofSeconds(5))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
-                .build();
+            .uri(URI.create(BASE_URL + "/login"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+            .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -54,10 +53,10 @@ public class HttpService {
 
     /**
      * envoie la requête à /register pour créer un nouvel utilisateur
-     * poste un JSON avec pseudo + mot de passe
+     *poste un JSON avec pseudo + mot de passe
      * Le serveur vérifie que l’utilisateur n’existe pas
-     * Le serveur vérifie que l’utilisateur n’existe pas
-     * Il renvoie un message (pas de token)
+     *Le serveur vérifie que l’utilisateur n’existe pas
+     *Il renvoie un message (pas de token)
      *
      * @param password
      * @param username
@@ -75,10 +74,8 @@ public class HttpService {
 
         return response.body();
     }
-
     /**
      * Envoie requete pour avoir inventaire user
-     *
      * @param username
      * @param token
      **/
@@ -98,17 +95,16 @@ public class HttpService {
 
     /**
      * avoir info user
-     *
      * @param username
      * @param token
      **/
     public static String getUserInfo(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/user/" + username))
-                .timeout(Duration.ofSeconds(5))
-                .header("Authorization", "Bearer " + token) // Envoie le token JWT dans l'en-tête
-                .GET()
-                .build();
+            .uri(URI.create(BASE_URL + "/user/" + username))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token) // Envoie le token JWT dans l'en-tête
+            .GET()
+            .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -196,7 +192,6 @@ public class HttpService {
 
     /**
      * acheter un item avec requete passant name et type ds le json
-     *
      * @param name
      * @param type
      * @param token
@@ -221,7 +216,6 @@ public class HttpService {
 
     /**
      * obtenir shop, token obligatoire car on afficher shop en focntion  du level du user
-     *
      * @param token
      **/
 
@@ -239,9 +233,8 @@ public class HttpService {
 
     /**
      * vend object json le meme
-     *
-     * @param name
-     * @param type
+     *  @param name
+     *   @param type
      * @param token
      **/
     public static String sellObjetc(String name, String type, String token) throws Exception {
@@ -265,8 +258,7 @@ public class HttpService {
 
     /**
      * Met objet de l'inventaire ds le back en envoyant requete
-     *
-     * @param username
+     *  @param username
      * @param name
      * @param token
      * @param type
@@ -291,7 +283,6 @@ public class HttpService {
 
     /**
      * Retire de back pour mettre dans inventaire, evoie requete
-     *
      * @param token
      * @param name
      * @param username
@@ -389,6 +380,37 @@ public class HttpService {
     }
 
 
+    /**
+     * Démarre un combat en envoyant une requête au serveur.
+     * @param username Le nom d'utilisateur du joueur qui lance le combat.
+     * @param token Le token d'autorisation pour le joueur.
+     * @return La réponse JSON du serveur indiquant le résultat du combat.
+     * @throws Exception Si une erreur se produit lors de l'appel HTTP ou de la sérialisation.
+     */
+    public static String startCombat(String username, String token) throws Exception {
+        // Préparer le corps de la requête en JSON
+        String json = new Gson().toJson(Map.of("username", username));
+
+        // Créer la requête HTTP avec une timeout de 5 secondes
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/combat/start"))
+            .timeout(Duration.ofSeconds(5))
+            .header("Authorization", "Bearer " + token)
+            .POST(HttpRequest.BodyPublishers.ofString(json))  // Utilisation du JSON sérialisé
+            .build();
+
+        // Créer un client HTTP et envoyer la requête
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+        // Vérifier si la réponse est réussie
+        if (response.statusCode() != 200) {
+            throw new Exception("Erreur serveur: " + response.statusCode() + " - " + response.body());
+        }
+
+        // Retourner le corps de la réponse JSON
+        return response.body();
+    }
+
     /*
      * appelle le serveur via httpService.getInventory
      * dése cusstom les objets de mongo vers txt json
@@ -423,6 +445,33 @@ public class HttpService {
         return response.body();
     }
 
+    /**
+     * Supprime définitivement un objet du backpack d'un utilisateur
+     * @param username nom de l'utilisateur
+     * @param objectId identifiant unique de l'objet à supprimer
+     * @param token JWT d'authentification
+     * @return réponse brute du serveur
+     * @throws Exception en cas d'erreur réseau ou serveur
+     */
+    public static String deleteObjectFromBackpack(String username, String objectId, String token) throws Exception {
+        String json = new Gson().toJson(Map.of(
+                "id", objectId
+        ));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/delete/" + objectId)) //
+                .timeout(Duration.ofSeconds(5))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+
+
 
 
 
@@ -452,7 +501,6 @@ public class HttpService {
             throw new RuntimeException("Erreur déconnexion du user: " + response.body());
         }
     }
-
     public static List<UserInfo> getConnectedUsers() throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/users/connected/list"))
@@ -516,19 +564,7 @@ public class HttpService {
         return response.body();
     }
 
-    public static String startCombat(String username, String token) throws Exception {
-        String json = new Gson().toJson(Map.of("username", username));
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/combat/start"))
-                .timeout(Duration.ofSeconds(5))
-                .header("Authorization", "Bearer " + token)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
-    }
 
     /****************************Salle d'attente***************************/
 
@@ -681,6 +717,7 @@ public class HttpService {
         }
     }
 
+
     /**
      *@param username
      * @param token
@@ -702,7 +739,6 @@ public class HttpService {
             throw new RuntimeException("Erreur lors de la récupération des infos utilisateur : " + response.body());
         }
     }
-
 
 }
 

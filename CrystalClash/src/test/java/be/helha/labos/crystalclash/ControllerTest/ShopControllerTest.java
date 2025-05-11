@@ -1,20 +1,28 @@
 package be.helha.labos.crystalclash.ControllerTest;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
+import be.helha.labos.crystalclash.Controller.ShopController;
+import be.helha.labos.crystalclash.DAO.InventoryDAO;
+import be.helha.labos.crystalclash.DAO.UserDAO;
+import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
+import be.helha.labos.crystalclash.DAOImpl.ShopDAOImpl;
+import be.helha.labos.crystalclash.DAOImpl.UserDAOImpl;
 import be.helha.labos.crystalclash.Service.InventoryService;
+import be.helha.labos.crystalclash.Service.ShopService;
+import be.helha.labos.crystalclash.Service.UserService;
 import be.helha.labos.crystalclash.server_auth.CrystalClashApplication;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.api.*;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
+import java.util.Map;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,19 +30,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-@SpringBootTest(classes = CrystalClashApplication.class)
-@AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ShopControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
+    private ShopController shopController;
     private InventoryService inventoryService;
+    private UserService userService;
 
-
+    private final String TEST_USERNAME = "ShopTestUser";
     /*
      *¨Rediriger les co de prod vers les bases des test
      * Ici on va leurer la connection
@@ -69,6 +73,39 @@ public class ShopControllerTest {
                     mysqlProductionConfig.getAsJsonObject("BDCredentials")
                             .add(key, mysqlTestConfig.getAsJsonObject("BDCredentials").get(key));
                 });
+
+        //Créat et vide du mongo
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Inventory").deleteMany(new org.bson.Document("username", TEST_USERNAME));
+
+        //instance de dao manuellement, acces aux donnée
+        UserDAO userDAO = new UserDAOImpl();//inteagit avec tb users
+        InventoryDAO inventoryDAO = new InventoryDAOImpl();//gere opérations mongo
+
+        //Pareil mais en injectant les daos (logique metier)
+        //Appelle dao et validation metier
+        userService = new UserService(userDAO); //recup les infos uti
+        inventoryService = new InventoryService(inventoryDAO);//use mongo pour gere l inventaire
+        inventoryService.setUserService(userService);
+
+        //Prépa de shopDao
+        //Logique shop
+        ShopDAOImpl shopDAO = new ShopDAOImpl();//
+        shopDAO.setUserService(userService); //vérif le level du user
+        shopDAO.setInventoryService(inventoryService);//Verif si place et ajoute objet
+
+        //Service et controleur manu
+        //Legue logique au Dao
+        ShopService shopService = new ShopService(shopDAO); //Appel controller
+        shopController = new ShopController();//Ici pour les tests
+        shopController.setShopService(shopService);
+
+        inventoryDAO.createInventoryForUser(TEST_USERNAME);
+
+        // simu user co
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(TEST_USERNAME, null)
+        );
     }
 
     @BeforeEach
@@ -76,31 +113,22 @@ public class ShopControllerTest {
         // Crée un utilisateur test en base MySQL
         var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
         var stmt = conn.prepareStatement("""
-            INSERT INTO users (username, password, level, cristaux, is_connected)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (username, password, level, cristaux, is_connected,gagner,perdu)
+            VALUES (?, ?, ?, ?, ?,?,?)
             ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         """);
-        stmt.setString(1, "ShopTestUser");
+        stmt.setString(1, TEST_USERNAME);
         stmt.setString(2, "password");
         stmt.setInt(3, 5);
         stmt.setInt(4, 100);
         stmt.setBoolean(5, false);
+        stmt.setInt(6, 0);
+        stmt.setInt(7, 0);
         stmt.executeUpdate();
         stmt.close();
         conn.close();
     }
 
-
-    @BeforeEach
-    public void EnsureInventoryMongo() throws Exception {
-        // Crée un inventaire
-        // Créer inventaire avec l’objet
-        String username = "ShopTestUser";
-        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
-        mongo.getCollection("Inventory").deleteMany(new org.bson.Document("username", username));
-        inventoryService.createInventoryForUser(username);
-
-    }
 
     //Pour les noms des tests
     @BeforeEach
@@ -109,17 +137,15 @@ public class ShopControllerTest {
     }
 
     /*
-    * Test pour obtenir le shop selon le levevel du user
-    * */
+     * Test pour obtenir le shop selon le levevel du user
+     * */
     @Test
     @Order(1)
     @DisplayName("Test obtenir shop")
-    @WithMockUser(username = "ShopTestUser")
     public void testGetShopObjets() throws Exception {
-        mockMvc.perform(get("/shop"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray()) // le $ représente la racine du doc json (contient l'objet ou tb json retourné par la reponse de la requete)
-                .andExpect(jsonPath("$[0].name").exists()); //$[0] premier élém du tb, champ name la
+        List<Map<String, Object>> shop = shopController.getShops();
+        assertFalse(shop.isEmpty(),"le shop ne devrait pas etre vide");
+        assertTrue(shop.get(0).containsKey("name"));
     }
 
 
@@ -129,80 +155,54 @@ public class ShopControllerTest {
     @Test
     @Order(2)
     @DisplayName("Test achat objet")
-    @WithMockUser(username = "ShopTestUser")
     public void testBuyItem_success() throws Exception {
-        mockMvc.perform(post("/shop/buy")
-                //On doit passer le vrai json un peu comment postman quoi
-                        .contentType("application/json")
-                        .content("""
-                        {
-                "name": "Epee en bois",
-                "type": "Weapon"
-                }
-                  """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("acheté")));
+
+        Map<String, String> contenu = Map.of(
+                "name", "Epee en bois",
+                "type", "Weapon"
+        );
+        ResponseEntity<Map<String, Object>> response = shopController.buyItem(contenu);
+        assertTrue((Boolean) response.getBody().get("success"));
+        assertTrue(((String) response.getBody().get("message")).contains("acheté"));
     }
 
     @Test
     @Order(3)
     @DisplayName("Test achat objet avec 0 cristaux")
-    @WithMockUser(username = "ShopTestUser")
     public void testBuyItem_notEnoughCrystals() throws Exception {
-        // Mettre le joueur à 0 cristaux
         var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
         var stmt = conn.prepareStatement("UPDATE users SET cristaux = 0 WHERE username = ?");
-        stmt.setString(1, "ShopTestUser");
+        stmt.setString(1, TEST_USERNAME);
         stmt.executeUpdate();
         stmt.close();
         conn.close();
 
-        mockMvc.perform(post("/shop/buy")
-                        //On doit passer le vrai json un peu comment postman quoi
-                        .contentType("application/json")
-                        .content("""
-                        {
-                "name": "Epee en bois",
-                "type": "Weapon"
-                }
-                  """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Pas assez de cristaux !"));
+        Map<String, String> payload = Map.of(
+                "name", "Epee en bois",
+                "type", "Weapon"
+        );
+
+        ResponseEntity<Map<String, Object>> response = shopController.buyItem(payload);
+        assertFalse((Boolean) response.getBody().get("success"));
+        assertEquals("Pas assez de cristaux !", response.getBody().get("message"));
+
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     @DisplayName("Test achat deux fois Coffre")
-    @WithMockUser(username = "ShopTestUser")
     public void testBuy_Two_CoffreDesJoyaux() throws Exception {
-        mockMvc.perform(post("/shop/buy")
-                        //On doit passer le vrai json un peu comment postman quoi
-                        .contentType("application/json")
-                        .content("""
-                        {
-                "name": "Coffre des Joyaux",
-                "type": "CoffreDesJoyaux"
-                }
-                  """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("acheté")));
+        Map<String, String> payload = Map.of(
+                "name", "Coffre des Joyaux",
+                "type", "CoffreDesJoyaux"
+        );
 
-        //Achat une seconde fois
-        mockMvc.perform(post("/shop/buy")
-                        //On doit passer le vrai json un peu comment postman quoi
-                        .contentType("application/json")
-                        .content("""
-                        {
-                "name": "Coffre des Joyaux",
-                "type": "CoffreDesJoyaux"
-                }
-                  """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Tu possèdes déjà un Coffre des Joyaux !"));
+        ResponseEntity<Map<String, Object>> res1 = shopController.buyItem(payload);
+        assertTrue((Boolean) res1.getBody().get("success"));
+
+        ResponseEntity<Map<String, Object>> res2 = shopController.buyItem(payload);
+        assertFalse((Boolean) res2.getBody().get("success"));
+        assertEquals("Tu possèdes déjà un Coffre des Joyaux !", res2.getBody().get("message"));
     }
 
     @AfterAll

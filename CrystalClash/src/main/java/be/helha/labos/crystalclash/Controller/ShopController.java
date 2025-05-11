@@ -55,5 +55,9 @@ public class ShopController {
         return ResponseEntity.ok(response);
     }
 
+    //Setter le controller pour le test
+    public void setShopService(ShopService shopService) {
+        this.shopService = shopService;
+    }
 
 }
