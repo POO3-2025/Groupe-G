@@ -1751,13 +1751,19 @@ public class LanternaApp {
              BasicWindow coffreWindow = new BasicWindow("Coffre des Joyaux");
 
              Panel panel = new Panel(new GridLayout(1));
+             panel.removeAllComponents();
              panel.addComponent(new Label("Objets contenus dans le coffre :"));
 
-             panel.removeAllComponents();
-
              //Regarde si new insatnce ou memes objets mais non dupliqués
-             for (ObjectBase obj : coffre.getContenu()){
-                 panel.addComponent(new Label("-" + obj.getName()));
+             for (ObjectBase obj : coffre.getContenu()) {
+                 panel.addComponent(new Button(obj.getName(), () -> {
+                     try {
+                         HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                         coffreWindow.close(); // ferme après usage
+                     } catch (Exception e) {
+                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                     }
+                 }));
              }
 
              panel.addComponent(new Button("Fermer", coffreWindow::close));

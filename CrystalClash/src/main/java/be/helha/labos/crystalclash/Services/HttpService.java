@@ -411,18 +411,6 @@ public class HttpService {
         return response.body();
     }
 
-    /*
-     * appelle le serveur via httpService.getInventory
-     * dése cusstom les objets de mongo vers txt json
-     * et retourne bien tout
-     * */
-    public static Inventory refreshInventory() throws Exception {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                .create();
-        String jsonInventaire = HttpService.getInventory(Session.getUsername(), Session.getToken());
-        return gson.fromJson(jsonInventaire, Inventory.class);
-    }
 
     public static String updateObjectReliability(String username, String objectId, int newReliability, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
