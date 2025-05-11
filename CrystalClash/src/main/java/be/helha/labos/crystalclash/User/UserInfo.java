@@ -69,6 +69,7 @@ public class UserInfo {
     public int getDernierCombatTours() { return dernierCombatTours; }
     public void setDernierCombatTours(int tours) { this.dernierCombatTours = tours; }
 
+    //Utile pour le trophé Or, on regarde si le user a use le bazooka.
     public int getUtilisationBazooka() { return utilisationBazooka; }
     public void incrementUtilisationBazooka() { this.utilisationBazooka++; }
 }

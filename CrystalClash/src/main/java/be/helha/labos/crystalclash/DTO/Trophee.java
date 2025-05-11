@@ -1,10 +1,19 @@
 package be.helha.labos.crystalclash.DTO;
 
+/**
+ * DTO pour les trophés
+ * contient le nom, description et un boolean si obtenu
+ * **/
 public class Trophee {
     private String nom;
     private String description;
     private boolean obtenu ;
 
+    /**
+     * @param description
+     * @param nom
+     * @param obtenu
+     * **/
     public Trophee(String nom, String description, boolean obtenu) {
         this.nom = nom;
         this.description = description;

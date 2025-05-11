@@ -654,6 +654,10 @@ public class HttpService {
         }
     }
 
+    /**
+     * @param token
+     * Récup le classement des joueur par rapport a leurs nbr de victoires.
+     * **/
     public static String getClassementPlayer( String token) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -677,25 +681,11 @@ public class HttpService {
         }
     }
 
-    //Historique de combat
-    public static String getHistoriqueCombats(String username, String token) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/fight-history/username/" + username))
-            .timeout(Duration.ofSeconds(5))
-            .header("Authorization", "Bearer " + token)
-            .GET()
-            .build();
-
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-
-        if (response.statusCode() != 200) {
-            throw new RuntimeException("Erreur récupération historique combats : " + response.body());
-        }
-
-        return response.body();
-    }
-
-    //trophée
+    /**
+     *@param username
+     * @param token
+     * trophée, recoit direct l'objet userInfo, pas besoin qu on le parse nous même dans le code
+      **/
     public static UserInfo fetchUserInfo(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/user/" + username))
