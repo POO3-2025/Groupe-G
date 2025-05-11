@@ -207,10 +207,16 @@ public class FightService {
             CoffreDesJoyaux coffre = (CoffreDesJoyaux) obj;
             List<ObjectBase> objets = coffre.getContenu();
 
+            if(objets.isEmpty()) {
+                state.addLog(Player + " essaie de rouvrir un Coffre vide...");//Le fout dans les logs combat
+                return;//Si tente d'ouvrir alors que le coffre est vide
+            }
+
             for (ObjectBase item : objets) {
                 backpack.add(item); // objets visibles dans lanterna
             }
-
+            //Vider le contenu apres utilisation, ça evite de re rajouter les objets a chaque fois.
+            coffre.setContenu(new ArrayList<>());
             state.addLog(Player + " ouvre un Coffre des Joyaux et obtient " + objets.size() + " objets !");
         }
 

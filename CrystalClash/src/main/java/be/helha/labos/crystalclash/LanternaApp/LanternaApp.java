@@ -1551,6 +1551,7 @@ public class LanternaApp {
                                 }
 
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
+                                combatWindow.close();
                                 afficherMenuPrincipal(gui);
                             });
                             break;
@@ -1588,7 +1589,7 @@ public class LanternaApp {
                                 } else {
                                     message = "Combat terminé, " + winner + " a gagné.";
                                 }
-
+                                combatWindow.close();
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
                                 afficherMenuPrincipal(gui);
                             });
@@ -1652,14 +1653,9 @@ public class LanternaApp {
 
                         //SI ouverture du coffre faut charger le new etat du combat
                         if(obj instanceof CoffreDesJoyaux){
-                            String json = HttpService.getCombatState(Session.getUsername(),Session.getToken());
-                            Gson gson = new GsonBuilder()
-                                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
-                                .create();
-                            StateCombat updated = gson.fromJson(json, StateCombat.class);
-                            //Pannel mis a jour apres ouverture du coffre
-                            actionPanel.removeAllComponents();
-                            updateActionPanel(actionPanel,updated,gui);
+                            actionPanel.addComponent(new Button("Ouvrir le coffre", () -> {
+                                displayChest(gui, (CoffreDesJoyaux) obj);
+                            }));
                         }
                     } catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
@@ -1667,6 +1663,30 @@ public class LanternaApp {
                 }));
             }
         }
+
+        /**
+         * Méthode pour un affiche propre lors du combat si coffre utilisé
+         **/
+         public static void displayChest(WindowBasedTextGUI gui, CoffreDesJoyaux coffre){
+             BasicWindow coffreWindow = new BasicWindow("Coffre des Joyaux");
+
+             Panel panel = new Panel(new GridLayout(1));
+             panel.addComponent(new Label("Objets contenus dans le coffre :"));
+
+             panel.removeAllComponents();
+
+             //Regarde si new insatnce ou memes objets mais non dupliqués
+             for (ObjectBase obj : coffre.getContenu()){
+                 panel.addComponent(new Label("-" + obj.getName()));
+             }
+
+             panel.addComponent(new Button("Fermer", coffreWindow::close));
+
+             coffreWindow.setComponent(panel);
+             //attendre jusqué fermeture
+             gui.addWindowAndWait(coffreWindow);
+         }
+
         private static void DisplayClassement (WindowBasedTextGUI gui){
             BasicWindow profileWindow = new BasicWindow("Classement");
             profileWindow.setHints(Arrays.asList(Hint.CENTERED));
