@@ -82,6 +82,10 @@ public class FightController {
 
         StateCombat state = fightService.getCombat(player);
 
+        if (state == null) {
+            return ResponseEntity.status(410).body("Combat terminé.");
+        }
+
         if (player == null || type == null) {
             return ResponseEntity.badRequest().body("Paramètres manquants !");
         }
@@ -112,9 +116,14 @@ public class FightController {
             return ResponseEntity.badRequest().body("Paramètres manquants !");
         }
 
-        fightService.useObject(player, objectId);
-        //reprendre l'etat du combat pour consrtuire le json custom
+
+        //récupère l'état avant modif
         StateCombat state = fightService.getCombat(player);
+        if (state == null) {
+            return ResponseEntity.status(410).body("Combat terminé ou introuvable.");
+        }
+        //appel useobjet
+        fightService.useObject(player, objectId);
 
         //Map qui va stock la reponse du json (un custom car sinon trop gros)
         Map<String, Object> response = new HashMap<>();
@@ -122,7 +131,7 @@ public class FightController {
         response.put("tour", state.getTour());
         response.put("finished", state.isFinished());
         response.put("winner", state.getWinner());
-        response.put("loser", state.getOpponent(state.getWinner()));
+        response.put("loser", state.getLoser());
         response.put("pv1", state.getPv(state.getPlayer1()));
         response.put("pv2", state.getPv(state.getPlayer2()));
         response.put("log", state.getLog());

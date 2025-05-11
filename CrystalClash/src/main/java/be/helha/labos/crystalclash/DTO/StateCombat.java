@@ -139,4 +139,14 @@ public class StateCombat {
     public String getPlayer2() {
         return player2;
     }
+
+    private boolean combatDisplayed = false;
+
+    public boolean isCombatDisplayed() {
+        return combatDisplayed;
+    }
+
+    public void setCombatDisplayed(boolean combatDisplayed) {
+        this.combatDisplayed = combatDisplayed;
+    }
 }

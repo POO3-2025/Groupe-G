@@ -70,36 +70,31 @@ public class FightService {
     public StateCombat getCombat(String username) {
         StateCombat state = combats.get(username);
         if (state != null) {
+            if (state.isFinished()) {
+                // Si le combat est terminé mais pas encore affiché une dernière fois
+                if (!state.isCombatDisplayed()) {
+                    state.setCombatDisplayed(true);
+                    return state;
+                }
+
+                // Si déjà affiché une fois, on peut le supprimer
+                String winner = state.getWinner();
+                String loser = state.getLoser();
+                derniersGagnants.put(winner, winner);
+                derniersGagnants.put(loser, winner);
+                combats.remove(winner);
+                combats.remove(loser);
+                return null;
+            }
+
             return state;
         }
 
-        // Si le combat est terminé, reconstruire un état minimal avec le vainqueur
-        //Verif si la map derniersGagnants contient une clé username
-        if (derniersGagnants.containsKey(username)) {
-            String winner = derniersGagnants.get(username);//Recup la valeur = a la clé username ds la map derniersGagnants (donne le winner du comabt en gros)
-
-            String losser = ConnectedUsers.getConnectedUsers().keySet()//retourne la map et renvoie toutes les clés de la map (liste des users co)
-                    .stream()//transforme la co -> en flux pour la traiter
-                    .filter(user -> !user.equals(winner))//Conserve les user differents de winner
-                    .findFirst()//Premier user find
-                    .orElse("adversaire inconnu");//donne valeurr par défaut si rien trouvé
-
-           // objet avec les noms user, et le reste a null
-            StateCombat endState = new StateCombat(winner, losser, null, null, null, null);
-            endState.setWinner(winner);
-            endState.setLoser(losser);
-           endState.setPv(winner, 1); // Juste pour éviter que les deux soient à 0
-            endState.setPv(losser, 0); // Le perdant a 0
-            endState.addLog(winner + " remporte le combat !");
-
-            endState.setWinner(winner);
-            endState.setLoser(losser);
-
-            return endState;
-        }
-
+        // Le combat a déjà été supprimé
         return null;
     }
+
+
 
     //Get pour avoir le dernier gagnant
     public String getLastWinner(String username) {
@@ -148,7 +143,8 @@ public class FightService {
         state.setPv(oppenent, newPv);
         if (state.isFinished()) {
             String winner = state.getWinner();
-            String loser = state.getOpponent(winner);
+            String loser = state.getLoser();
+
 
             try {
                 userService.rewardWinner(winner, 50, 1);
@@ -233,8 +229,14 @@ public class FightService {
             backpack.remove(obj); // Supprime si fiabilité 0
         }
         if (state.isFinished()) {
+          if (state.getWinner() == null){
+              String winner = (state.getPv(state.getPlayer1()) >0) ? state.getPlayer1() : state.getPlayer2();
+              String loser = state.getOpponent(winner);
+              state.setWinner(winner);
+              state.setLoser(loser);
+          }
             String winner = state.getWinner();
-            String loser = state.getOpponent(winner);
+            String loser = state.getLoser();
 
             try {
                 userService.rewardWinner(winner, 50, 1);

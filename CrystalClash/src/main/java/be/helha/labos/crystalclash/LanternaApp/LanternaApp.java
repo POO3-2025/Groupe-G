@@ -1612,8 +1612,9 @@ public class LanternaApp {
                             gui.getGUIThread().invokeLater(() -> {
                                 String winner = null;
                                 try {
-                                    winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
-                                } catch (Exception e) {
+                                    String reponseJson  = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                                    JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
+                                    winner = jsonObject.get("winner").getAsString();                                } catch (Exception e) {
                                     System.out.println("Erreur récup du gagnant : " + e.getMessage());
                                 }
                                 String message;
@@ -1646,20 +1647,24 @@ public class LanternaApp {
                                 labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
 
-                                String winner = updated.getWinner();
-                                String loser = updated.getLoser();
-
-                                if (winner != null && winner.equals(loser)) {
-                                    MessageDialog.showMessageDialog(gui, "Défaite", "Vous êtes mort... Vos PV sont tombés à 0.");
+                                String winner;
+                                try {
+                                    winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                                } catch (Exception e) {
+                                    System.out.println("Erreur récup du gagnant : " + e.getMessage());
+                                    winner = null;
                                 }
+
 
                                 String message;
                                 if (winner == null) {
                                     message = "Combat terminé, mais le gagnant est inconnu.";
+                                } else if ("Egalité".equals(winner)) {
+                                    message = "Combat terminé sur une égalité !";
                                 } else if (winner.equals(Session.getUsername())) {
                                     message = "Combat terminé, vous avez gagné !";
                                 } else {
-                                    message = "Combat terminé, vous avez perdu contre " + winner + ".";
+                                    message = "Combat terminé, " + winner + " a gagné.";
                                 }
                                 combatWindow.close();
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
@@ -1846,7 +1851,7 @@ public class LanternaApp {
                 Panel details = new Panel(new GridLayout(1));
                 details.addComponent(new Label("Conditions du trophée Bronze :"));
                 details.addComponent(new Label("Gagner 1 combat : " + generateBar(win, 1)));
-                details.addComponent(new Label("Combat en ≤ 15 tours : " + generateBar(nombreTours <= 15 ? 1 : 0, 1)));
+                details.addComponent(new Label("Combat en ≤ 15 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 15 ? 1 : 0, 1)));
                 MessageDialog.showMessageDialog(gui, "Trophée Bronze", detailsToString(details));
             });
             panel.addComponent(bronzeBtn);
@@ -1856,7 +1861,8 @@ public class LanternaApp {
                 details.addComponent(new Label("Conditions du trophée Silver :"));
                 details.addComponent(new Label("5 victoires consécutives : " + generateBar(winConcecutive, 5)));
                 details.addComponent(new Label("Gagnez 200 cristaux : " + generateBar(cristaux,200)));
-                details.addComponent(new Label("Combat en ≤ 10 tours : " + generateBar(nombreTours <= 10 ? 1 : 0, 1)));
+                details.addComponent(new Label("Combat en ≤ 10 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 10 ? 1 : 0, 1)
+                ));
                 MessageDialog.showMessageDialog(gui, "Trophée Silver", detailsToString(details));
             });
             panel.addComponent(SilverBtn);
@@ -1866,7 +1872,7 @@ public class LanternaApp {
                 details.addComponent(new Label("Conditions du trophée Or :"));
                 details.addComponent(new Label("10 victoires consécutives : " + generateBar(winConcecutive, 10)));
                 details.addComponent(new Label("Gagnez 500 cristaux : " + generateBar(cristaux,500)));
-                details.addComponent(new Label("Combat en ≤ 6 tours : " + generateBar(nombreTours <= 6 ? 1 : 0, 1)));
+                details.addComponent(new Label("Combat en ≤ 6 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 6 ? 1 : 0, 1)));
                 details.addComponent(new Label("Avoir utilisé un bazooka : " + generateBar(user.getUtilisationBazooka() > 0 ? 1 : 0, 1)));
                 MessageDialog.showMessageDialog(gui, "Trophée Silver", detailsToString(details));
             });
