@@ -207,23 +207,7 @@ public class FightService {
         }else if(obj instanceof PotionOfStrenght){
             int bonus = ((PotionOfStrenght) obj).getBonusATK();
             state.addLog(Player + " boit une " + obj.getName() + " et gagne +" + bonus + " en attaque !");
-        }else if (obj instanceof CoffreDesJoyaux) {
-            CoffreDesJoyaux coffre = (CoffreDesJoyaux) obj;
-            List<ObjectBase> objets = coffre.getContenu();
-
-            if(objets.isEmpty()) {
-                state.addLog(Player + " essaie de rouvrir un Coffre vide...");//Le fout dans les logs combat
-                return;//Si tente d'ouvrir alors que le coffre est vide
-            }
-
-            for (ObjectBase item : objets) {
-                backpack.add(item); // objets visibles dans lanterna
-            }
-            //Vider le contenu apres utilisation, ça evite de re rajouter les objets a chaque fois.
-            coffre.setContenu(new ArrayList<>());
-            state.addLog(Player + " ouvre un Coffre des Joyaux et obtient " + objets.size() + " objets !");
         }
-
         obj.Reducereliability();
         if (!obj.IsUsed()) {
             backpack.remove(obj); // Supprime si fiabilité 0
@@ -268,9 +252,7 @@ public class FightService {
         } catch (Exception e) {
             System.out.println("Erreur lors de la mise à jour du backpack : " + e.getMessage());
         }
-        if (!(obj instanceof CoffreDesJoyaux)) {
-            state.NextTurn();
-        }
+
     }
 
     public void forfait(String username) throws Exception {

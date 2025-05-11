@@ -1923,6 +1923,14 @@ public class LanternaApp {
                         //Ici a chaque invokeLater il y aura une mise a jour visuelle du tour, les pvs et historique
                         gui.getGUIThread().invokeLater(() -> {
                             tourLabel.setText("Tour : " + updated.getTour());
+                            if(updated.getTour() == 3){
+                                historyPanel.removeAllComponents();
+                                historyPanel.addComponent(new Label("Historique vidé au tour 3."));
+
+                                //efface tempo les actions dispo
+                                actionPanel.removeAllComponents();
+                                actionPanel.addComponent(new Label("Interface remise à zéro à ce tour."));
+                            }
                             labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
@@ -1970,52 +1978,7 @@ public class LanternaApp {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
             }));
-            for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
-                actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
-                    try {
-                        HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
-
-                        //SI ouverture du coffre faut charger le new etat du combat
-                        if(obj instanceof CoffreDesJoyaux){
-                            actionPanel.addComponent(new Button("Ouvrir le coffre", () -> {
-                                displayChest(gui, (CoffreDesJoyaux) obj);
-                            }));
-                        }
-                    } catch (Exception e) {
-                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                    }
-                }));
-            }
         }
-
-        /**
-         * Méthode pour un affiche propre lors du combat si coffre utilisé
-         **/
-         public static void displayChest(WindowBasedTextGUI gui, CoffreDesJoyaux coffre){
-             BasicWindow coffreWindow = new BasicWindow("Coffre des Joyaux");
-
-             Panel panel = new Panel(new GridLayout(1));
-             panel.removeAllComponents();
-             panel.addComponent(new Label("Objets contenus dans le coffre :"));
-
-             //Regarde si new insatnce ou memes objets mais non dupliqués
-             for (ObjectBase obj : coffre.getContenu()) {
-                 panel.addComponent(new Button(obj.getName(), () -> {
-                     try {
-                         HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
-                         coffreWindow.close(); // ferme après usage
-                     } catch (Exception e) {
-                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                     }
-                 }));
-             }
-
-             panel.addComponent(new Button("Fermer", coffreWindow::close));
-
-             coffreWindow.setComponent(panel);
-             //attendre jusqué fermeture
-             gui.addWindowAndWait(coffreWindow);
-         }
 
         private static void DisplayClassement (WindowBasedTextGUI gui){
             BasicWindow profileWindow = new BasicWindow("Classement");
