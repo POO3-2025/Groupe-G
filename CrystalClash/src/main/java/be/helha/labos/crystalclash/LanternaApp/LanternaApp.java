@@ -1672,12 +1672,23 @@ public class LanternaApp {
                             case "HealingPotion":
                                 HealingPotion potion = (HealingPotion) objlist;
                                 int healAmount = potion.getHeal();
+                                int currentHP = playerHP.get();
+
+                                // Calcule le soin réel sans dépasser les PV max
+                                int actualHeal = Math.min(healAmount, playerHPmax - currentHP);
+
+                                if (actualHeal > 0) {
+                                    playerHP.addAndGet(actualHeal);
+                                    history.append("Vous avez utilisé " + potion.getName() + " et récupéré " + actualHeal + " PV.\n");
+                                } else {
+                                    history.append("Vos PV sont déjà au maximum. La potion n’a eu aucun effet.\n");
+                                }
+
                                 if (turnPotionForce.get()){
                                     bonusNextAttack.set(0);
                                     turnPotionForce.set(false);
                                 }
-                                playerHP.addAndGet(healAmount);
-                                history.append("Vous avez utilisé " + potion.getName() + " et récupéré " + healAmount + " PV.\n");
+
 
                                 // 🔥 Supprimer la potion de la base de données (Backpack MongoDB)
                                 try {
