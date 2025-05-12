@@ -987,13 +987,27 @@ public class LanternaApp {
                 String jsonBackpack = HttpService.getBackpack(Session.getUsername(), Session.getToken());
                 JsonElement root = JsonParser.parseString(jsonBackpack);
 
-                if (root.isJsonArray()) {
-                    ObjectBase[] objetsBackpack = gson.fromJson(root, ObjectBase[].class);
-                    for (ObjectBase obj : objetsBackpack) {
-                        if (obj instanceof CoffreDesJoyaux) {
-                            coffre = (CoffreDesJoyaux) obj;
-                            depuisBackpack = true;
-                            break;
+                // Vérifie si la racine du JSON est un objet (donc commence par { ... })
+                if (root.isJsonObject()) {
+                    // Récupère l'objet JSON principal
+                    JsonObject obj = root.getAsJsonObject();
+                    // Vérifie que cet objet contient une clé "data" ET que cette clé est un tableau JSON
+                    if (obj.has("data") && obj.get("data").isJsonArray()) {
+                        // Récupère le tableau "data" qui contient les objets du backpack
+                        JsonArray dataArray = obj.getAsJsonArray("data");
+                        // Convertit ce tableau JSON en tableau d'objets Java de type ObjectBase[]
+                        ObjectBase[] objetsBackpack = gson.fromJson(dataArray, ObjectBase[].class);
+                        // Parcourt chaque objet du backpack
+                        for (ObjectBase objBase : objetsBackpack) {
+                            // Vérifie si l'objet est un CoffreDesJoyaux (ton coffre)
+                            if (objBase instanceof CoffreDesJoyaux) {
+                                // Si oui, on le cast et on le stocke
+                                coffre = (CoffreDesJoyaux) objBase;
+                                // On indique qu'il vient du backpack
+                                depuisBackpack = true;
+                                // Et on arrête la boucle car on a trouvé ce qu'on cherchait
+                                break;
+                            }
                         }
                     }
                 } else {
