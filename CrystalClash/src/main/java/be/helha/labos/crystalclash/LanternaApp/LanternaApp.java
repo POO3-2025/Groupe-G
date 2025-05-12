@@ -1972,7 +1972,7 @@ public class LanternaApp {
         }
 
         //Rafraichissemnt auto des bouton essaie
-        private static void updateActionPanel(Panel actionPanel, StateCombat state, WindowBasedTextGUI gui){
+        private static void updateActionPanel(Panel actionPanel, StateCombat state, WindowBasedTextGUI gui) {
 
             actionPanel.addComponent(new Label("Vos actions :"));
             actionPanel.addComponent(new Button("Attaque normale ", () -> {
@@ -1990,17 +1990,49 @@ public class LanternaApp {
                 }
             }));
 
-            for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
-                actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
-                    try {
-                        HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                // Objets du backpack
+                for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
+                    actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
+                        try {
+                            HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                        } catch (Exception e) {
+                            MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                        }
+                    }));
+                }
+            }
 
-                    } catch (Exception e) {
+        //Display coffre
+    private static  void displayChest(WindowBasedTextGUI gui, List<ObjectBase> chest){
+        BasicWindow chestWindow = new BasicWindow("Coffre des Joyaux");
+        chestWindow.setHints(List.of(Window.Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label("Objets disponibles dans le coffre :"));
+
+        if(chest.isEmpty()){
+            panel.addComponent(new Label("Coffre vide"));
+        }
+        else{
+            for (ObjectBase obj : chest) {
+                panel.addComponent(new Button("Utiliser : " + obj.getName(), () -> {
+                    try {
+                        HttpService.combatUseObject(Session.getUsername(), obj.getId(),Session.getToken());
+                        MessageDialog.showMessageDialog(gui, "Objet utilisé", obj.getName() + " a été utilisé !");
+                        chestWindow.close();
+                    }
+                    catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                     }
                 }));
-            }
+                }
+                }
+        panel.addComponent(new Button("Fermer", chestWindow::close));
+
+        chestWindow.setComponent(panel);
+        gui.addWindow(chestWindow);
         }
+
 
         private static void DisplayClassement (WindowBasedTextGUI gui){
             BasicWindow profileWindow = new BasicWindow("Classement");

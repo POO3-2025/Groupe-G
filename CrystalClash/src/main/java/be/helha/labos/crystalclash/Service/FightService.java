@@ -32,6 +32,8 @@ public class FightService {
      * Va stocker le gagnant. apres que comabt soit retiré de comabts
      * **/
     private final Map<String, String> derniersGagnants = new HashMap<>();
+    @Autowired
+    private InventoryService inventoryService;
 
     public FightService(FightDAO fightDAO) {
         this.fightDAO = fightDAO;
@@ -51,15 +53,32 @@ public class FightService {
                              List<ObjectBase> bp1, List<ObjectBase> bp2) {
         System.out.println("[DEBUG] FightService - createCombat() entre " + p1 + " et " + p2);
 
+        int bonusPv1 = getArmure(p1);
+        int bonusPv2 = getArmure(p2);
+
+        char1.setPV(char1.getPV() + bonusPv1);
+        char2.setPV(char2.getPV() + bonusPv2);
+
+
+
         StateCombat state = new StateCombat(p1, p2, char1, char2, bp1, bp2);
         System.out.println("[DEBUG] Backpack joueur1 (" + p1 + ") : " + bp1);
         System.out.println("[DEBUG] Backpack joueur2 (" + p2 + ") : " + bp2);
         System.out.println("[DEBUG] Personnage joueur1 (" + p1 + ") : " + char1);
         System.out.println("[DEBUG] Personnage joueur2 (" + p2 + ") : " + char2);
 
+        CoffreDesJoyaux coffre1 = inventoryService.getCoffreDesJoyauxForUser(p1);
+        CoffreDesJoyaux coffre2 = inventoryService.getCoffreDesJoyauxForUser(p2);
+
+        // Vérifie qu’ils ne sont pas nuls
+        if (coffre1 != null) state.setcoffreDreJoyaux(p1, coffre1.getContenu());
+        if (coffre2 != null) state.setcoffreDreJoyaux(p2, coffre2.getContenu());
+
         combats.put(p1, state);
         combats.put(p2, state);
     }
+
+
 
     /**
      * @param username
@@ -184,8 +203,15 @@ public class FightService {
         }
 
         List<ObjectBase> backpack = state.getBackpack(Player);
+        List<ObjectBase> coffre = state.getcoffreDreJoyaux(Player);//recup coffre
         Optional<ObjectBase> objet = backpack.stream().filter(o -> o.getId().equals(objectId)).findFirst();
         if(objet.isEmpty())return;
+
+        boolean fromCoffre = false;
+        if(objet.isEmpty()){
+            objet = coffre.stream().filter(o -> o.getId().equals(objectId)).findFirst();
+            fromCoffre = true;
+        }
 
         ObjectBase obj = objet.get();
         Personnage perso = state.getCharacter(Player);
@@ -202,7 +228,7 @@ public class FightService {
             int heal = ((HealingPotion) obj).getHeal();
             state.setPv(Player, heal);
             state.addLog(Player + " boit une potion de soin (+ " + heal + " PV)");
-        }else
+        }/*else
         if(obj instanceof Armor){
             int bonus = ((Armor) obj).getBonusPV();
             int pv = state.getPv(Player);
@@ -211,7 +237,7 @@ public class FightService {
         }else if(obj instanceof PotionOfStrenght){
             int bonus = ((PotionOfStrenght) obj).getBonusATK();
             state.addLog(Player + " boit une " + obj.getName() + " et gagne +" + bonus + " en attaque !");
-        }
+        }*/
         obj.Reducereliability();
         if (!obj.IsUsed()) {
             backpack.remove(obj); // Supprime si fiabilité 0
@@ -314,5 +340,17 @@ public class FightService {
         state.setLoser(loser);
     }
 
+
+    //gere l'armure
+    public int getArmure(String username){
+        Equipment equipment = characterService.getEquipmentForCharacter(username);
+        if(equipment == null){
+            return 0;
+        }
+        return equipment.getObjets().stream()
+            .filter(obj -> obj instanceof Armor)
+            .mapToInt(obj -> ((Armor) obj).getBonusPV())
+            .sum();
+    }
 
     }
