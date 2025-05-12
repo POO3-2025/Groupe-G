@@ -987,29 +987,23 @@ public class LanternaApp {
                 String jsonBackpack = HttpService.getBackpack(Session.getUsername(), Session.getToken());
                 JsonElement root = JsonParser.parseString(jsonBackpack);
 
-                // Vérifie si la racine du JSON est un objet (donc commence par { ... })
-                if (root.isJsonObject()) {
-                    // Récupère l'objet JSON principal
+                System.out.println("jsonBackpack = " + jsonBackpack);
+                if (root.isJsonArray()) {
                     JsonObject obj = root.getAsJsonObject();
-                    // Vérifie que cet objet contient une clé "data" ET que cette clé est un tableau JSON
+
                     if (obj.has("data") && obj.get("data").isJsonArray()) {
-                        // Récupère le tableau "data" qui contient les objets du backpack
                         JsonArray dataArray = obj.getAsJsonArray("data");
-                        // Convertit ce tableau JSON en tableau d'objets Java de type ObjectBase[]
+
                         ObjectBase[] objetsBackpack = gson.fromJson(dataArray, ObjectBase[].class);
-                        // Parcourt chaque objet du backpack
                         for (ObjectBase objBase : objetsBackpack) {
-                            // Vérifie si l'objet est un CoffreDesJoyaux (ton coffre)
                             if (objBase instanceof CoffreDesJoyaux) {
-                                // Si oui, on le cast et on le stocke
                                 coffre = (CoffreDesJoyaux) objBase;
-                                // On indique qu'il vient du backpack
                                 depuisBackpack = true;
-                                // Et on arrête la boucle car on a trouvé ce qu'on cherchait
                                 break;
                             }
+                            }
                         }
-                    }
+
                 } else {
                     panel.addComponent(new Label("Aucun coffre trouvé dans le sac à dos ou dans l'inventaire"));
                 }
@@ -1989,18 +1983,21 @@ public class LanternaApp {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
             }));
+            actionPanel.addComponent(new Button("Ouvrir le Coffre des Joyaux", () -> {
+                displayChest(gui, state.getcoffreDreJoyaux(Session.getUsername()));
+            }));
 
-                // Objets du backpack
-                for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
-                    actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
-                        try {
-                            HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
-                        } catch (Exception e) {
-                            MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                        }
-                    }));
-                }
+            // Objets du backpack
+            for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
+                actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
+                    try {
+                        HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                    } catch (Exception e) {
+                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                    }
+                }));
             }
+        }
 
         //Display coffre
     private static  void displayChest(WindowBasedTextGUI gui, List<ObjectBase> chest){
