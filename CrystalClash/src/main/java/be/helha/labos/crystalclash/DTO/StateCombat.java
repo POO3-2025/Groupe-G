@@ -2,7 +2,9 @@ package be.helha.labos.crystalclash.DTO;
 
 import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Object.ObjectBase;
+import be.helha.labos.crystalclash.Service.CharacterService;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -17,6 +19,8 @@ import java.util.*;
  **/
 public class StateCombat {
 
+
+
     private String player1;
     private String player2;
     @JsonProperty("character1") //nomme le chmap ds le JSON  transmis (Jackson utile)
@@ -30,6 +34,7 @@ public class StateCombat {
     private String playerNow;
     @JsonProperty("backpack")
     private Map<String, List<ObjectBase>> backpack = new HashMap<>();
+    private Map<String, List<ObjectBase>> coffreDreJoyaux = new HashMap<>();
     @JsonProperty("logCombat")
     private List<String> logCombat = new ArrayList<>(); //Contient user joue, tour et historique des actions
     private int tour = 1;
@@ -46,6 +51,8 @@ public class StateCombat {
         this.character2 = character2;
         this.pv1 = character1.getPV();
         this.pv2 = character2.getPV();
+
+
 
         System.out.println(">>> Création du combat");
         System.out.println(">>> " + player1 + " avec personnage " + character1.getClass().getSimpleName() + " - PV : " + pv1);
@@ -86,6 +93,16 @@ public class StateCombat {
     public List<ObjectBase> getBackpack(String username) {
         if (backpack == null) return new ArrayList<>();
         return backpack.getOrDefault(username, new ArrayList<>());
+    }
+
+    public void setcoffreDreJoyaux(String username, List<ObjectBase> obj) {
+        this.coffreDreJoyaux = (coffreDreJoyaux != null) ? coffreDreJoyaux : new HashMap<>();
+        coffreDreJoyaux.put(username, obj);
+    }
+
+    public List<ObjectBase> getcoffreDreJoyaux(String username) {
+        if (this.coffreDreJoyaux == null) return new ArrayList<>();
+        return this.coffreDreJoyaux.getOrDefault(username, new ArrayList<>());
     }
 
     public String getPlayerNow(){

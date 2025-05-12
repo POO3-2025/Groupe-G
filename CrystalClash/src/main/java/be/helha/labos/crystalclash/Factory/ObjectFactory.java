@@ -14,7 +14,7 @@ import java.util.UUID;
  * et facile a changer
  * */
 
-public class ObjectFactory {
+public class    ObjectFactory {
 
     /**
      * @param Name
