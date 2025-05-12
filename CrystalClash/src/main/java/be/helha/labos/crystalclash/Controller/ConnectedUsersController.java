@@ -20,18 +20,31 @@ public class ConnectedUsersController {
 
 
     @Autowired
-    private UserService userService ;
+    private UserService userService ; //Met a jouer le status co en db la
 
+    /***
+     * Retourne le nbr d'uti co
+     * Basé sur ConnectedUsers qui garde en mémoire
+     * */
     @GetMapping("/users/connected/count")
     public int getConnectedUserCount() {
         return ConnectedUsers.getConnectedUserCount();
     }
 
+    /**
+     * Renvoie la liste complète des user co avec leurs infos
+     * */
     @GetMapping("/users/connected/list")
     public Collection<UserInfo> getConnectedUsernames() {
         return ConnectedUsers.getConnectedUsers().values();
     }
 
+    /**
+     * Deco d'un user : via l objet Json LogoutRequest qui contient le username
+     * retire le user de la map ConnectedUsers
+     * met a jour le status en db a 0
+     * et retourne deconnecté avec succès
+     * */
     @PostMapping("/users/logout")
     public ResponseEntity<String> logoutUser(@RequestBody LogoutRequest request) {
         System.out.println("Réception de /users/logout avec username = " + request.getUsername());
@@ -50,6 +63,7 @@ public class ConnectedUsersController {
     /**
     * @param userInfo = user renvoie le json avec ses infos
     * matchmakingWaitingRoom qui est Map<String, UserInfo>
+     *ajout useer ds la salle d'attente matchmakingWaitingRoom si username pas null
     * */
     @PostMapping("/matchmaking/enter")
     public ResponseEntity<Map<String, String>> enterMatchMaking(@RequestBody UserInfo userInfo){
@@ -86,8 +100,7 @@ public class ConnectedUsersController {
     public List<UserInfo> getAvailableOpponents(@RequestParam("username") String username) {
         List<UserInfo> user = new ArrayList<>();
 
-        //
-        synchronized (matchmakingWaitingRoom) {
+          synchronized (matchmakingWaitingRoom) {
             for(Map.Entry<String, UserInfo> entry : matchmakingWaitingRoom.entrySet()) {
                 if (!entry.getKey().equals(username)) {
                     user.add(entry.getValue());

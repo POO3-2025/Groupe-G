@@ -1,6 +1,7 @@
 package be.helha.labos.crystalclash.DTO;
 
 import be.helha.labos.crystalclash.Characters.Personnage;
+import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Service.CharacterService;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,29 +22,38 @@ public class StateCombat {
 
 
 
-    private String player1;
-    private String player2;
-    @JsonProperty("character1") //nomme le chmap ds le JSON  transmis (Jackson utile)
-    private Personnage character1;
+    private String player1; //Nom du joueur1
+    private String player2;//Nom du joueur2
+    @JsonProperty("character1") //nomme le champ ds le JSON  transmis (Jackson utile)
+    private Personnage character1; //perso du user, objet issu de la calsse Personnage
     @JsonProperty("character2")
     private Personnage character2;
     @JsonProperty("pv1")
-    private int pv1;
+    private int pv1; //Pv du perso (modifié au fil du combat)
     @JsonProperty("pv2")
     private int pv2;
-    private String playerNow;
+    private String playerNow; //Celui qui doit jouer le tour actuel (change avec NextTurn)
     @JsonProperty("backpack")
-    private Map<String, List<ObjectBase>> backpack = new HashMap<>();
-    @JsonProperty("coffreDreJoyaux")
-    private Map<String, List<ObjectBase>> coffreDreJoyaux = new HashMap<>();
+    private Map<String, List<ObjectBase>> backpack = new HashMap<>(); //Liste d'objet use pdt le combat (cle = username, valeur ObjectBase)
+    @JsonProperty
+    private Map<String, List<ObjectBase>> chest = new HashMap<>(); //Contient objets tirés depuis CoffreDesjoayux
     @JsonProperty("logCombat")
     private List<String> logCombat = new ArrayList<>(); //Contient user joue, tour et historique des actions
     private int tour = 1;
     @JsonProperty("winner")
-    private String winner;
+    private String winner; //Winner fin de combat
     @JsonProperty("loser")
-    private String loser;
+    private String loser; //Loser fin de combat
 
+    /**
+     * @param bp1
+     * @param bp2
+     * @param character1
+     * @param character2
+     * @param player1
+     * @param player2
+     * Initialse les champs, Remplit les pv initiaux depuis les persos, Met player1 comme "actif" et extrait le contenu du coffre si il est dans le backPack
+     * **/
     public StateCombat(String player1, String player2, Personnage character1, Personnage character2,
                        List<ObjectBase> bp1, List<ObjectBase> bp2) {
         this.player1 = player1;
@@ -62,6 +72,21 @@ public class StateCombat {
         this.playerNow =player1;
         this.backpack.put(player1, bp1 != null ? bp1 : new ArrayList<>());
         this.backpack.put(player2, bp2 != null ? bp2 : new ArrayList<>());
+        this.chest.put(player1, exrtactContentChest(bp1));
+        this.chest.put(player2, exrtactContentChest(bp2));
+    }
+
+    /**
+     * @param bp
+     * cherche CoffreDesJoyaux ds le backPack et retourne sa liste d'objets interne
+     * **/
+    private List<ObjectBase> exrtactContentChest(List<ObjectBase> bp) {
+        for (ObjectBase obj : bp){
+            if (obj instanceof CoffreDesJoyaux chest && chest.getReliability() > 0){
+                return chest.getContenu();
+            }
+        }
+        return new ArrayList<>();
     }
 
     //Cool pour un combat player1 va return player 2 et inversement, retourne liste des 2 users
@@ -94,18 +119,6 @@ public class StateCombat {
     public List<ObjectBase> getBackpack(String username) {
         if (backpack == null) return new ArrayList<>();
         return backpack.getOrDefault(username, new ArrayList<>());
-    }
-
-    public void setcoffreDreJoyaux(String username, List<ObjectBase> obj) {
-      if(this.coffreDreJoyaux == null){
-          this.coffreDreJoyaux = new HashMap<>();
-      }
-      this.coffreDreJoyaux.put((username), obj != null ? obj : new ArrayList<>());
-    }
-
-    public List<ObjectBase> getcoffreDreJoyaux(String username) {
-        if (this.coffreDreJoyaux == null) return new ArrayList<>();
-        return this.coffreDreJoyaux.getOrDefault(username, new ArrayList<>());
     }
 
     public String getPlayerNow(){
@@ -160,6 +173,7 @@ public class StateCombat {
         return player2;
     }
 
+    //Si a true alors la fenetre combat est deja ouverte
     private boolean combatDisplayed = false;
 
     public boolean isCombatDisplayed() {
@@ -168,5 +182,13 @@ public class StateCombat {
 
     public void setCombatDisplayed(boolean combatDisplayed) {
         this.combatDisplayed = combatDisplayed;
+    }
+
+    //Coffre
+    public void setchest(String username,List<ObjectBase> obj){
+        this.chest.put(username, obj);
+    }
+    public List<ObjectBase> getChest(String username){
+        return chest.getOrDefault(username, new ArrayList<>());
     }
 }

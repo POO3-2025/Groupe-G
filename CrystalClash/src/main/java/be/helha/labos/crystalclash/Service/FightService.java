@@ -23,18 +23,18 @@ public class FightService {
     private CharacterService characterService;//Save backPack perso
     @Autowired
     private UserService userService;//Donner récompense aux gagnant, win/lose
-
+    @Autowired
+    private InventoryService inventoryService;
     /**
      * Pailre clés valeurs (String id ou nom et StateCombat l'etat du combat), associe un nom de user a 1 statecombat partagé entre 2 users
      * */
     private final Map<String, StateCombat> combats = new HashMap<>();
 
     /**
-     * Va stocker le gagnant. apres que comabt soit retiré de comabts
+     * Va stocker le dernier gagnant. apres que comabt soit retiré de comabts même apres supression du combat en mémoire
      * **/
     private final Map<String, String> derniersGagnants = new HashMap<>();
-    @Autowired
-    private InventoryService inventoryService;
+
 
     public FightService(FightDAO fightDAO) {
         this.fightDAO = fightDAO;
@@ -60,25 +60,9 @@ public class FightService {
         char1.setPV(char1.getPV() + bonusPv1);
         char2.setPV(char2.getPV() + bonusPv2);
 
-        //Recup du coffre
-        CoffreDesJoyaux chest1 = inventoryService.getCoffreDesJoyauxForUser(p1);
-        CoffreDesJoyaux chest2 = inventoryService.getCoffreDesJoyauxForUser(p2);
-
-        // Inject le coffre dans BackPack anvant combat (test)
-        if (chest1 != null) bp1.add(chest1);
-        if (chest2 != null) bp2.add(chest2);
-
         StateCombat state = new StateCombat(p1, p2, char1, char2, bp1, bp2);
-        System.out.println("[DEBUG] Backpack joueur1 (" + p1 + ") : " + bp1);
-        System.out.println("[DEBUG] Backpack joueur2 (" + p2 + ") : " + bp2);
-        System.out.println("[DEBUG] Personnage joueur1 (" + p1 + ") : " + char1);
-        System.out.println("[DEBUG] Personnage joueur2 (" + p2 + ") : " + char2);
 
-
-        // Vérifie qu’ils ne sont pas nuls et copie son contenu ( a voir ça)
-        if (chest1 != null) state.setcoffreDreJoyaux(p1, chest1.getContenu());
-        if (chest2 != null) state.setcoffreDreJoyaux(p2, chest2.getContenu());
-
+        //Ajoute combat aux deux joueurs dans combats
         combats.put(p1, state);
         combats.put(p2, state);
     }
@@ -88,7 +72,7 @@ public class FightService {
     /**
      * @param username
      * Recupérer un comabt
-     * Si le comabt est en cours on retourne StateCombat, si est trminé on fait un StateCombat juste avec le gagnant( PV = 1 gagnant, perdu 0)
+     * Si le comabt est en cours on retourne StateCombat, si est terminé on fait un StateCombat juste avec le gagnant( PV = 1 gagnant, perdu 0)
      * renvoie un état vide avec juste le nom du vainqueur, suffisant pour l'affichage final
      * **/
     public StateCombat getCombat(String username) {
@@ -208,12 +192,12 @@ public class FightService {
         }
 
         List<ObjectBase> backpack = state.getBackpack(Player);
-        List<ObjectBase> chest = state.getcoffreDreJoyaux(Player);//recup coffre
+        List<ObjectBase> coffre = state.getChest(Player);
         Optional<ObjectBase> objet = backpack.stream().filter(o -> o.getId().equals(objectId)).findFirst();
         boolean fromcoffredesjoyaux = false;
 
         if (objet.isEmpty()) {
-            objet = chest.stream().filter(o -> o.getId().equals(objectId)).findFirst();
+            objet = coffre.stream().filter(o -> o.getId().equals(objectId)).findFirst();
             fromcoffredesjoyaux = true;
         }
 
@@ -244,24 +228,30 @@ public class FightService {
             int bonus = ((PotionOfStrenght) obj).getBonusATK();
             state.addLog(Player + " boit une " + obj.getName() + " et gagne +" + bonus + " en attaque !");
         }*/
+
         obj.Reducereliability();
+
         if (!obj.IsUsed()) {
-            if(fromcoffredesjoyaux){
-                chest.remove(obj);
-            }else {
-                backpack.remove(obj); // Supprime si fiabilité 0
+            if (fromcoffredesjoyaux) {
+                coffre.remove(obj);
+            } else {
+                backpack.remove(obj);
             }
         }
 
-        try {
-            for (ObjectBase objback : backpack) {
-                if (objback instanceof CoffreDesJoyaux) {
-                    ((CoffreDesJoyaux) objback).setContenu(state.getcoffreDreJoyaux(Player));
-                    break;
+        //Test de mettre a jour le backPack pour l endurance des armes
+        //Va sauvegarder le back modfié avec les nouvelles valeurs d'endurerances
+        try{
+            BackPack backPack = new BackPack();
+            backPack.setObjets(backpack);
+            for(ObjectBase ob : backpack){
+                if(ob instanceof  CoffreDesJoyaux chest){
+                    chest.setContenu(coffre);
                 }
             }
+            characterService.saveBackPackForCharacter(Player, backPack);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println("Erreur lors de la mise à jour du backpack : " + e.getMessage());
         }
 
         if (state.isFinished()) {
@@ -293,15 +283,7 @@ public class FightService {
             state.NextTurn();
         }
 
-        //Test de mettre a jour le backPack pour l endurance des armes
-        //Va sauvegarder le back modfié avec les nouvelles valeurs d'endurerances
-        try{
-            BackPack backPack = new BackPack();
-            backPack.setObjets(backpack);
-            characterService.saveBackPackForCharacter(Player, backPack);
-        } catch (Exception e) {
-            System.out.println("Erreur lors de la mise à jour du backpack : " + e.getMessage());
-        }
+
 
 
     }
@@ -347,19 +329,24 @@ public class FightService {
     return fightDAO.getClassementPlayer();
     }
 
-    //Methodes pour centraliser, le gagant et le loser si pas deja fait
-    //et ducoup mofid l objet StateComabt
+    /**
+     * @param state
+     * Methodes pour centraliser, le gagant et le loser si pas deja fait
+     *  et ducoup mofid l objet StateComabt
+     * **/
+
     private void resolveWinnerAndLoser(StateCombat state) {
 
+        //Si objet null j'fais rien
         if(state == null || !state.isFinished()) return;
 
         // Si winner/loser  déjà définis rien a  faire
         if (state.getWinner() != null && state.getLoser() != null) return;
 
-
+        //Si player1 a encore des PV > 0 alors il est le gagnant sinon player2
         String winner = (state.getPv(state.getPlayer1()) > 0) ? state.getPlayer1() : state.getPlayer2();
         String loser = state.getOpponent(winner);
-        state.setWinner(winner);
+        state.setWinner(winner); //enregistre le winner dans le setWInner
         state.setLoser(loser);
     }
 
@@ -370,10 +357,10 @@ public class FightService {
         if(equipment == null){
             return 0;
         }
-        return equipment.getObjets().stream()
-            .filter(obj -> obj instanceof Armor)
-            .mapToInt(obj -> ((Armor) obj).getBonusPV())
-            .sum();
+        return equipment.getObjets().stream() // transforme liste ObjectBase dans l'equipement en un flux stream
+            .filter(obj -> obj instanceof Armor)//Filtre pour garder que ceux qui sont une instance de Armor
+            .mapToInt(obj -> ((Armor) obj).getBonusPV())//cast objet restant en Armor puis appelle getBonusPV
+            .sum();//Ajoute le bonus de PV a ses points de vies.
     }
 
     }
