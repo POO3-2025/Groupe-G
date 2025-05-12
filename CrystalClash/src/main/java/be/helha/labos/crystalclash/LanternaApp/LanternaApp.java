@@ -987,15 +987,23 @@ public class LanternaApp {
                 String jsonBackpack = HttpService.getBackpack(Session.getUsername(), Session.getToken());
                 JsonElement root = JsonParser.parseString(jsonBackpack);
 
+                System.out.println("jsonBackpack = " + jsonBackpack);
                 if (root.isJsonArray()) {
-                    ObjectBase[] objetsBackpack = gson.fromJson(root, ObjectBase[].class);
-                    for (ObjectBase obj : objetsBackpack) {
-                        if (obj instanceof CoffreDesJoyaux) {
-                            coffre = (CoffreDesJoyaux) obj;
-                            depuisBackpack = true;
-                            break;
+                    JsonObject obj = root.getAsJsonObject();
+
+                    if (obj.has("data") && obj.get("data").isJsonArray()) {
+                        JsonArray dataArray = obj.getAsJsonArray("data");
+
+                        ObjectBase[] objetsBackpack = gson.fromJson(dataArray, ObjectBase[].class);
+                        for (ObjectBase objBase : objetsBackpack) {
+                            if (objBase instanceof CoffreDesJoyaux) {
+                                coffre = (CoffreDesJoyaux) objBase;
+                                depuisBackpack = true;
+                                break;
+                            }
+                            }
                         }
-                    }
+
                 } else {
                     panel.addComponent(new Label("Aucun coffre trouvé dans le sac à dos ou dans l'inventaire"));
                 }
@@ -1975,18 +1983,21 @@ public class LanternaApp {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
             }));
+            actionPanel.addComponent(new Button("Ouvrir le Coffre des Joyaux", () -> {
+                displayChest(gui, state.getcoffreDreJoyaux(Session.getUsername()));
+            }));
 
-                // Objets du backpack
-                for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
-                    actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
-                        try {
-                            HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
-                        } catch (Exception e) {
-                            MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                        }
-                    }));
-                }
+            // Objets du backpack
+            for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
+                actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
+                    try {
+                        HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                    } catch (Exception e) {
+                        MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+                    }
+                }));
             }
+        }
 
         //Display coffre
     private static  void displayChest(WindowBasedTextGUI gui, List<ObjectBase> chest){

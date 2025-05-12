@@ -34,6 +34,7 @@ public class StateCombat {
     private String playerNow;
     @JsonProperty("backpack")
     private Map<String, List<ObjectBase>> backpack = new HashMap<>();
+    @JsonProperty("coffreDreJoyaux")
     private Map<String, List<ObjectBase>> coffreDreJoyaux = new HashMap<>();
     @JsonProperty("logCombat")
     private List<String> logCombat = new ArrayList<>(); //Contient user joue, tour et historique des actions
@@ -96,8 +97,10 @@ public class StateCombat {
     }
 
     public void setcoffreDreJoyaux(String username, List<ObjectBase> obj) {
-        this.coffreDreJoyaux = (coffreDreJoyaux != null) ? coffreDreJoyaux : new HashMap<>();
-        coffreDreJoyaux.put(username, obj);
+      if(this.coffreDreJoyaux == null){
+          this.coffreDreJoyaux = new HashMap<>();
+      }
+      this.coffreDreJoyaux.put((username), obj != null ? obj : new ArrayList<>());
     }
 
     public List<ObjectBase> getcoffreDreJoyaux(String username) {

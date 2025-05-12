@@ -6,6 +6,7 @@ import be.helha.labos.crystalclash.DAO.ShopDAO;
 import be.helha.labos.crystalclash.DTO.StateCombat;
 import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
+import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Object.*;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
@@ -59,7 +60,13 @@ public class FightService {
         char1.setPV(char1.getPV() + bonusPv1);
         char2.setPV(char2.getPV() + bonusPv2);
 
+        //Recup du coffre
+        CoffreDesJoyaux chest1 = inventoryService.getCoffreDesJoyauxForUser(p1);
+        CoffreDesJoyaux chest2 = inventoryService.getCoffreDesJoyauxForUser(p2);
 
+        // Inject le coffre dans BackPack anvant combat (test)
+        if (chest1 != null) bp1.add(chest1);
+        if (chest2 != null) bp2.add(chest2);
 
         StateCombat state = new StateCombat(p1, p2, char1, char2, bp1, bp2);
         System.out.println("[DEBUG] Backpack joueur1 (" + p1 + ") : " + bp1);
@@ -67,12 +74,10 @@ public class FightService {
         System.out.println("[DEBUG] Personnage joueur1 (" + p1 + ") : " + char1);
         System.out.println("[DEBUG] Personnage joueur2 (" + p2 + ") : " + char2);
 
-        CoffreDesJoyaux coffre1 = inventoryService.getCoffreDesJoyauxForUser(p1);
-        CoffreDesJoyaux coffre2 = inventoryService.getCoffreDesJoyauxForUser(p2);
 
-        // Vérifie qu’ils ne sont pas nuls
-        if (coffre1 != null) state.setcoffreDreJoyaux(p1, coffre1.getContenu());
-        if (coffre2 != null) state.setcoffreDreJoyaux(p2, coffre2.getContenu());
+        // Vérifie qu’ils ne sont pas nuls et copie son contenu ( a voir ça)
+        if (chest1 != null) state.setcoffreDreJoyaux(p1, chest1.getContenu());
+        if (chest2 != null) state.setcoffreDreJoyaux(p2, chest2.getContenu());
 
         combats.put(p1, state);
         combats.put(p2, state);
@@ -203,15 +208,16 @@ public class FightService {
         }
 
         List<ObjectBase> backpack = state.getBackpack(Player);
-        List<ObjectBase> coffre = state.getcoffreDreJoyaux(Player);//recup coffre
+        List<ObjectBase> chest = state.getcoffreDreJoyaux(Player);//recup coffre
         Optional<ObjectBase> objet = backpack.stream().filter(o -> o.getId().equals(objectId)).findFirst();
-        if(objet.isEmpty())return;
+        boolean fromcoffredesjoyaux = false;
 
-        boolean fromCoffre = false;
-        if(objet.isEmpty()){
-            objet = coffre.stream().filter(o -> o.getId().equals(objectId)).findFirst();
-            fromCoffre = true;
+        if (objet.isEmpty()) {
+            objet = chest.stream().filter(o -> o.getId().equals(objectId)).findFirst();
+            fromcoffredesjoyaux = true;
         }
+
+        if (objet.isEmpty()) return;
 
         ObjectBase obj = objet.get();
         Personnage perso = state.getCharacter(Player);
@@ -240,8 +246,24 @@ public class FightService {
         }*/
         obj.Reducereliability();
         if (!obj.IsUsed()) {
-            backpack.remove(obj); // Supprime si fiabilité 0
+            if(fromcoffredesjoyaux){
+                chest.remove(obj);
+            }else {
+                backpack.remove(obj); // Supprime si fiabilité 0
+            }
         }
+
+        try {
+            for (ObjectBase objback : backpack) {
+                if (objback instanceof CoffreDesJoyaux) {
+                    ((CoffreDesJoyaux) objback).setContenu(state.getcoffreDreJoyaux(Player));
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         if (state.isFinished()) {
             resolveWinnerAndLoser(state);
             String winner = state.getWinner();
@@ -280,6 +302,7 @@ public class FightService {
         } catch (Exception e) {
             System.out.println("Erreur lors de la mise à jour du backpack : " + e.getMessage());
         }
+
 
     }
 
