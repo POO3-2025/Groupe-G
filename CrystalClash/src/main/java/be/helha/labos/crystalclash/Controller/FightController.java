@@ -118,6 +118,7 @@ public class FightController {
 
 
         //récupère l'état avant modif
+        //renvoie null (410) sonc a revoir
         StateCombat state = fightService.getCombat(player);
         if (state == null) {
             return ResponseEntity.status(410).body("Combat terminé ou introuvable.");

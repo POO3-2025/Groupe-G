@@ -71,13 +71,8 @@ public class FightService {
         StateCombat state = combats.get(username);
         if (state != null) {
             if (state.isFinished()) {
-                // avoir bien winner et loser
-                if (state.getWinner() == null || state.getLoser() == null) {
-                    String winner = (state.getPv(state.getPlayer1()) > 0) ? state.getPlayer1() : state.getPlayer2();
-                    String loser = state.getOpponent(winner);
-                    state.setWinner(winner);
-                    state.setLoser(loser);
-                }
+
+                resolveWinnerAndLoser(state);
 
                 if (!state.isCombatDisplayed()) {
                     state.setCombatDisplayed(true);
@@ -222,12 +217,7 @@ public class FightService {
             backpack.remove(obj); // Supprime si fiabilité 0
         }
         if (state.isFinished()) {
-          if (state.getWinner() == null){
-              String winner = (state.getPv(state.getPlayer1()) >0) ? state.getPlayer1() : state.getPlayer2();
-              String loser = state.getOpponent(winner);
-              state.setWinner(winner);
-              state.setLoser(loser);
-          }
+            resolveWinnerAndLoser(state);
             String winner = state.getWinner();
             String loser = state.getLoser();
 
@@ -276,16 +266,10 @@ public class FightService {
 
         // met  PV du joueur qui abandonne à 0 pour terminer le combat
         state.setPv(username, 0);
-
-        // Définir winner/loser si pas fait
-        if (state.getWinner() == null) {
-            state.setWinner(opponent);
-        }
-        if (state.getLoser() == null) {
-            state.setLoser(username);
-        }
-
+        resolveWinnerAndLoser(state);
         if (state.isFinished()) {
+
+            //Recup win/loser via resolveWinnerAndLoser
             String winner = state.getWinner();
             String loser = state.getLoser();
 
@@ -294,10 +278,16 @@ public class FightService {
             userService.incrementDefeat(loser);
             state.addLog(username + " a abandonné le combat.");
             state.addLog(winner + " remporte le combat par forfait ! +1 niveau, +50 cristaux");
+
+            //enregistre le dernier gagnant associé aux 2 joueurs
             derniersGagnants.put(winner, winner);
             derniersGagnants.put(loser, winner);
+
             userService.incrementWimConsecutive(winner);
             userService.resetWinConsecutives(loser);
+
+            //retire combat de la memoire (MAP), on libere juste de la memoire
+            //Inconiant car direct a la fin du combat c delete
             combats.remove(username);
             combats.remove(opponent);
         }
@@ -308,5 +298,21 @@ public class FightService {
     return fightDAO.getClassementPlayer();
     }
 
+    //Methodes pour centraliser, le gagant et le loser si pas deja fait
+    //et ducoup mofid l objet StateComabt
+    private void resolveWinnerAndLoser(StateCombat state) {
 
-}
+        if(state == null || !state.isFinished()) return;
+
+        // Si winner/loser  déjà définis rien a  faire
+        if (state.getWinner() != null && state.getLoser() != null) return;
+
+
+        String winner = (state.getPv(state.getPlayer1()) > 0) ? state.getPlayer1() : state.getPlayer2();
+        String loser = state.getOpponent(winner);
+        state.setWinner(winner);
+        state.setLoser(loser);
+    }
+
+
+    }
