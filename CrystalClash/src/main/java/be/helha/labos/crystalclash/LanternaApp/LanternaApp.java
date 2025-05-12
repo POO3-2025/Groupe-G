@@ -267,7 +267,7 @@ public class LanternaApp {
             });
         })));
 
-        mainPanel.addComponent(new Button("Mes trophées", () -> afficherTrophees(gui)));
+        mainPanel.addComponent(new Button("Mes trophées", () -> Displaytrophy(gui)));
 
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
@@ -971,6 +971,40 @@ public class LanternaApp {
                     .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                     .create();
 
+
+             /**
+             * Mettre a jour le coffre depuis le backpack si il y a un combat en cours
+             * SI oui on récup l'etat du coffre pdt le combat (depuis StateCombat)
+             **/
+            try{
+                String jsonCombat = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+
+                //Création d'un objet Gson avec le désérialiseur custom pour objectBase pour reconstruire correctement les objets du coffre
+                Gson gsonCombat = new GsonBuilder()
+                .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                    .create();
+
+                //Déserialise le JSON en objet stateConbat, lui simple il contient toutes les infos du combat en cours dont le coffre
+                StateCombat combat = gson.fromJson(jsonCombat, StateCombat.class);
+
+                //Si bien recu le combat et si pas termimé
+                if(combat != null && !combat.isFinished())
+                {
+                 List<ObjectBase> chest = combat.getChest(Session.getUsername()); //Récup object présent dans le coffre
+                 if(combat != null ){
+                     //Crée un chest temporaire que je remplis avec les objets restant recup depuis le combat
+                     CoffreDesJoyaux coffreTemporaire = new CoffreDesJoyaux();
+                     coffreTemporaire.setContenu(chest);
+                     coffreTemporaire.setCapaciteMax(5);
+                     //ON dit que le coffre est = au coffre temp, c'est comme ça su'on aura le coffre mis a jour
+                     coffre = coffreTemporaire;
+                 }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+
             // 1. Vérifie l'inventaire
             String jsonInventaire = HttpService.getInventory(Session.getUsername(), Session.getToken());
             Inventory inventory = gson.fromJson(jsonInventaire, Inventory.class);
@@ -1096,7 +1130,7 @@ public class LanternaApp {
         panel.addComponent(infoLabel);
         panel.addComponent(new EmptySpace());
 
-        Panel usersPanel = new Panel(new GridLayout(1));
+        Panel usersPanel = new Panel(new GridLayout(1)); //Ajout dynamiquement les autres joueurs dispo
         panel.addComponent(usersPanel);
 
         panel.addComponent(new Button("Quitter la salle", () -> {
@@ -1127,6 +1161,9 @@ public class LanternaApp {
         //Thread pour rafraichir la liste
         //Utile coté client pour ne pas crache
         new Thread(() -> {
+            //thread secondaire, ici j vais effectuer 2 taches toutes les 2 secondes
+            //La premiere est si un combat a été lancé contre le joueur A ou B
+            //LE second c est de mettre a jour la liste des users dispo
             while (shouldRun.get()) {
                 try {
                     //A partir d'ici c un thread secondaire
@@ -1141,17 +1178,19 @@ public class LanternaApp {
                             .create();
                     StateCombat state = gson.fromJson(json, StateCombat.class);
 
+                    //Quitte la salle et la fentre combat s'ouvre
                     if (state != null && state.getPlayerNow() != null) {
                         gui.getGUIThread().invokeLater(() -> {
                             System.out.println("===> Passage dans invokeLater : lancement du combat");
                             shouldRun.set(false);
                             combatWindow.close();
-                            LanternaApp.lancerCombat(gui, state);
+                            LanternaApp.StartCombatLan(gui, state);
                         });
                         break;
                     }
 
 
+                     //Secondes taches mettre a jour
                     //Appelle du endpoint
                     List<UserInfo> opponents = HttpService.getAvailableOpponents(Session.getUsername(), Session.getToken());
 
@@ -1170,6 +1209,7 @@ public class LanternaApp {
                                 }
                                 Button challenge = new Button(label, () -> {
                                     try {
+                                        //Appelle du backend pour lancer le combat avec le joueur
                                         HttpService.challengePlayer(Session.getUsername(), opponent.getUsername(), Session.getToken());
                                         MessageDialog.showMessageDialog(gui, "Défi lancé", "Vous avez défié " + opponent.getUsername() + " !");
                                         shouldRun.set(false);
@@ -1187,7 +1227,7 @@ public class LanternaApp {
                                                 if (state != null && state.getPlayerNow() != null) {
                                                     gui.getGUIThread().invokeLater(() -> {
                                                         combatWindow.close();
-                                                        LanternaApp.lancerCombat(gui, state);
+                                                        LanternaApp.StartCombatLan(gui, state);
                                                     });
                                                 }
                                             } catch (Exception e) {
@@ -1805,16 +1845,19 @@ public class LanternaApp {
          * Afficher l'ecran de comabt et mettre a jour dynamiquement l'affichage des deux cotés
          * Pv joueur, historique, actions possibles, bouton quitter,detection fin de combat,passage de tour
          * */
-        public static void lancerCombat (WindowBasedTextGUI gui, StateCombat state){
+        public static void StartCombatLan (WindowBasedTextGUI gui, StateCombat state){
             AtomicBoolean shouldRun = new AtomicBoolean(true);//Le thread l'utilse pour savoir quand stopé
-            boolean[] forfaitEffectue = {false}; //boolean pour savoir si le user a quitter le comabt
-            int[] lasttour = {state.getTour()}; //Evite les relancements inutiles
+            boolean[] forfaitEffectue = {false}; //boolean pour savoir si le user a quitter le combat
+            int[] lasttour = {state.getTour()}; //Retient juste le tour précédent pour éviter de recréer des bouton inutilement
+
 
             String adversaire = state.getOpponent(Session.getUsername());
 
 
             BasicWindow combatWindow = new BasicWindow("Combat contre " + adversaire);
             combatWindow.setHints(List.of(Window.Hint.CENTERED));
+
+            //Appelle a chaque a state car il contient les données du combat en cours
 
             Panel mainPanel = new Panel(new GridLayout(1));
             Label tourLabel = new Label("Tour : " + state.getTour());
@@ -1834,6 +1877,8 @@ public class LanternaApp {
             mainPanel.addComponent(historyPanel);
             mainPanel.addComponent(actionPanel);
 
+            //Si le user clique sur quitter le combat alors on fait appel au backend et passe a true
+            //Arret proprement du thread et ferme la fenetre
             mainPanel.addComponent(new Button("Quitter le combat", () -> {
                 try {
                     HttpService.forfait(Session.getUsername(), Session.getToken());
@@ -1868,6 +1913,8 @@ public class LanternaApp {
                                 .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                                 .create();
                         StateCombat updated = gson.fromJson(json, StateCombat.class);
+                        //Si null alors le joueur a quitté
+                        //SI pas je récup le dernier winner
                         if (updated == null) {
                             //invokeLater permet de revenir au thread principale de lanterna pour mettre a jour l interface
                             gui.getGUIThread().invokeLater(() -> {
@@ -1935,28 +1982,21 @@ public class LanternaApp {
                         }
 
                         //Ici a chaque invokeLater il y aura une mise a jour visuelle du tour, les pvs et historique
+                        //Ici je mets a jour l'interface sans la recréer avec invokeLater
                         gui.getGUIThread().invokeLater(() -> {
                             tourLabel.setText("Tour : " + updated.getTour());
                             labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
-                                historyPanel.removeAllComponents();
-                                historyPanel.addComponent(new Label("Historique :"));
-                                for (String log : updated.getLog()) {
-                                    historyPanel.addComponent(new Label(log));
+                            // Met à jour les actions si le tour change
+                            if (updated.getTour() != lasttour[0]) {
+                                lasttour[0] = updated.getTour();
+                                actionPanel.removeAllComponents();
+                                if (updated.getPlayerNow().equals(Session.getUsername())) {
+                                    updateActionPanel(actionPanel, updated, gui);
+                                } else {
+                                    actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
                                 }
-
-                                // relancer l’interface avec les boutons en focntion des tours, si c le meme tour alors les boutons sont affichés pour le bon user
-                                //Si le tour a changé alors la on fait un remove soit pour retirer les boutons et afficher en attente..... soint pour retirer cette phrase et afficher les boutons.
-                                if (updated.getTour() != lasttour[0]) {
-                                    lasttour[0] = updated.getTour();
-                                    actionPanel.removeAllComponents();
-                                    if (updated.getPlayerNow().equals(Session.getUsername())) {
-                                        updateActionPanel(actionPanel, updated, gui); //Va appeller la méthode
-                                    } else {
-                                        actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
-                                    }
-
                             }
                         });
 
@@ -1967,36 +2007,82 @@ public class LanternaApp {
             }).start();
         }
 
-        //Rafraichissemnt auto des bouton essaie
-        private static void updateActionPanel(Panel actionPanel, StateCombat state, WindowBasedTextGUI gui){
+        /***
+         * @param actionPanel
+         * @param gui
+         * @param state
+         * Rafraichissemnt auto des bouton essaie
+         * Affiche les actions dispo pour le joueur
+         * */
+    private static void updateActionPanel(Panel actionPanel, StateCombat state, WindowBasedTextGUI gui) {
 
-            actionPanel.addComponent(new Label("Vos actions :"));
-            actionPanel.addComponent(new Button("Attaque normale ", () -> {
+        actionPanel.addComponent(new Label("Vos actions :"));
+        actionPanel.addComponent(new Button("Attaque normale ", () -> {
+            try {
+                HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
+            } catch (Exception e) {
+                MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+            }
+        }));
+        actionPanel.addComponent(new Button("Attaque spéciale ", () -> {
+            try {
+                HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
+            } catch (Exception e) {
+                MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
+            }
+        }));
+        actionPanel.addComponent(new Button("Ouvrir le Coffre des Joyaux", () -> {
+          displayChest(gui, state.getChest(Session.getUsername()));
+        }));
+
+        // Objets du backpack
+        for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
+            if(obj instanceof  CoffreDesJoyaux) continue; //Cache le bouton utiliser pour le coffer
+            actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
                 try {
-                    HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
+                    HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
                 } catch (Exception e) {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
             }));
-            actionPanel.addComponent(new Button("Attaque spéciale ", () -> {
-                try {
-                    HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
-                } catch (Exception e) {
-                    MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
-                }
-            }));
+        }
+    }
 
-            for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
-                actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
+    /**
+     * @param gui
+     * @param chest
+     * Display coffre
+     * affiche tous les objest dans state.getchest
+     * **/
+    private static  void displayChest(WindowBasedTextGUI gui, List<ObjectBase> chest){
+        BasicWindow chestWindow = new BasicWindow("Coffre des Joyaux");
+        chestWindow.setHints(List.of(Window.Hint.CENTERED));
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new Label("Objets disponibles dans le coffre :"));
+
+        if(chest.isEmpty()){
+            panel.addComponent(new Label("Coffre vide"));
+        }
+        else{
+            for (ObjectBase obj : chest) {
+                panel.addComponent(new Button("Utiliser : " + obj.getName(), () -> {
                     try {
-                        HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
-
-                    } catch (Exception e) {
+                        HttpService.combatUseObject(Session.getUsername(), obj.getId(),Session.getToken());
+                        MessageDialog.showMessageDialog(gui, "Objet utilisé", obj.getName() + " a été utilisé !");
+                        chestWindow.close();
+                    }
+                    catch (Exception e) {
                         MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                     }
                 }));
             }
         }
+        panel.addComponent(new Button("Fermer", chestWindow::close));
+
+        chestWindow.setComponent(panel);
+        gui.addWindow(chestWindow);
+    }
 
         private static void DisplayClassement (WindowBasedTextGUI gui){
             BasicWindow profileWindow = new BasicWindow("Classement");
@@ -2057,7 +2143,7 @@ public class LanternaApp {
          * Afficher les trophées en faisant appele au service fetchUserInfo ()(direct la reponse objet userJson pas besoin de la parser)
          *
          * */
-        public static void afficherTrophees(WindowBasedTextGUI gui) {
+        public static void Displaytrophy(WindowBasedTextGUI gui) {
         BasicWindow window = new BasicWindow("Vos Trophées");
         window.setHints(List.of(Window.Hint.CENTERED)); //Centrés
         Panel panel = new Panel(new GridLayout(1));

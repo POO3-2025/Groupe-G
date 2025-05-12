@@ -65,7 +65,7 @@ public class RouletteDAOImplTest {
         // Crée un utilisateur test en base MySQL
         var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
         var stmt = conn.prepareStatement("""
-            INSERT INTO users (username, password, level, cristaux, is_connected,gagner,perdu)
+            INSERT INTO users (username, password, level, cristaux, is_connected,gagner,perdu,Winconsecutive	)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         """);
@@ -76,6 +76,7 @@ public class RouletteDAOImplTest {
         stmt.setBoolean(5, false);
         stmt.setInt(6, 0); // valeur par défaut pour 'gagner'
         stmt.setInt(7, 0); // valeur par défaut pour 'perdu'
+        stmt.setInt(8, 0);
         stmt.executeUpdate();
         stmt.close();
         conn.close();

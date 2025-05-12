@@ -20,6 +20,8 @@ public class Armor extends ObjectBase {
         return bonusPV;
     }
 
+
+
     public void setBonusPV(int bonusPV) {
         bonusPV = bonusPV;
     }
