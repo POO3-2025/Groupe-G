@@ -267,7 +267,7 @@ public class LanternaApp {
             });
         })));
 
-        mainPanel.addComponent(new Button("Mes trophées", () -> afficherTrophees(gui)));
+        mainPanel.addComponent(new Button("Mes trophées", () -> Displaytrophy(gui)));
 
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
@@ -1132,7 +1132,7 @@ public class LanternaApp {
                             System.out.println("===> Passage dans invokeLater : lancement du combat");
                             shouldRun.set(false);
                             combatWindow.close();
-                            LanternaApp.lancerCombat(gui, state);
+                            LanternaApp.StartCombatLan(gui, state);
                         });
                         break;
                     }
@@ -1173,7 +1173,7 @@ public class LanternaApp {
                                                 if (state != null && state.getPlayerNow() != null) {
                                                     gui.getGUIThread().invokeLater(() -> {
                                                         combatWindow.close();
-                                                        LanternaApp.lancerCombat(gui, state);
+                                                        LanternaApp.StartCombatLan(gui, state);
                                                     });
                                                 }
                                             } catch (Exception e) {
@@ -1791,7 +1791,7 @@ public class LanternaApp {
          * Afficher l'ecran de comabt et mettre a jour dynamiquement l'affichage des deux cotés
          * Pv joueur, historique, actions possibles, bouton quitter,detection fin de combat,passage de tour
          * */
-        public static void lancerCombat (WindowBasedTextGUI gui, StateCombat state){
+        public static void StartCombatLan (WindowBasedTextGUI gui, StateCombat state){
             AtomicBoolean shouldRun = new AtomicBoolean(true);//Le thread l'utilse pour savoir quand stopé
             boolean[] forfaitEffectue = {false}; //boolean pour savoir si le user a quitter le comabt
             int[] lasttour = {state.getTour()}; //Evite les relancements inutiles
@@ -1926,23 +1926,27 @@ public class LanternaApp {
                             labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
+                            // Historique vidé si trop de tours
+                            if (updated.getTour() >= 7) {
+                                historyPanel.removeAllComponents();
+                                historyPanel.addComponent(new Label("Historique allégé à partir du tour 7."));
+                            } else {
                                 historyPanel.removeAllComponents();
                                 historyPanel.addComponent(new Label("Historique :"));
                                 for (String log : updated.getLog()) {
                                     historyPanel.addComponent(new Label(log));
                                 }
+                            }
 
-                                // relancer l’interface avec les boutons en focntion des tours, si c le meme tour alors les boutons sont affichés pour le bon user
-                                //Si le tour a changé alors la on fait un remove soit pour retirer les boutons et afficher en attente..... soint pour retirer cette phrase et afficher les boutons.
-                                if (updated.getTour() != lasttour[0]) {
-                                    lasttour[0] = updated.getTour();
-                                    actionPanel.removeAllComponents();
-                                    if (updated.getPlayerNow().equals(Session.getUsername())) {
-                                        updateActionPanel(actionPanel, updated, gui); //Va appeller la méthode
-                                    } else {
-                                        actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
-                                    }
-
+                            // Met à jour les actions si le tour change
+                            if (updated.getTour() != lasttour[0]) {
+                                lasttour[0] = updated.getTour();
+                                actionPanel.removeAllComponents();
+                                if (updated.getPlayerNow().equals(Session.getUsername())) {
+                                    updateActionPanel(actionPanel, updated, gui);
+                                } else {
+                                    actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
+                                }
                             }
                         });
 
@@ -2043,7 +2047,7 @@ public class LanternaApp {
          * Afficher les trophées en faisant appele au service fetchUserInfo ()(direct la reponse objet userJson pas besoin de la parser)
          *
          * */
-        public static void afficherTrophees(WindowBasedTextGUI gui) {
+        public static void Displaytrophy(WindowBasedTextGUI gui) {
         BasicWindow window = new BasicWindow("Vos Trophées");
         window.setHints(List.of(Window.Hint.CENTERED)); //Centrés
         Panel panel = new Panel(new GridLayout(1));
