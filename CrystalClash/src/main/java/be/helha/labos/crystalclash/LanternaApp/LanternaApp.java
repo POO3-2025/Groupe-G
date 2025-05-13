@@ -1938,19 +1938,18 @@ public class LanternaApp {
                         //Si null alors le joueur a quitté
                         //SI pas je récup le dernier winner
                         if (updated == null) {
-                            //invokeLater permet de revenir au thread principale de lanterna pour mettre a jour l interface
                             gui.getGUIThread().invokeLater(() -> {
                                 String winner = null;
                                 try {
-                                    String reponseJson  = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                                    String reponseJson = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
                                     JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
                                     winner = jsonObject.get("winner").getAsString();
                                 } catch (Exception e) {
                                     System.out.println("Erreur récup du gagnant : " + e.getMessage());
                                 }
+
                                 String message;
                                 if (forfaitEffectue[0]) {
-
                                     message = "Vous avez quitté le combat, votre adversaire a gagné";
                                 } else if (winner != null && winner.equals(Session.getUsername())) {
                                     message = "Combat terminé, vous avez gagné";
@@ -1960,7 +1959,7 @@ public class LanternaApp {
                                     message = "Combat terminé, mais le gagnant est inconnu";
                                 }
 
-                                MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
+                                MessageDialog.showMessageDialog(gui, "Fin du combat", message);
                                 combatWindow.close();
                                 afficherMenuPrincipal(gui);
                             });
