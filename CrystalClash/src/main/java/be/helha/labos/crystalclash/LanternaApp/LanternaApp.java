@@ -797,12 +797,7 @@ public class LanternaApp {
                         detailsPanel.addComponent(new EmptySpace());
 
 
-
                             detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
-
-                        if (hasCoffre && !( obj instanceof CoffreDesJoyaux)) {
-                            detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
-
                                 try {
                                     String reponse = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                                     JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
@@ -1049,7 +1044,7 @@ public class LanternaApp {
                             }
                         }
                     }
-                }  else {
+                } else {
                     panel.addComponent(new Label("Aucun coffre trouvé dans le sac à dos ou dans l'inventaire"));
                 }
             }
