@@ -2135,7 +2135,7 @@ public class LanternaApp {
             //Pas dépasser la bar
             filling = Math.min(filling, total);
             String barre =  "[" + "█".repeat(filling) + " ".repeat(total - filling) + "] ";
-            return barre + actuel + "/" + objectif; //Jsute texte de progression
+            return barre +Math.min( actuel, objectif) + "/"  + objectif; //Jsute texte de progression
         }
 
         /**

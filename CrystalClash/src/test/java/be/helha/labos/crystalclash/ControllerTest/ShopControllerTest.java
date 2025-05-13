@@ -114,7 +114,7 @@ public class ShopControllerTest {
         var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
         var stmt = conn.prepareStatement("""
             INSERT INTO users (username, password, level, cristaux, is_connected,gagner,perdu,Winconsecutive)
-            VALUES (?, ?, ?, ?, ?,?,?)
+            VVALUES (?, ?, ?, ?, ?, ?, ?,?)
             ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         """);
         stmt.setString(1, TEST_USERNAME);

@@ -34,45 +34,6 @@ public class FightController {
     @Autowired
     private CharacterService characterService;
 
-
-
-
-
-    @PostMapping("/start")
-    public Map<String, Object> startCombat(@RequestBody Map<String, String> body) {
-        String player = body.get("username");
-
-        //true si null
-        if (player == null || player.isBlank()) {
-            throw new RuntimeException("Nom d'utilisateur manquant dans la requête !");
-        }
-
-        System.out.println("[DEBUG] FightController - startCombat() appelé par " + player);
-        Set<String> others = new HashSet<>(ConnectedUsers.getConnectedUsers().keySet());
-        others.remove(player);
-
-        if (others.isEmpty()) throw new RuntimeException("Aucun adversaire trouvé !");
-        String opponent = others.stream().findAny().get();
-
-        // Rechargement à jour du type de personnage sélectionné
-        String charType1 = characterService.getCharacterForUser(player);
-        String charType2 = characterService.getCharacterForUser(opponent);
-
-        if (charType1 == null || charType2 == null) {
-            throw new RuntimeException("Les personnages n'ont pas été sélectionnés !");
-        }
-
-        Personnage p1 = CharactersFactory.getCharacterByType(charType1);
-        Personnage p2 = CharactersFactory.getCharacterByType(charType2);
-
-        List<ObjectBase> bp1 = characterService.getBackPackForCharacter(player).getObjets();
-        List<ObjectBase> bp2 = characterService.getBackPackForCharacter(opponent).getObjets();
-
-        fightService.createCombat(player, opponent, p1, p2, bp1, bp2);
-
-        return Map.of("message", "Combat lancé contre " + opponent);
-    }
-
     @PostMapping("/attack")
     public ResponseEntity<?> attack(@RequestBody Map<String, String> body) {
         String player = body.get("username");
