@@ -82,20 +82,29 @@ public class FightService {
 
                 resolveWinnerAndLoser(state);
 
+                // Première fois qu'on récupère un combat terminé → on le montre une fois
                 if (!state.isCombatDisplayed()) {
                     state.setCombatDisplayed(true);
+
+                    //  programme la suppression après 10 secondes
+                    Timer timer = new Timer();
+                    //schedule executé une action apres un certain dela donc la c la supressions du combat en memoire
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            String winner = state.getWinner();
+                            String loser = state.getLoser();
+                            if (winner != null && loser != null) {
+                                combats.remove(winner);
+                                combats.remove(loser);
+                            }
+                        }
+                    }, 10000); // 10 secondes
+
                     return state;
                 }
 
-                // Combat déjà affiché une fois , alors suppression
-                String winner = state.getWinner();
-                String loser = state.getLoser();
-                if (winner != null && loser != null) {
-                    derniersGagnants.put(winner, winner);
-                    derniersGagnants.put(loser, winner);
-                    combats.remove(winner);
-                    combats.remove(loser);
-                }
+                // si deja affiché 1 fois on affiche plus
                 return null;
             }
 
@@ -318,7 +327,7 @@ public class FightService {
             userService.incrementWimConsecutive(winner);
             userService.resetWinConsecutives(loser);
 
-            //supp pas direct permet affichage avec le xinner et loser
+            //supp pas direct permet affichage avec le winner et loser
             state.setCombatDisplayed(false);
         }
     }

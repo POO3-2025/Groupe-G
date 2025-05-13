@@ -1,0 +1,52 @@
+
+--
+-- Structure de la table `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `role` varchar(20) DEFAULT 'USER',
+  `level` int(11) DEFAULT 1,
+  `cristaux` int(11) DEFAULT 100,
+  `is_connected` tinyint(1) NOT NULL,
+  `gagner` int(11) NOT NULL,
+  `perdu` int(11) NOT NULL,
+  `Winconsecutive` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `users`
+--
+
+INSERT INTO `users` (`id`, `username`, `password`, `role`, `level`, `cristaux`, `is_connected`, `gagner`, `perdu`, `Winconsecutive`) VALUES
+(1, 'celio', '$2a$10$3cMeWQRDWD9kglyM7XgtMen0h6T82u05EADE7r0NEQgnqqR68mhWC', 'USER', 10, 100000, 0, 0, 0, 0),
+(2, 'estelle', '$2a$10$qWLrmFp1we8cBITHvhu1c.eK5OBMlqdJoJu.O0NUvvkXzDfG8s9UG', 'USER', 10, 100000, 0, 0, 0, 0),
+(3, 'omar', '$2a$10$A.O4ju5lulc1qyPJlhzdveQkq805V/372VS3wkVemgn3zBeKLu5ye', 'USER', 10, 100000, 0, 0, 0, 0);
+
+--
+-- Index pour les tables déchargées
+--
+
+--
+-- Index pour la table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
+-- AUTO_INCREMENT pour les tables déchargées
+--
+
+--
+-- AUTO_INCREMENT pour la table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=176;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
