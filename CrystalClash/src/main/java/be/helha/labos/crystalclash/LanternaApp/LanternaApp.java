@@ -1859,21 +1859,43 @@ public class LanternaApp {
 
             //Appelle a chaque a state car il contient les données du combat en cours
 
-            Panel mainPanel = new Panel(new GridLayout(1));
+            Panel mainPanel = new Panel(new LinearLayout(Direction.VERTICAL));
+
             Label tourLabel = new Label("Tour : " + state.getTour());
+            mainPanel.addComponent(tourLabel);
+
+            Label horizontalLine = new Label("----------------------------------------");
+            mainPanel.addComponent(horizontalLine);
+
+            Panel pvPanel = new Panel(new GridLayout(3));
+
             Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
             Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
+            EmptySpace espace = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
+
+
+            labelMesPv.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.CENTER, true, false));
+            labelPvAdversaire.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.CENTER, true, false));
+
+            pvPanel.addComponent(labelMesPv);
+            pvPanel.addComponent(espace);
+            pvPanel.addComponent(labelPvAdversaire);
+
+            mainPanel.addComponent(pvPanel);
+
+            Label horizontalLine1 = new Label("----------------------------------------");
+            mainPanel.addComponent(horizontalLine1);
+
             Panel historyPanel = new Panel(new GridLayout(1));
+
             Panel actionPanel = new Panel(new GridLayout(1));
+
 
             historyPanel.addComponent(new Label("Historique :"));
             for (String entry : state.getLog()) {
                 historyPanel.addComponent(new Label(entry));
             }
-            //Va appeller les labels plus haut
-            mainPanel.addComponent(tourLabel);
-            mainPanel.addComponent(labelPvAdversaire);
-            mainPanel.addComponent(labelMesPv);
+
             mainPanel.addComponent(historyPanel);
             mainPanel.addComponent(actionPanel);
 
