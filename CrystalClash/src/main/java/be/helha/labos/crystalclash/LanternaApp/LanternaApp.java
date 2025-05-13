@@ -1972,7 +1972,7 @@ public class LanternaApp {
                                 } else if (winner.equals(Session.getUsername())) {
                                     message = "Combat terminé, vous avez gagné !";
                                 } else {
-                                    message = "Combat terminé, " + winner + " a gagné.";
+                                    message = "Vous êtes mort, le ccmbat est terminé, " + winner + " a gagné.";
                                 }
                                 combatWindow.close();
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
@@ -1987,6 +1987,14 @@ public class LanternaApp {
                             tourLabel.setText("Tour : " + updated.getTour());
                             labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
+
+
+                            // Rafraîchi l'historique à chaque update
+                            historyPanel.removeAllComponents();
+                            historyPanel.addComponent(new Label("Historique :"));
+                            for (String entry : updated.getLog()) {
+                                historyPanel.addComponent(new Label(entry));
+                            }
 
                             // Met à jour les actions si le tour change
                             if (updated.getTour() != lasttour[0]) {
