@@ -44,6 +44,10 @@ public class StateCombat {
     private String winner; //Winner fin de combat
     @JsonProperty("loser")
     private String loser; //Loser fin de combat
+    /**
+     * Map pour mémoriser temporairement que le user a un bonus temporaire de force a appliqué au prochain tour
+     * */
+    private final Map<String, Integer> BonusAtkTemp = new HashMap<>();
 
     /**
      * @param bp1
@@ -191,4 +195,12 @@ public class StateCombat {
     public List<ObjectBase> getChest(String username){
         return chest.getOrDefault(username, new ArrayList<>());
     }
+
+    /**
+     * Obtenir bonus atk temp
+     * */
+    public Map<String, Integer> getBonusATKTemporaire() {
+        return BonusAtkTemp;
+    }
+
 }
