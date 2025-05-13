@@ -82,6 +82,9 @@ public class Personnage {
     public int getAttackBase() {
         return AttackBase;
     }
+    public void setAttackBase(int AttackBase){
+            this.AttackBase=AttackBase;
+    }
 
     public void AttackBase(int AttackBase) {
         this.AttackBase = AttackBase;

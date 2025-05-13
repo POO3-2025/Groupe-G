@@ -626,7 +626,7 @@ public class LanternaApp {
                 }
             }));
         }
-        if (hasCoffre) {
+        if (hasCoffre && !(obj instanceof CoffreDesJoyaux)) {
             panel.addComponent(new Button("Mettre dans le coffre", () -> {
                 try {
                     String result = HttpService.putInCoffre(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
@@ -796,34 +796,34 @@ public class LanternaApp {
                         detailsPanel.addComponent(new Label(obj.getDetails()));
                         detailsPanel.addComponent(new EmptySpace());
 
-                        detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
-                            try {
-                                String reponse = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
-                                JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
-                                String message = result.get("message").getAsString();
-                                MessageDialog.showMessageDialog(gui, "Retrait", message);
-                                detailsWindow.close();
-                                window.close();
-                                refreshBackpack.run();
-                            } catch (Exception e) {
-                                MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer du backPack : " + e.getMessage());
-                            }
-                        }));
 
-                        if (hasCoffre) {
-                            detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
+                            detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
                                 try {
-                                    String result = HttpService.putInCoffreBackPack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
-                                    JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
-                                    String message = resultJson.get("message").getAsString();
-                                    MessageDialog.showMessageDialog(gui, "Coffre", message);
+                                    String reponse = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                    JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
+                                    String message = result.get("message").getAsString();
+                                    MessageDialog.showMessageDialog(gui, "Retrait", message);
                                     detailsWindow.close();
+                                    window.close();
                                     refreshBackpack.run();
                                 } catch (Exception e) {
-                                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le coffre : " + e.getMessage());
+                                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer du backPack : " + e.getMessage());
                                 }
                             }));
-                        }
+                        if (hasCoffre && !(obj instanceof CoffreDesJoyaux)) {
+                                detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
+                                    try {
+                                        String result = HttpService.putInCoffreBackPack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                        JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
+                                        String message = resultJson.get("message").getAsString();
+                                        MessageDialog.showMessageDialog(gui, "Coffre", message);
+                                        detailsWindow.close();
+                                        refreshBackpack.run();
+                                    } catch (Exception e) {
+                                        MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le coffre : " + e.getMessage());
+                                    }
+                                }));
+                            }
 
                         detailsPanel.addComponent(new Button("Retour", detailsWindow::close));
                         detailsWindow.setComponent(detailsPanel);
@@ -1922,21 +1922,20 @@ public class LanternaApp {
                                 try {
                                     String reponseJson  = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
                                     JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
-                                    winner = jsonObject.get("winner").getAsString();                                } catch (Exception e) {
+                                    winner = jsonObject.get("winner").getAsString();
+                                } catch (Exception e) {
                                     System.out.println("Erreur récup du gagnant : " + e.getMessage());
                                 }
                                 String message;
                                 if (forfaitEffectue[0]) {
-                                    message = "Vous avez quitté le comabt, votre adversaire a gagné";
-                                } else if (winner != null) {
-                                    if (winner.equals(Session.getUsername())) {
-                                        message = "Comabt terminé, vous avez gagné";
 
-                                    } else {
-                                        message = "Combat terminé, " + winner + "a gagné";
-                                    }
+                                    message = "Vous avez quitté le combat, votre adversaire a gagné";
+                                } else if (winner != null && winner.equals(Session.getUsername())) {
+                                    message = "Combat terminé, vous avez gagné";
+                                } else if (winner != null) {
+                                    message = "Combat terminé, " + winner + " a gagné";
                                 } else {
-                                    message = "Comant terminé, mais le gagnat est inconnu";
+                                    message = "Combat terminé, mais le gagnant est inconnu";
                                 }
 
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
@@ -1945,6 +1944,7 @@ public class LanternaApp {
                             });
                             break;
                         }
+
 
                         if (updated.isFinished()) {
                             gui.getGUIThread().invokeLater(() -> {
@@ -1955,12 +1955,11 @@ public class LanternaApp {
                                 labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
 
-                                String winner;
+                                String winner = null;
                                 try {
-                                    winner = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
-                                } catch (Exception e) {
-                                    System.out.println("Erreur récup du gagnant : " + e.getMessage());
-                                    winner = null;
+                                    String reponseJson  = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                                    JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
+                                    winner = jsonObject.get("winner").getAsString();                                } catch (Exception e) {
                                 }
 
 
