@@ -88,7 +88,7 @@ public class FightService {
 
                     //  programme la suppression après 10 secondes
                     Timer timer = new Timer();
-                    //schedule executé une action apres un certain dela donc la c la supressions du combat en memoire
+                    //schedule executé une action apres un certain dela donc la c la supressions de combat
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
@@ -133,7 +133,7 @@ public class FightService {
      * met a jour le dernier gagnant et on delete le combat
      * */
     public void HandleAttach(String Player, String type) {
-        System.out.println("[DEBUG] useObject() appelé par " + Player + " avec  " + type);
+
 
         if (Player == null || type == null) return; // sécurité
 
@@ -148,6 +148,10 @@ public class FightService {
 
         if (type.equals("normal")) {
             Damage = attack.getAttackBase();
+            Integer bonusATK = state.getBonusATKTemporaire().remove(Player); //retire le bonus a l'attaque (remove que 1 usage)
+            if (bonusATK != null) {
+                Damage += bonusATK;
+            }
             attack.CompteurAttack(attack.getCompteurAttack() + 1);
             state.addLog(Player + " utilise " + attack.getNameAttackBase() + " (" + Damage + " damage)");
         }else{
@@ -235,7 +239,7 @@ public class FightService {
 
         }else if(obj instanceof PotionOfStrenght){
             int bonus = ((PotionOfStrenght) obj).getBonusATK();
-            perso.setAttackBase(perso.getAttackBase() + bonus);//Ajoute effet de force a l attaque normale du perso
+            state.getBonusATKTemporaire().put(Player,bonus);//Ajoute effet de force a l attaque normale du perso
             state.addLog(Player + " boit une " + obj.getName() + " et gagne +" + bonus + " en attaque !");
         }
 
