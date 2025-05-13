@@ -1988,6 +1988,14 @@ public class LanternaApp {
                             labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
+
+                            // Rafraîchi l'historique à chaque update
+                            historyPanel.removeAllComponents();
+                            historyPanel.addComponent(new Label("Historique :"));
+                            for (String entry : updated.getLog()) {
+                                historyPanel.addComponent(new Label(entry));
+                            }
+
                             // Met à jour les actions si le tour change
                             if (updated.getTour() != lasttour[0]) {
                                 lasttour[0] = updated.getTour();
