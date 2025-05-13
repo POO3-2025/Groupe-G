@@ -363,4 +363,30 @@ public class FightService {
             .sum();//Ajoute le bonus de PV a ses points de vies.
     }
 
+    /*
+    //Set pour les tets pour que ce soit accessible pour les tests
+    //public pour y avoir acces, void retourne rien et ensuite un set et a l'interieure un  this..... : fait réference a l'attribut privée de la classe voulue
+    */
+    /***
+     * @param characterService
+     * */
+    public void setCharacterService(CharacterService characterService) {
+        this.characterService = characterService;
     }
+
+    /**
+     * @param userService
+     * */
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    /***
+     * @param inventoryService
+     * */
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
+
+}
