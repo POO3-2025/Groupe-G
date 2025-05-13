@@ -13,9 +13,7 @@ import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.UserDAOImpl;
 import be.helha.labos.crystalclash.DTO.StateCombat;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
-import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
-import be.helha.labos.crystalclash.Object.ObjectBase;
-import be.helha.labos.crystalclash.Object.Weapon;
+import be.helha.labos.crystalclash.Object.*;
 import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.FightService;
 import be.helha.labos.crystalclash.Service.InventoryService;
@@ -29,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FightServiceTest {
@@ -200,7 +199,7 @@ public void TestCreateFightAndAttack(){
     @Test
     @Order(3)
     @DisplayName("Test Forfait d'un joueur")
-    public void TestFormfaitFinoshFight() throws Exception {
+    public void TestForfaitFight() throws Exception {
 
         Personnage p1 = CharactersFactory.getCharacterByType("elf");
         Personnage p2 = CharactersFactory.getCharacterByType("troll");
@@ -209,10 +208,21 @@ public void TestCreateFightAndAttack(){
         List<ObjectBase> bp2 = List.of();
 
         fightService.createCombat(user1, user2, p1, p2, bp1, bp2);
+
+        //USer1 abandonne
         fightService.forfait(user1);
 
+        //1ere appel combat tjrs visible
         StateCombat combat = fightService.getCombat(user1);
-        assertNull(combat);
+        assertNotNull(combat, "Le combat doit être visible une première fois après le forfait");
+
+        //Verif bon gagnant
+        assertEquals(user2, combat.getWinner(), "Le gagnant doit être user2");
+        assertEquals(user1, combat.getLoser(), "Le perdant doit être user1");
+
+        //2eme appel combat supprimé
+        StateCombat combatFinal = fightService.getCombat(user2);
+        assertNull(combatFinal, "Le combat doit être supprimé après affichage");
     }
 
     @Test
@@ -381,7 +391,164 @@ public void TestCreateFightAndAttack(){
         assertEquals(user1, gagnant, "user1 doit être enregistré comme gagnant");
 
     }
+    @Test
+    @Order(9)
+    @DisplayName("Test effet de l'armure : bonus PV et réduction de fiabilité")
+    public void testAeffectArmorAndreliability() throws Exception {
+        // Création des personnages
+        Personnage p1 = CharactersFactory.getCharacterByType("elf");
+        Personnage p2 = CharactersFactory.getCharacterByType("troll");
+
+        // créa d'une armure pour p2 avec fiabilité 2 et bonus de 10 PV
+        Armor armure = new Armor("Armure de test", 10, 2,2,10);
+        Equipment equipement = new Equipment();
+        equipement.setObjets(List.of(armure));
+
+        // Sauvegarde de l'équipement pour user2
+        fightService.getCharacterService().saveEquipmentForCharacter(user2, equipement);
+
+        // PV initiaux du personnage sans armure
+        int pvSansBonus = p2.getPV();
+
+        // Création du combat
+        fightService.createCombat(user1, user2, p1, p2, List.of(), List.of());
+
+        // Vérifie que les PV du joueur 2 ont été augmentés par l'armure
+        StateCombat combat = fightService.getCombat(user2);
+        assertEquals(pvSansBonus + 10, combat.getPv(user2), "Les PV doivent inclure le bonus d'armure");
+
+        // L'utilisateur 1 attaque avec une attaque normale
+        fightService.HandleAttach(user1, "normal");
+
+        // Recharge l'équipement pour vérifier la fiabilité de l'armure
+        Equipment equipementApres = fightService.getCharacterService().getEquipmentForCharacter(user2);
+        ObjectBase armureApres = equipementApres.getObjets().get(0);
+
+
+        // 2eme attaque pour casser l’armure
+        fightService.HandleAttach(user1, "normal");
+
+        Equipment equipementFinal = fightService.getCharacterService().getEquipmentForCharacter(user2);
+        ObjectBase armureFinale = equipementFinal.getObjets().get(0);
+
+        // verif que les logs contiennent bien les messages sur la fiabilité
+        List<String> logs = combat.getLog();
+        boolean logFiabilitePresente = logs.stream().anyMatch(log -> log.contains("fiabilité"));
+        assertTrue(logFiabilitePresente, "Un message sur la fiabilité de l'armure doit apparaître dans les logs");
     }
+        @Test
+        @Order(10)
+        @DisplayName("Test utiliser une potion de soin")
+        public void TestHealingPotion() throws Exception {
+            Personnage p1 = CharactersFactory.getCharacterByType("elf");
+            Personnage p2 = CharactersFactory.getCharacterByType("troll");
+
+            //  réduit  les PV de p1
+            p1.setPV(p1.getPV() - 20);
+
+            HealingPotion potion = new HealingPotion("Petite potion", 15, 1, 2);
+            potion.setId("potion");
+
+            List<ObjectBase> bp1 = new ArrayList<>();
+            bp1.add(potion);
+            List<ObjectBase> bp2 = new ArrayList<>();
+
+            fightService.createCombat(user1, user2, p1, p2, bp1, bp2);
+
+            int pvAvant = fightService.getCombat(user1).getPv(user1);
+
+            fightService.useObject(user1, "potion");
+
+            int pvApres = fightService.getCombat(user1).getPv(user1);
+            assertTrue(pvApres > pvAvant, "La potion doit soigner le joueur");
+
+            // Vérifie qu'elle est bien supprimée après 1 utilisation
+            Equipment equipFinal = fightService.getCharacterService().getEquipmentForCharacter(user1);
+            assertTrue(fightService.getCombat(user1).getBackpack(user1).isEmpty(), "La potion doit être retirée après usage");
+        }
+
+    @Test
+    @Order(10)
+    @DisplayName("Test utiliser une potion de force")
+    public void TestPotionOfStrenght() throws Exception {
+
+        Personnage p1 = CharactersFactory.getCharacterByType("elf");
+        Personnage p2 = CharactersFactory.getCharacterByType("troll");
+
+        // pv du user1
+        p1.setPV(p1.getPV());
+
+        PotionOfStrenght potion = new PotionOfStrenght("grosse potion", 15, 1, 15);
+        potion.setId("potion");
+
+        List<ObjectBase> bp1 = new ArrayList<>();
+        bp1.add(potion);
+        List<ObjectBase> bp2 = new ArrayList<>();
+
+        //Crée le combat
+        fightService.createCombat(user1, user2, p1, p2, bp1, bp2);
+
+        //recup l'attaque de base avant le bonus d effet la
+        int attaqueAvant = fightService.getCombat(user1).getCharacter(user1).getAttackBase();
+
+        //use de la potion de force
+        fightService.useObject(user1, "potion");
+
+        //recup de l'attaque de base apres l'effet
+        int attaqueApres = fightService.getCombat(user1).getCharacter(user1).getAttackBase();
+
+        //verif attaque de base bien augmenté
+        assertTrue(attaqueApres > attaqueAvant, "La potion de force doit augmenter l'attaque du joueur");
+
+       //vérif bien retirée apres usage
+        assertTrue(fightService.getCombat(user1).getBackpack(user1).isEmpty(), "La potion doit être retirée après usage");
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("Test resolveWinnerAndLoser applique bien le gagnant et le perdant")
+    public void testResolveWinnerAndLoserIndirect() throws Exception {
+
+        Personnage p1 = CharactersFactory.getCharacterByType("elf");
+        Personnage p2 = CharactersFactory.getCharacterByType("troll");
+
+        p2.setPV(5);//pv p2 a 5
+        p1.CompteurAttack(p1.getRestrictionAttackSpecial()); // permet attack spé
+
+        fightService.createCombat(user1, user2, p1, p2, List.of(), List.of());
+
+        // fait l'attack spe qui met KO le p2
+        fightService.HandleAttach(user1, "special");
+
+        // premier appel du combat ça ne sup pas encore la
+        StateCombat combat = fightService.getCombat(user1);
+        assertNotNull(combat, "Le combat devrait encore être visible une fois");
+
+        // veri que resolveWinnerAndLoser a bien mis les valeurs
+        assertEquals(user1, combat.getWinner(), "user1 doit être défini comme gagnant");
+        assertEquals(user2, combat.getLoser(), "user2 doit être défini comme perdant");
+    }
+    @Test
+    @Order(12)
+    @DisplayName("Test resolveWinnerAndLoser déclenché par forfait")
+    public void testResolveWinnerAndLoserParForfait() throws Exception {
+        Personnage p1 = CharactersFactory.getCharacterByType("elf");
+        Personnage p2 = CharactersFactory.getCharacterByType("troll");
+
+        fightService.createCombat(user1, user2, p1, p2, List.of(), List.of());
+
+        // user1 abandonne
+        fightService.forfait(user1);
+
+        // 1ere appel = combat visible avec winner et loser
+        StateCombat combat = fightService.getCombat(user2);
+        assertNotNull(combat, "Le combat doit être encore visible une fois");
+
+        assertEquals(user2, combat.getWinner(), "Le gagnant doit être user2");
+        assertEquals(user1, combat.getLoser(), "Le perdant doit être user1");
+    }
+
+}
 
 
 

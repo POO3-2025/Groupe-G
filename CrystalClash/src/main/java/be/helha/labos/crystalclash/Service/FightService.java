@@ -153,6 +153,10 @@ public class FightService {
 
         int newPv = state.getPv(oppenent) - Damage;
         state.setPv(oppenent, newPv);
+
+        //oppenent adversaire
+        userArmorReliability(oppenent, state);
+
         if (state.isFinished()) {
             String winner = state.getWinner();
             String loser = state.getLoser();
@@ -208,26 +212,23 @@ public class FightService {
 
         if(obj instanceof Weapon){
             int dmg = ((Weapon) obj).getDamage();
-        String oppenent = state.getOpponent(Player);
-        int NewPv = state.getPv(oppenent) - dmg;
-        state.setPv(oppenent, NewPv);
-        state.addLog(Player + " utilise " + obj.getName() + " et inflige " + dmg + " dégâts !");
+            String oppenent = state.getOpponent(Player);
+            int NewPv = state.getPv(oppenent) - dmg;
+            state.setPv(oppenent, NewPv);
+            state.addLog(Player + " utilise " + obj.getName() + " et inflige " + dmg + " dégâts !");
+            userArmorReliability(oppenent, state);
         }else
         if(obj instanceof HealingPotion){
             int pv = state.getPv(Player);
             int heal = ((HealingPotion) obj).getHeal();
-            state.setPv(Player, heal);
+            state.setPv(Player, pv + heal);
             state.addLog(Player + " boit une potion de soin (+ " + heal + " PV)");
-        }/*else
-        if(obj instanceof Armor){
-            int bonus = ((Armor) obj).getBonusPV();
-            int pv = state.getPv(Player);
-            state.setPv(Player, pv + bonus);
-            state.addLog(Player + " utilise " + obj.getName() + " et gagne " + bonus + " PV temporairement");
+
         }else if(obj instanceof PotionOfStrenght){
             int bonus = ((PotionOfStrenght) obj).getBonusATK();
+            perso.setAttackBase(perso.getAttackBase() + bonus);//Ajoute effet de force a l attaque normale du perso
             state.addLog(Player + " boit une " + obj.getName() + " et gagne +" + bonus + " en attaque !");
-        }*/
+        }
 
         obj.Reducereliability();
 
@@ -317,16 +318,14 @@ public class FightService {
             userService.incrementWimConsecutive(winner);
             userService.resetWinConsecutives(loser);
 
-            //retire combat de la memoire (MAP), on libere juste de la memoire
-            //Inconiant car direct a la fin du combat c delete
-            combats.remove(username);
-            combats.remove(opponent);
+            //supp pas direct permet affichage avec le xinner et loser
+            state.setCombatDisplayed(false);
         }
     }
 
 
     public List<UserInfo> getClassementPlayer() {
-    return fightDAO.getClassementPlayer();
+        return fightDAO.getClassementPlayer();
     }
 
     /**
@@ -363,7 +362,42 @@ public class FightService {
             .sum();//Ajoute le bonus de PV a ses points de vies.
     }
 
-    /*
+
+
+    /**
+     * @param state = servir a ajoute un log voulu
+     * @param username
+     * Gestion de l'endurence de l'armure pdt le combat
+     * update voir si il a recu des dégats et si il possede au moins une armure
+     * **/
+    public void userArmorReliability(String username, StateCombat state) {
+
+        try{
+            Equipment equip = characterService.getEquipmentForCharacter(username);//Appelle méthode service
+            boolean update = false; //Savoir si il y a eu une update
+
+            for(ObjectBase ob : equip.getObjets()){
+                if(ob instanceof Armor armor){
+
+                    armor.Reducereliability();
+                    if(armor.getReliability() <= 0){
+                        state.addLog(username + "a perdu sur son armure" + armor.getName() + "(cassée");
+                    }else{
+                        state.addLog(username + "perd 1 de fiabilité sur son armure" + armor.getName());
+                    }
+                    update = true;
+                }
+            }
+            if (update){
+                //SI update a lieu alors on appele une methode du service
+                characterService.saveEquipmentForCharacter(username, equip);
+            }
+        } catch (Exception e) {
+            System.out.println("[ERREUR] Mise à jour fiabilité armure de " + username + " : " + e.getMessage());
+        }
+
+    }
+       /*
     //Set pour les tets pour que ce soit accessible pour les tests
     //public pour y avoir acces, void retourne rien et ensuite un set et a l'interieure un  this..... : fait réference a l'attribut privée de la classe voulue
     */
@@ -388,5 +422,8 @@ public class FightService {
         this.inventoryService = inventoryService;
     }
 
+    public CharacterService getCharacterService() {
+        return this.characterService;
+    }
 
 }
