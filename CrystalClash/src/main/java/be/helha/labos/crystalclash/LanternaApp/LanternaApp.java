@@ -626,7 +626,7 @@ public class LanternaApp {
                 }
             }));
         }
-        if (hasCoffre) {
+        if (hasCoffre && !(obj instanceof CoffreDesJoyaux)) {
             panel.addComponent(new Button("Mettre dans le coffre", () -> {
                 try {
                     String result = HttpService.putInCoffre(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
@@ -810,7 +810,7 @@ public class LanternaApp {
                             }
                         }));
 
-                        if (hasCoffre) {
+                        if (hasCoffre && !( obj instanceof CoffreDesJoyaux)) {
                             detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
                                 try {
                                     String result = HttpService.putInCoffreBackPack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
@@ -1044,7 +1044,7 @@ public class LanternaApp {
                             }
                         }
                     }
-                } else {
+                }  else {
                     panel.addComponent(new Label("Aucun coffre trouvé dans le sac à dos ou dans l'inventaire"));
                 }
             }
