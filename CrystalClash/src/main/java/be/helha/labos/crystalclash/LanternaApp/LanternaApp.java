@@ -1972,7 +1972,7 @@ public class LanternaApp {
                                 } else if (winner.equals(Session.getUsername())) {
                                     message = "Combat terminé, vous avez gagné !";
                                 } else {
-                                    message = "Combat terminé, " + winner + " a gagné.";
+                                    message = "Vous êtes mort, le ccmbat est terminé, " + winner + " a gagné.";
                                 }
                                 combatWindow.close();
                                 MessageDialog.showMessageDialog(gui, "Fin du comabt", message);

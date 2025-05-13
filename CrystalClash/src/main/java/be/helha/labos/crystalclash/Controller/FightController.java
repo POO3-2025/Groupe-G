@@ -169,6 +169,18 @@ public class FightController {
 
     }
 
+//Ajout encore de set pour y avoir acces dans les tests
+public void setFightService(FightService fightService) {
+    this.fightService = fightService;
+}
+
+    public void setCharacterService(CharacterService characterService) {
+        this.characterService = characterService;
+    }
+
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
 
 }
 
