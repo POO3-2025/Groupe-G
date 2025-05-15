@@ -25,6 +25,8 @@ import com.googlecode.lanterna.gui2.Window.Hint;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import org.bson.Document;
+
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.Instant;
@@ -2259,12 +2261,15 @@ public class LanternaApp {
         try {
             UserInfo user = Login_Register_userHttpClient.fetchUserInfo(Session.getUsername(), Session.getToken());
 
-            //nbr de tour
-            int nombreTours = user.getDernierCombatTours();
-            int win = user.getGagner();
-            int winConcecutive = user.getWinconsecutive();
-            int cristaux = user.getCristaux();
+            Document stats = Login_Register_userHttpClient.fetchUserStats(Session.getUsername(), Session.getToken());
 
+            int cristaux = stats.getInteger("cristauxWin", 0);
+            int nombreTours = stats.getInteger("derniercombattour", 0);
+            int bazooka = stats.getInteger("utilisationBazooka", 0);
+
+            int win = user.getGagner();
+
+            int winConcecutive = user.getWinconsecutive();
 
             //   BRONZE
             Button bronzeBtn = new Button("Bronze : " + generateBar(win, 1), () -> {

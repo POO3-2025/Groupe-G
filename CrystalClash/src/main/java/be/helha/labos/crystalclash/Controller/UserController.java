@@ -2,6 +2,7 @@ package be.helha.labos.crystalclash.Controller;
 
 import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.ShopService;
+import be.helha.labos.crystalclash.Service.UserCombatStatService;
 import be.helha.labos.crystalclash.Service.UserService;
 import be.helha.labos.crystalclash.User.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.bson.Document;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,6 +30,8 @@ public class UserController {
     private CharacterService characterService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserCombatStatService userCombatStatService;
 
     /**
      * @param username
@@ -54,7 +58,16 @@ public class UserController {
         }
     }
 
-   public void setCharacterService(CharacterService characterService) {
+    @GetMapping("/user/stats/{username}")
+    public ResponseEntity<String> getStats(@PathVariable String username) {
+        String stats = userCombatStatService.getStats(username);
+        if (stats == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(stats);
+    }
+
+
+
+    public void setCharacterService(CharacterService characterService) {
         this.characterService = characterService;
     }
 
@@ -63,7 +76,9 @@ public class UserController {
     }
 
 
-
+    public void setUserCombatStatService(UserCombatStatService userCombatStatService) {
+        this.userCombatStatService = userCombatStatService;
+    }
 
 
 }

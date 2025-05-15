@@ -1,0 +1,106 @@
+package be.helha.labos.crystalclash.DAOImpl;
+
+import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
+import be.helha.labos.crystalclash.DAO.UserCombatStatDAO;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+import org.springframework.stereotype.Repository;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Repository
+public class UserCombatStatDAOImpl implements UserCombatStatDAO {
+
+
+    private static final Map<String, Boolean> bazookaUtilisation = new HashMap<>();
+
+    /**
+     * @param username
+     * crée la collection et doc
+     * */
+    @Override
+    public  void createStatsForUser(String username) {
+        try {
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
+            MongoCollection<Document> collection = mongoDB.getCollection("userCristauxWin");
+
+            Document document = new Document();
+            document.append("username", username);
+            document.append("cristauxWin", 0);
+            document.append("derniercombattour", 0);
+            document.append("utilisationBazooka", 0);
+            collection.insertOne(document);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @param username
+     * get state
+     * */
+    @Override
+    public String getStats(String username) {
+        try {
+
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
+            MongoCollection<org.bson.Document> collection = mongoDB.getCollection("userCristauxWin");
+
+            org.bson.Document result = collection.find(new org.bson.Document("username", username)).first();
+            if (result != null) {
+                System.out.println("[DEBUG] Trouvé en base : " + result.toJson()); // ← Ajoute ce log
+                return result.toJson(); // ← cette ligne est essentielle
+            } else {
+                System.out.println("[DEBUG] Aucun document trouvé pour username=" + username);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+        return null;
+    }
+
+    /**
+     * @param username
+     * @param nbTours
+     * @param cristauxGagnes
+     * Mis a jour du doc souhaité de la collection userCristauxWin
+     * **/
+     @Override
+    public void updateStatsAfterCombat(String username, int cristauxGagnes, int nbTours){
+        try{
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
+            MongoCollection<Document> collection = mongoDB.getCollection("userCristauxWin");
+
+            Document filter = new Document("username", username);
+
+            Document updates = new Document()
+                .append("cristauxWin", cristauxGagnes)
+                .append("derniercombattour", nbTours);
+
+            if (bazookaUtilisation.getOrDefault(username, false)) {
+                updates.append("utilisationBazooka", 1);
+            }
+
+            Document updateOperation = new Document("$set", updates);
+
+            collection.updateOne(filter, updateOperation);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }finally {
+            bazookaUtilisation.remove(username);
+        }
+     }
+
+     /**
+      * @param username
+      * met a true bazookaUtilisation si username l'a use
+      * **/
+     @Override
+    public void setBazookaUsed(String username){
+        bazookaUtilisation.put(username,true);
+     }
+
+}

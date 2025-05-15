@@ -20,6 +20,10 @@ public class FightService {
     private UserService userService;//Donner récompense aux gagnant, win/lose
     @Autowired
     private InventoryService inventoryService;
+
+    @Autowired
+    private UserCombatStatService userCombatStatService;
+
     /**
      * Pailre clés valeurs (String id ou nom et StateCombat l'etat du combat), associe un nom de user a 1 statecombat partagé entre 2 users
      * */
@@ -167,6 +171,8 @@ public class FightService {
 
             try {
                 userService.rewardWinner(winner, 50, 1);
+                userCombatStatService.updateStatsAfterCombat(winner, 50, state.getTour());
+
                 userService.IncrementWinner(winner);
                 userService.incrementDefeat(loser);
             } catch (Exception e) {
@@ -215,7 +221,10 @@ public class FightService {
         ObjectBase obj = objet.get();
         Personnage perso = state.getCharacter(Player);
 
-        if(obj instanceof Weapon){
+        if(obj instanceof Weapon weapon){
+            if(weapon.getName().equalsIgnoreCase("bazooka")){
+                userCombatStatService.setBazookaUsed(Player);
+            }
             int dmg = ((Weapon) obj).getDamage();
             String oppenent = state.getOpponent(Player);
             int NewPv = state.getPv(oppenent) - dmg;
@@ -267,6 +276,8 @@ public class FightService {
 
             try {
                 userService.rewardWinner(winner, 50, 1);
+                userCombatStatService.updateStatsAfterCombat(winner, 50, state.getTour());
+
                 userService.IncrementWinner(winner);
                 userService.incrementDefeat(loser);
             } catch (Exception e) {

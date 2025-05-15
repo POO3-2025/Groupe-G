@@ -3,6 +3,7 @@ package be.helha.labos.crystalclash.HttpClient;
 import be.helha.labos.crystalclash.User.UserInfo;
 import com.google.gson.Gson;
 
+import org.bson.Document;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -94,6 +95,27 @@ public class Login_Register_userHttpClient {
             return new Gson().fromJson(response.body(), UserInfo.class);
         } else {
             throw new RuntimeException("Erreur lors de la récupération des infos utilisateur : " + response.body());
+        }
+    }
+
+    /**
+     * @param username
+     * @param token
+     * recup stats dans mongo
+     * **/
+    public static Document fetchUserStats(String username, String token)throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(BASE_URL + "/user/user/stats/" + username))
+            .header("Authorization", "Bearer " + token)
+            .GET()
+            .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("Réponse brute : " + response.body());
+        if (response.statusCode() == 200) {
+            return Document.parse(response.body());
+        } else {
+            throw new RuntimeException("Impossible de charger les stats Mongo : " + response.body());
         }
     }
 

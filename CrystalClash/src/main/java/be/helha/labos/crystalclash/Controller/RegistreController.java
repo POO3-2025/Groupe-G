@@ -5,6 +5,7 @@ import be.helha.labos.crystalclash.DAO.RegistreDAO;
 import be.helha.labos.crystalclash.DTO.RegisterRequest;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Service.RegistreService;
+import be.helha.labos.crystalclash.Service.UserCombatStatService;
 import be.helha.labos.crystalclash.server_auth.AuthResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,8 @@ public class RegistreController {
 
     @Autowired
     private InventoryService inventoryService;
-
+    @Autowired
+    private UserCombatStatService userCombatStatService;
     /**
      * @param request => RegisterRequest contenant le nom d'utilisateur et le mot de passe
      * @return ResponseEntity contenant le message de succès ou d'erreur
@@ -58,6 +60,7 @@ public class RegistreController {
             registreService.insertUser(request.getUsername(), hashedPassword);
 
             inventoryService.createInventoryForUser(request.getUsername());
+            userCombatStatService.createStatsForUser(request.getUsername());
 
             return ResponseEntity.ok(new AuthResponse(null, "Inscription réussie !"));
         } catch (Exception e) {

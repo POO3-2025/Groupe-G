@@ -163,8 +163,8 @@ public class InventoryControllerTest {  // <- ici "Test" !
         System.out.println("Réponse du contrôleur : " + response.getBody().getMessage());
         // vérif la réponse
         assertEquals(200, response.getStatusCodeValue());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().getMessage().contains("Objet vendu avec succès"));
+            assertNotNull(response.getBody());
+            assertTrue(response.getBody().getMessage().contains("Objet vendu avec succès"));
 
         @SuppressWarnings("unchecked")
         Map<String, Object> dataMap = (Map<String, Object>) response.getBody().getData();

@@ -4,8 +4,10 @@ import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.Controller.UserController;
 import be.helha.labos.crystalclash.DAOImpl.CharacterDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
+import be.helha.labos.crystalclash.DAOImpl.UserCombatStatDAOImpl;
 import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.InventoryService;
+import be.helha.labos.crystalclash.Service.UserCombatStatService;
 import be.helha.labos.crystalclash.Service.UserService;
 import be.helha.labos.crystalclash.User.UserInfo;
 import be.helha.labos.crystalclash.server_auth.CrystalClashApplication;
@@ -23,6 +25,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -37,8 +41,8 @@ public class UserControllerTest {
     private InventoryDAOImpl inventoryDAO;
     private UserService userService;
     private UserController userController;
-
-    /*
+    private UserCombatStatService userCombatStatService;
+    /**
      *¨Rediriger les co de prod vers les bases des test
      * Ici on va leurer la connection
      * c est a dire qu on va reprendre tous les parametres de la connection prod de mysql et de mongo
@@ -91,6 +95,9 @@ public class UserControllerTest {
         userController.setUserService(userService);
         userController.setCharacterService(characterService);
 
+        userCombatStatService = new UserCombatStatService(new UserCombatStatDAOImpl());
+        userController.setUserCombatStatService(userCombatStatService);
+
     }
 
     @BeforeEach
@@ -129,7 +136,7 @@ public class UserControllerTest {
     }
 
 
-    /*
+    /**
     * Test recup le user.
     * */
     @Test
@@ -157,7 +164,7 @@ public class UserControllerTest {
     }
 
 
-    /*
+    /**
      * Test si un user est bien inexistant
      * */
     @Test
@@ -178,6 +185,24 @@ public class UserControllerTest {
         Assertions.assertEquals("Utilisateur introuvable", errorResponse.get("message"));
     }
 
+      /**
+       * test recup stat depuis mongo
+       * **/
+        @Test
+        @Order(3)
+        @DisplayName("Test récupération stat dans mongo")
+        public void testGetStat() {
+            String username = "mysqltest";
+
+            userCombatStatService.createStatsForUser(username);
+
+            ResponseEntity<?> response = userController.getStats(username);
+
+            Assertions.assertEquals(200, response.getStatusCodeValue());
+
+            assertNotNull(response.getBody());
+        }
+
 
     @AfterAll
     public void resetMySQLUsers_AND_Mongo() throws Exception {
@@ -196,5 +221,7 @@ public class UserControllerTest {
 
         System.out.println("Toutes les données Mongo ont été supprimées.");
     }
+
+
 
 }
