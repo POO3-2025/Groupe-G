@@ -35,9 +35,11 @@ public class FightController {
     private CharacterService characterService;
 
 
-
-
-
+    /**
+     * Lance un combat entre 2 joueurs
+     * @param body
+     * @return Map clé message valeur combat lancé ...
+     */
     @PostMapping("/start")
     public Map<String, Object> startCombat(@RequestBody Map<String, String> body) {
         String player = body.get("username");
@@ -73,6 +75,12 @@ public class FightController {
         return Map.of("message", "Combat lancé contre " + opponent);
     }
 
+
+    /**
+     * Gère l'attaque d'un joueur
+     * @param body
+     * @return ReponseEntity avec le statut du combat
+     */
     @PostMapping("/attack")
     public ResponseEntity<?> attack(@RequestBody Map<String, String> body) {
         String player = body.get("username");
@@ -105,6 +113,11 @@ public class FightController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Gère l'utilisation d'un objet par un joueur
+     * @param body
+     * @return ReponseEntity avec le statut du combat
+     */
     @PostMapping("/use-object")
     public ResponseEntity<?> useObject(@RequestBody Map<String, String> body) throws Exception {
         String player = body.get("username");
@@ -141,11 +154,21 @@ public class FightController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Récupère l'état du combat pour un joueur donné
+     * @param username
+     * @return
+     */
     @GetMapping("/state/{username}")
     public StateCombat getState(@PathVariable String username) {
         return fightService.getCombat(username);
     }
 
+    /**
+     * cree un comabt entre 2 joueurs
+     * @param body
+     * @return ReponseEntity avec le statut du combat
+     */
     @PostMapping("/challenge")
     public ResponseEntity<?> challenge(@RequestBody Map<String, String> body) {
         try{

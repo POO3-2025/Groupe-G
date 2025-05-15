@@ -1864,15 +1864,32 @@ public class LanternaApp {
             Label tourLabel = new Label("Tour : " + state.getTour());
             mainPanel.addComponent(tourLabel);
 
-            Label horizontalLine = new Label("----------------------------------------");
+            Label horizontalLine = new Label("---------------------------------------------------");
             mainPanel.addComponent(horizontalLine);
+
+            Panel characterPanel = new Panel(new GridLayout(3));
+
+            Label nomJoueur = new Label("Joueur : " + Session.getUsername());
+            Label nomAdversaire = new Label("Adversaire : " + adversaire);
+
+            EmptySpace espace1 = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
+            characterPanel.addComponent(nomJoueur);
+            characterPanel.addComponent(espace1);
+            characterPanel.addComponent(nomAdversaire);
+
+            mainPanel.addComponent(characterPanel);
+            Label horizontalLine2 = new Label("---------------------------------------------------");
+            mainPanel.addComponent(horizontalLine2);
 
             Panel pvPanel = new Panel(new GridLayout(3));
 
             Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
             Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
-            EmptySpace espace = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
 
+            //Voir si il a une amure
+
+
+            EmptySpace espace = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
 
             labelMesPv.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.CENTER, true, false));
             labelPvAdversaire.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.CENTER, true, false));
@@ -1883,7 +1900,7 @@ public class LanternaApp {
 
             mainPanel.addComponent(pvPanel);
 
-            Label horizontalLine1 = new Label("----------------------------------------");
+            Label horizontalLine1 = new Label("---------------------------------------------------");
             mainPanel.addComponent(horizontalLine1);
 
             Panel historyPanel = new Panel(new GridLayout(1));
