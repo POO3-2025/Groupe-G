@@ -28,8 +28,11 @@ public class RouletteService {
     private RouletteDAO rouletteDAO;
 
     /**
+     * Joue à la roulette pour un utilisateur donné.
      * @param username
-     * */
+     * @return
+     * @throws Exception
+     */
     public ObjectBase PlayRoulette(String username) throws Exception {
 
         UserInfo user = userService.getUserInfo(username)
@@ -99,6 +102,7 @@ public class RouletteService {
 
 
     }
+    //pour les tests
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
