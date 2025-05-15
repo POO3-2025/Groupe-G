@@ -50,8 +50,7 @@ public class UserCombatStatDAOImpl implements UserCombatStatDAO {
 
             org.bson.Document result = collection.find(new org.bson.Document("username", username)).first();
             if (result != null) {
-                System.out.println("[DEBUG] Trouvé en base : " + result.toJson()); // ← Ajoute ce log
-                return result.toJson(); // ← cette ligne est essentielle
+                return result.toJson();
             } else {
                 System.out.println("[DEBUG] Aucun document trouvé pour username=" + username);
             }
