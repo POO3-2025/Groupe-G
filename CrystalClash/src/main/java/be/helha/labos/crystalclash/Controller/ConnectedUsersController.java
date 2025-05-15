@@ -13,6 +13,11 @@ import java.util.*;
 
 @RestController
 
+/**
+ * Controller pour gérer les utilisateurs connectés et le matchmaking.
+ * Il permet de récupérer la liste des utilisateurs connectés, de gérer les connexions et déconnexions,
+ * ainsi que d'entrer et sortir du matchmaking.
+ */
 public class ConnectedUsersController {
 
     // username, infos complètes du joueur, synchronizedMap va etre utilise pour les post,get,delete

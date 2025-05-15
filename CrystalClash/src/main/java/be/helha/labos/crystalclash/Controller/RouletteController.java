@@ -15,6 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Contrôleur pour gérer les opérations liées à la roulette dans le jeu.
+ * Ce contrôleur fournit un point d'accès pour permettre aux utilisateurs
+ * de jouer à la roulette et de tenter de gagner des objets.
+ */
 @RestController
 @RequestMapping("/roulette")
 public class RouletteController {
@@ -23,8 +28,10 @@ public class RouletteController {
     private RouletteService rouletteService;
 
     /**
+     * Jouer à la roulette
+     * @return ResponseEntity contenant le message de succès ou d'erreur
      * pas de paremetre la
-     * apprelle juste roulette service qui contient la logique de jeu
+     * appelle juste roulette service qui contient la logique de jeu
      * **/
     @PostMapping("/play")
     public ResponseEntity<?> playRoulette() {
@@ -52,7 +59,7 @@ public class RouletteController {
                     );
         }
     }
-
+    //pour les tests
     public void setRouletteService(RouletteService rouletteService) {
         this.rouletteService = rouletteService;
     }

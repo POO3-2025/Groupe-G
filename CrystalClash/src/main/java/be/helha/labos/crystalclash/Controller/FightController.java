@@ -17,7 +17,11 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.PostConstruct;
 import java.util.*;
-
+/**
+ * Contrôleur pour gérer les opérations liées aux combats entre joueurs.
+ * Ce contrôleur fournit des points d'accès pour lancer des combats, attaquer,
+ * utiliser des objets, consulter l'état des combats, et gérer les classements.
+ */
 @RestController
 @RequestMapping("/combat")
 public class FightController {

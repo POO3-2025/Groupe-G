@@ -16,6 +16,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * Contrôleur pour gérer les opérations liées aux personnages dans le jeu.
+ * Ce contrôleur fournit des points d'accès pour sélectionner un personnage,
+        * récupérer les informations d'un personnage, gérer le sac à dos (backpack),
+        * et manipuler l'équipement des personnages.
+        */
 @RestController
 @RequestMapping("/characters")
 public class CharactersController {

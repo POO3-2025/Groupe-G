@@ -232,13 +232,6 @@ public class CharacterDAOImpl implements CharacterDAO {
         return equipment; // Retourne l'équipement (vide si erreur ou pas d'armure)
     }
 
-
-
-
-
-
-
-
     @Override
     public void saveEquipmentForCharacter(String username, Equipment equipment) {
         try {

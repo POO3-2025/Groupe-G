@@ -14,7 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 import java.util.Optional;
 
-
+/**
+ * Contrôleur pour gérer les opérations liées aux utilisateurs dans le jeu.
+ * Ce contrôleur fournit des points d'accès pour récupérer les informations
+ * d'un utilisateur, y compris son personnage sélectionné.
+ */
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -27,6 +31,7 @@ public class UserController {
 
     /**
      * @param username
+     * @return ResponseEntity avec un message de succès ou d'erreur
      * obtenir le user
      * il faut se connecter, récupere le token et apres on pouura l'obtenir
      * */

@@ -11,6 +11,11 @@ import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 
 import java.util.Map;
 
+/**
+ * Contrôleur pour gérer les opérations liées à l'inventaire des utilisateurs.
+ * Ce contrôleur fournit des points d'accès pour récupérer, vendre et gérer
+ * les objets dans l'inventaire ou le coffre d'un utilisateur.
+ */
 @RestController
 @RequestMapping("/inventory")
 public class InventoryController {

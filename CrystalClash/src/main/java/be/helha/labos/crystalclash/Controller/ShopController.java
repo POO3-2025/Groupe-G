@@ -12,6 +12,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Contrôleur pour gérer les opérations liées à la boutique dans le jeu.
+ * Ce contrôleur fournit des points d'accès pour récupérer les objets disponibles
+ * dans la boutique et permettre aux utilisateurs d'acheter des objets.
+ */
 @RestController
 @RequestMapping("/shop")
 public class ShopController {
@@ -32,6 +37,8 @@ public class ShopController {
 
     /**
      * Acheter un objet en POST
+     * @param payload = le corps de la requete http POST
+     * @return ResponseEntity avec le message de succès ou d'erreur
      * passe dans le json le type et nom de l'objet
      * */
     @PostMapping("/buy")

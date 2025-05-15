@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Contrôleur pour gérer les opérations liées à l'enregistrement des utilisateurs.
+ * Ce contrôleur fournit un point d'accès pour permettre aux utilisateurs
+ * de s'inscrire en fournissant un nom d'utilisateur et un mot de passe.
+ */
 @RestController
 public class RegistreController {
 
@@ -26,7 +31,8 @@ public class RegistreController {
     private InventoryService inventoryService;
 
     /**
-     * @param request
+     * @param request => RegisterRequest contenant le nom d'utilisateur et le mot de passe
+     * @return ResponseEntity contenant le message de succès ou d'erreur
      * */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {

@@ -17,9 +17,11 @@ import java.util.UUID;
 public class    ObjectFactory {
 
     /**
+     * Crée un objet en fonction du nom et du niveau du joueur
      * @param Name
      * @param Type
      * @param LevelPlayer
+     * @return obj
      * */
     public static ObjectBase CreateObject(String Name, String Type, int LevelPlayer) {
         ObjectBase obj;
@@ -129,8 +131,10 @@ public class    ObjectFactory {
     }
 
     /**
+     * Crée un objet sans vérification du niveau du joueur
      * @param Name
      * @param Type
+     * @return obj
      * */
     public static ObjectBase CreateObjectSansVerification(String Name, String Type) {
         ObjectBase obj;
@@ -224,6 +228,7 @@ public class    ObjectFactory {
 
     /**
      *Map pour lire tout les objets du jeu, de les indexers par le nom
+     * @return map
      * */
     public static Map<String, ObjectBase> getAllObjectsByName() {
         Map<String, ObjectBase> map = new HashMap<>();
