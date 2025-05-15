@@ -60,8 +60,12 @@ public class RouletteService {
         return loot;
     }
 
+    /**
+     * @param username
+     * Regarde si le joueur peut jouer a la roulette
+     * **/
     public boolean CanPlayToDay(String username){
-        //Recup depuis monga la drniere date joué par le user
+        //Recup depuis monga la derniere date joué par le user
         LocalDate LastPlay = rouletteDAO.getLastPlayDate(username);
         //Si pas jamais joué alors null
         //Si deja alors il y aura une date
@@ -70,8 +74,11 @@ public class RouletteService {
         return LastPlay == null || !LastPlay.equals(LocalDate.now());
     }
 
+    /**
+     * va mettre dans une liste les objets du shop aléatoirement pour le jeu roulette
+     * **/
     public ObjectBase pullObject (){
-        //STacker les objets
+        //Stocker les objets
         List<ObjectBase> objets = new ArrayList<>(ObjectFactory.getAllObjectsByName().values());
         //Stcke plusieur fois chaque objet en fct de leur risk
         //Ex un objet a 50 crist sera mit 10 fois dans pool
