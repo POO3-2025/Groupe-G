@@ -1,11 +1,7 @@
 package be.helha.labos.crystalclash.ObjectTest;
 
-import be.helha.labos.crystalclash.Inventory.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import org.junit.jupiter.api.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 public class ObjectBaseTest {

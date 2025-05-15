@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
         "be.helha.labos.crystalclash.server_auth",
         "be.helha.labos.crystalclash.Controller",
-        "be.helha.labos.crystalclash.Services",
+    "be.helha.labos.crystalclash.HttpClient",
         "be.helha.labos.crystalclash.User",
         "be.helha.labos.crystalclash.DAO",
         "be.helha.labos.crystalclash.DAOImpl",

@@ -3,17 +3,14 @@ package be.helha.labos.crystalclash.LanternaApp;
 
 import be.helha.labos.crystalclash.Characters.Personnage;
 import be.helha.labos.crystalclash.DTO.StateCombat;
-import be.helha.labos.crystalclash.DTO.Trophee;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Factory.CharactersFactory;
-import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.*;
-import be.helha.labos.crystalclash.Service.TropheeService;
-import be.helha.labos.crystalclash.Services.HttpService;
+import be.helha.labos.crystalclash.HttpClient.*;
 import be.helha.labos.crystalclash.User.UserInfo;
 import be.helha.labos.crystalclash.User.ConnectedUsers;
 import be.helha.labos.crystalclash.server_auth.Session;
-import com.fasterxml.jackson.databind.deser.std.NumberDeserializers;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.googlecode.lanterna.SGR;
@@ -26,11 +23,8 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.time.Instant;
 import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -119,7 +113,7 @@ public class LanternaApp {
 
         loginPanel.addComponent(new Button("Se connecter", () -> {
             try {
-                String json = HttpService.login(usernameBox.getText(), passwordBox.getText());
+                String json = Login_Register_UserHttpClient.login(usernameBox.getText(), passwordBox.getText());
                 JsonObject response = JsonParser.parseString(json).getAsJsonObject();
                 if (response.has("token") && !response.get("token").isJsonNull()) {
                     String token = response.get("token").getAsString();
@@ -131,7 +125,7 @@ public class LanternaApp {
                         //recoit un {"username":"toto","level":1,"cristaux":100}
                         //Gson pour le déserialiser en insatnce de userInfo
                         //ensuite Hop dans seesion pour l avoir dans tout lanterna
-                        String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+                        String userJson = Login_Register_UserHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
                         UserInfo info = new Gson().fromJson(userJson, UserInfo.class);
                         Session.setUserInfo(info); // stocke les infos dans la session
                         //Ajoute l'utilisateur dans la liste des connectés
@@ -185,10 +179,10 @@ public class LanternaApp {
 
         registerPanel.addComponent(new Button("S'inscrire", () -> {
             try {
-                String json = HttpService.register(usernameBox.getText(), passwordBox.getText());
+                String json = Login_Register_UserHttpClient.register(usernameBox.getText(), passwordBox.getText());
                 if (json.contains("Inscription réussie")) {
                     try {
-                        String loginReponse = HttpService.login(usernameBox.getText(), passwordBox.getText());
+                        String loginReponse = Login_Register_UserHttpClient.login(usernameBox.getText(), passwordBox.getText());
                         //Parser le loginReposne pour le manipuler en java
                         // JsonParser.parseString(loginReponse) = convertit la chaine json en 1 objet Json
                         JsonObject response = JsonParser.parseString(loginReponse).getAsJsonObject(); //OK c bien un object json
@@ -199,7 +193,7 @@ public class LanternaApp {
                             Session.setUsername(usernameBox.getText());
 
                             //Recup des infos uti
-                            String UserJson = HttpService.getUserInfo(Session.getUsername(), token);
+                            String UserJson = Login_Register_UserHttpClient.getUserInfo(Session.getUsername(), token);
                             //gson convertit (deserialise) la chaine userJson en 1 insatnce de UserInfo
                             //Mapping auto
                             UserInfo info = new Gson().fromJson(UserJson, UserInfo.class);
@@ -300,7 +294,7 @@ public class LanternaApp {
 
         mainPanel.addComponent(new Button("Se déconnecter", () -> {
             try {
-                HttpService.logout(Session.getUsername(), Session.getToken());
+                ConnectedHttpCLient.logout(Session.getUsername(), Session.getToken());
             } catch (Exception e) {
                 System.out.println("Erreur lors de la déconnexion");
             }
@@ -341,7 +335,7 @@ public class LanternaApp {
         Panel panel = new Panel(new GridLayout(1));
         panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
         try {
-            List<UserInfo> connectedUsers = HttpService.getConnectedUsers();
+            List<UserInfo> connectedUsers = ConnectedHttpCLient.getConnectedUsers();
 
             if (connectedUsers.isEmpty()) {
                 panel.addComponent(new Label("Aucun joueur connecté."));
@@ -410,7 +404,7 @@ public class LanternaApp {
     private static Runnable creerActionSelectionPersonnage(WindowBasedTextGUI gui, String personnage, Window currentWindow) {
         return () -> {
             try {
-                HttpService.selectCharacter(Session.getUsername(), personnage, Session.getToken());
+                CharactersHttpClient.selectCharacter(Session.getUsername(), personnage, Session.getToken());
                 MessageDialog.showMessageDialog(gui, "Succès", "Personnage sélectionné : " + personnage);
                 currentWindow.close(); //Ferme fenetre apres choix
                 afficherMenuPrincipal(gui);
@@ -437,7 +431,7 @@ public class LanternaApp {
 
         try {
             // Récupérer les informations du personnage
-            String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
+            String json = CharactersHttpClient.getCharacter(Session.getUsername(), Session.getToken());
             JsonElement element = JsonParser.parseString(json);
 
             if (element.isJsonObject()) {
@@ -452,7 +446,7 @@ public class LanternaApp {
                     String pvText = "PV : " + perso.getPV();
 
                     // Récupérer l'équipement et calculer le bonus de PV si l'armure est présente
-                    String equipmentJson = HttpService.getEquipment(Session.getUsername(), Session.getToken());
+                    String equipmentJson = CharactersHttpClient.getEquipment(Session.getUsername(), Session.getToken());
                     JsonObject equipmentResponse = JsonParser.parseString(equipmentJson).getAsJsonObject();
                     JsonArray dataArray = equipmentResponse.getAsJsonArray("data");
 
@@ -524,7 +518,7 @@ public class LanternaApp {
     private static void displayInventory(WindowBasedTextGUI gui) {
         try {
             String username = Session.getUsername();
-            String json = HttpService.getInventory(username, Session.getToken());
+            String json = InventoryHttpClient.getInventory(username, Session.getToken());
 
             // Création de Gson avec désérialiseur custom
             Gson gson = new GsonBuilder()
@@ -587,7 +581,7 @@ public class LanternaApp {
         panel.addComponent(new EmptySpace());
         panel.addComponent(new Button("Vendre", () -> {
             try {
-                String reponse = HttpService.sellObjetc(obj.getName(), obj.getType(), Session.getToken());
+                String reponse = InventoryHttpClient.sellObjetc(obj.getName(), obj.getType(), Session.getToken());
                 JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
                 String message = result.get("message").getAsString();
                 MessageDialog.showMessageDialog(gui, "Vente", message);
@@ -600,7 +594,7 @@ public class LanternaApp {
 
         panel.addComponent(new Button("Mettre dans le BackPack", () -> {
             try {
-                String result = HttpService.putInBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                String result = CharactersHttpClient.putInBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                 JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
                 String message = resultJson.get("message").getAsString();
                 MessageDialog.showMessageDialog(gui, "BackPack", message);
@@ -615,7 +609,7 @@ public class LanternaApp {
         if (obj.getType().equals("Armor")) {
             panel.addComponent(new Button("S'équiper", () -> {
                 try {
-                    String result = HttpService.putInEquipment(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                    String result = CharactersHttpClient.putInEquipment(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                     JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
                     String message = resultJson.get("message").getAsString();
                     MessageDialog.showMessageDialog(gui, "Equipement", message);
@@ -629,7 +623,7 @@ public class LanternaApp {
         if (hasCoffre && !(obj instanceof CoffreDesJoyaux)) {
             panel.addComponent(new Button("Mettre dans le coffre", () -> {
                 try {
-                    String result = HttpService.putInCoffre(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                    String result = InventoryHttpClient.putInCoffre(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                     JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
                     String message = resultJson.get("message").getAsString();
                     MessageDialog.showMessageDialog(gui, "Coffre", message);
@@ -660,7 +654,7 @@ public class LanternaApp {
         panel.addComponent(new Label("Profil de " + Session.getUsername()));
 
         try {
-            String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+            String userJson = Login_Register_UserHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
             UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
             Session.setUserInfo(updatedInfo);
         } catch (Exception e) {
@@ -699,7 +693,7 @@ public class LanternaApp {
         Panel panel = new Panel(new GridLayout(1));
         //pour mettre a jour les cristaux
         try {
-            String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+            String userJson = Login_Register_UserHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
             UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
             Session.setUserInfo(updatedInfo);
         } catch (Exception e) {
@@ -709,7 +703,7 @@ public class LanternaApp {
         panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
 
         try {
-            String json = HttpService.getShops(Session.getToken());
+            String json = ShopHttpClient.getShops(Session.getToken());
             List<Map<String, Object>> shopItems = new Gson().fromJson(json, List.class);
 
             panel.addComponent(new Label("Objets disponibles :"));
@@ -721,12 +715,12 @@ public class LanternaApp {
                 if (level < requiredLevel) continue;
                 panel.addComponent(new Button(name + " (" + type + ", " + price + "c, niv " + requiredLevel + "+)", () -> {
                     try {
-                        String resultJson = HttpService.buyItem(name, type, Session.getToken());
+                        String resultJson = ShopHttpClient.buyItem(name, type, Session.getToken());
                         JsonObject result = JsonParser.parseString(resultJson).getAsJsonObject();
                         String message = result.get("message").getAsString();
                         MessageDialog.showMessageDialog(gui, "Achat", message);
                         try {
-                            String userJson = HttpService.getUserInfo(Session.getUsername(), Session.getToken());
+                            String userJson = Login_Register_UserHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
                             UserInfo updateUserInfo = new Gson().fromJson(userJson, UserInfo.class);
                         } catch (Exception e) {
                             System.out.println("Impossible de mettre a jour les info du joueur" + e.getMessage());
@@ -767,7 +761,7 @@ public class LanternaApp {
             panel.addComponent(new Label("Aucune information disponible."));
         }
         try {
-            String json = HttpService.getBackpack(username, Session.getToken());
+            String json = CharactersHttpClient.getBackpack(username, Session.getToken());
 
             // Parse le JSON pour extraire "data"
             JsonObject response = JsonParser.parseString(json).getAsJsonObject();
@@ -799,7 +793,7 @@ public class LanternaApp {
 
                             detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
                                 try {
-                                    String reponse = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                    String reponse = CharactersHttpClient.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                                     JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
                                     String message = result.get("message").getAsString();
                                     MessageDialog.showMessageDialog(gui, "Retrait", message);
@@ -813,7 +807,7 @@ public class LanternaApp {
                         if (hasCoffre && !(obj instanceof CoffreDesJoyaux)) {
                                 detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
                                     try {
-                                        String result = HttpService.putInCoffreBackPack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                        String result = CharactersHttpClient.putInCoffreBackPack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                                         JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
                                         String message = resultJson.get("message").getAsString();
                                         MessageDialog.showMessageDialog(gui, "Coffre", message);
@@ -858,7 +852,7 @@ public class LanternaApp {
         }
 
         try {
-            String json = HttpService.getEquipment(username, Session.getToken());
+            String json = CharactersHttpClient.getEquipment(username, Session.getToken());
 
             // Parse le JSON pour extraire "data"
             JsonObject response = JsonParser.parseString(json).getAsJsonObject();
@@ -886,7 +880,7 @@ public class LanternaApp {
 
                         detailsPanel.addComponent(new Button("Retirer de l'équipement", () -> {
                             try {
-                                String reponse = HttpService.removeFromEquipment(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                String reponse = CharactersHttpClient.removeFromEquipment(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                                 JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
                                 String message = result.get("message").getAsString();
                                 MessageDialog.showMessageDialog(gui, "Retrait", message);
@@ -917,7 +911,7 @@ public class LanternaApp {
 
     private static void PLayRoulette(WindowBasedTextGUI gui) {
         try {
-            String json = HttpService.PlayRoulette(Session.getUsername(), Session.getToken());
+            String json = RouletteHttpClient.PlayRoulette(Session.getUsername(), Session.getToken());
             //Convertit une chaine json recue depuis le serveur en 1 objet java que l'on peut jouer avec
             //et acceder au champ
             JsonObject result = JsonParser.parseString(json).getAsJsonObject();
@@ -977,7 +971,7 @@ public class LanternaApp {
              * SI oui on récup l'etat du coffre pdt le combat (depuis StateCombat)
              **/
             try{
-                String jsonCombat = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+                String jsonCombat = CombatHttpClient.getCombatState(Session.getUsername(), Session.getToken());
 
                 //Création d'un objet Gson avec le désérialiseur custom pour objectBase pour reconstruire correctement les objets du coffre
                 Gson gsonCombat = new GsonBuilder()
@@ -1006,7 +1000,7 @@ public class LanternaApp {
 
 
             // 1. Vérifie l'inventaire
-            String jsonInventaire = HttpService.getInventory(Session.getUsername(), Session.getToken());
+            String jsonInventaire = InventoryHttpClient.getInventory(Session.getUsername(), Session.getToken());
             Inventory inventory = gson.fromJson(jsonInventaire, Inventory.class);
 
             for (ObjectBase obj : inventory.getObjets()) {
@@ -1018,7 +1012,7 @@ public class LanternaApp {
 
             // 2. Si pas trouvé dans l'inventaire, vérifie dans le backpack
             if (coffre == null) {
-                String jsonBackpack = HttpService.getBackpack(Session.getUsername(), Session.getToken());
+                String jsonBackpack = CharactersHttpClient.getBackpack(Session.getUsername(), Session.getToken());
                 JsonElement root = JsonParser.parseString(jsonBackpack);
 
                 // Vérifie si la racine du JSON est un objet (donc commence par { ... })
@@ -1091,7 +1085,7 @@ public class LanternaApp {
         if (depuisBackpack) {
             panel.addComponent(new Button("Mettre dans l'inventaire", () -> {
                 try {
-                    String result = HttpService.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                    String result = CharactersHttpClient.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                     String message = JsonParser.parseString(result).getAsJsonObject().get("message").getAsString();
                     MessageDialog.showMessageDialog(gui, "Info", message);
                     detailsWindow.close();
@@ -1103,7 +1097,7 @@ public class LanternaApp {
         } else {
             panel.addComponent(new Button("Mettre dans le BackPack", () -> {
                 try {
-                    String result = HttpService.putInBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                    String result = CharactersHttpClient.putInBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
                     String message = JsonParser.parseString(result).getAsJsonObject().get("message").getAsString();
                     MessageDialog.showMessageDialog(gui, "Info", message);
                     detailsWindow.close();
@@ -1138,7 +1132,7 @@ public class LanternaApp {
             try {
                 Map<String, String> data = new HashMap<>();
                 data.put("username", Session.getUsername());
-                HttpService.exitMatchmakingRoom(Session.getUsername(), Session.getToken());
+                ConnectedHttpCLient.exitMatchmakingRoom(Session.getUsername(), Session.getToken());
             } catch (Exception ignored) {
             }
             combatWindow.close();
@@ -1151,7 +1145,7 @@ public class LanternaApp {
         try {
             UserInfo userInfo = Session.getUserInfo();
             String user = new Gson().toJson(userInfo);
-            HttpService.enterMatchmakingRoom(Session.getUserInfo(), Session.getToken());
+            ConnectedHttpCLient.enterMatchmakingRoom(Session.getUserInfo(), Session.getToken());
         } catch (Exception e) {
             MessageDialog.showMessageDialog(gui, "Erreur", "Impossible d'entrer dans la salle : " + e.getMessage());
             combatWindow.close();
@@ -1170,7 +1164,7 @@ public class LanternaApp {
                     Thread.sleep(2000); //attend 2 sec
 
                     // Ajout en haut de la boucle pour détecter si l'utilisateur est défié
-                    String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+                    String json = CombatHttpClient.getCombatState(Session.getUsername(), Session.getToken());
                     System.out.println("CombatState reçu (thread matchmaking) : " + json);
 
                     Gson gson = new GsonBuilder()
@@ -1192,7 +1186,7 @@ public class LanternaApp {
 
                      //Secondes taches mettre a jour
                     //Appelle du endpoint
-                    List<UserInfo> opponents = HttpService.getAvailableOpponents(Session.getUsername(), Session.getToken());
+                    List<UserInfo> opponents = ConnectedHttpCLient.getAvailableOpponents(Session.getUsername(), Session.getToken());
 
                     //Lorsqu'on a une réponse du serveur la mise a jour de l'interface ce fait ici
                     //invokeLater permet de repasser sur le thread pricipale
@@ -1210,7 +1204,7 @@ public class LanternaApp {
                                 Button challenge = new Button(label, () -> {
                                     try {
                                         //Appelle du backend pour lancer le combat avec le joueur
-                                        HttpService.challengePlayer(Session.getUsername(), opponent.getUsername(), Session.getToken());
+                                        CombatHttpClient.challengePlayer(Session.getUsername(), opponent.getUsername(), Session.getToken());
                                         MessageDialog.showMessageDialog(gui, "Défi lancé", "Vous avez défié " + opponent.getUsername() + " !");
                                         shouldRun.set(false);
 
@@ -1218,7 +1212,7 @@ public class LanternaApp {
                                         new Thread(() -> {
                                             try {
                                                 Thread.sleep(1500); // Laisse au serveur le temps de créer le combat
-                                                String json1 = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+                                                String json1 = CombatHttpClient.getCombatState(Session.getUsername(), Session.getToken());
                                                 Gson gson1 = new GsonBuilder()
                                                         .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                                                         .create();
@@ -1329,7 +1323,7 @@ public class LanternaApp {
 
 
         try {
-            String json = HttpService.getCharacter(Session.getUsername(), Session.getToken());
+            String json = CharactersHttpClient.getCharacter(Session.getUsername(), Session.getToken());
             JsonElement element = JsonParser.parseString(json);
 
             if (element.isJsonObject()) {
@@ -1342,7 +1336,7 @@ public class LanternaApp {
                     Personnage perso = CharactersFactory.getCharacterByType(characterType);
 
                     // Récupérer l'équipement et calculer le bonus de PV si l'armure est présente
-                    String equipmentJson = HttpService.getEquipment(Session.getUsername(), Session.getToken());
+                    String equipmentJson = CharactersHttpClient.getEquipment(Session.getUsername(), Session.getToken());
                     JsonObject equipmentResponse = JsonParser.parseString(equipmentJson).getAsJsonObject();
                     JsonArray dataArray = equipmentResponse.getAsJsonArray("data");
 
@@ -1617,7 +1611,7 @@ public class LanternaApp {
 
         String username = Session.getUsername();
         try {
-            String jsonequipment = HttpService.getEquipment(username, Session.getToken());
+            String jsonequipment = CharactersHttpClient.getEquipment(username, Session.getToken());
 
             JsonObject response = JsonParser.parseString(jsonequipment).getAsJsonObject();
             JsonArray dataArray = response.getAsJsonArray("data");
@@ -1635,7 +1629,7 @@ public class LanternaApp {
 
                 // 🔥 MAJ MongoDB (fiabilité)
                 try {
-                    String responseupdateobject = HttpService.updateArmorReliability(
+                    String responseupdateobject = CharactersHttpClient.updateArmorReliability(
                             username,
                             objectId,
                             armor.getReliability(),
@@ -1670,7 +1664,7 @@ public class LanternaApp {
         Panel backpackPanel = new Panel(new GridLayout(1));
         String username = Session.getUsername();
         try {
-            String jsonbackpack = HttpService.getBackpack(username, Session.getToken());
+            String jsonbackpack = CharactersHttpClient.getBackpack(username, Session.getToken());
 
             JsonObject response = JsonParser.parseString(jsonbackpack).getAsJsonObject();
             JsonArray dataArray = response.getAsJsonArray("data");
@@ -1708,7 +1702,7 @@ public class LanternaApp {
 
                                 // 🔥 MAJ MongoDB (fiabilité)
                                 try {
-                                    String responseupdateobject = HttpService.updateObjectReliability(
+                                    String responseupdateobject = CharactersHttpClient.updateObjectReliability(
                                             username,
                                             objectId,
                                             weapon.getReliability(),
@@ -1759,7 +1753,7 @@ public class LanternaApp {
 
                                 // 🔥 Supprimer la potion de la base de données (Backpack MongoDB)
                                 try {
-                                    String responseDelete = HttpService.deleteObjectFromBackpack(username, objectId, Session.getToken());
+                                    String responseDelete = CharactersHttpClient.deleteObjectFromBackpack(username, objectId, Session.getToken());
                                     System.out.println("Suppression potion : " + responseDelete);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
@@ -1798,7 +1792,7 @@ public class LanternaApp {
 
                                 // 🔥 Supprimer la potion de la base de données (Backpack MongoDB)
                                 try {
-                                    String responseDelete = HttpService.deleteObjectFromBackpack(username, objectId, Session.getToken());
+                                    String responseDelete = CharactersHttpClient.deleteObjectFromBackpack(username, objectId, Session.getToken());
                                     System.out.println("Suppression potion de force : " + responseDelete);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
@@ -1871,6 +1865,10 @@ public class LanternaApp {
 
             Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
             Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
+
+            Label labelReliability = new Label("Endurance de l'armure : ?");
+            mainPanel.addComponent(labelReliability);
+
             EmptySpace espace = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
 
 
@@ -1903,7 +1901,7 @@ public class LanternaApp {
             //Arret proprement du thread et ferme la fenetre
             mainPanel.addComponent(new Button("Quitter le combat", () -> {
                 try {
-                    HttpService.forfait(Session.getUsername(), Session.getToken());
+                    CombatHttpClient.forfait(Session.getUsername(), Session.getToken());
                     forfaitEffectue[0] = true;
                 } catch (Exception e) {
                     System.out.println("Erreur forfait : " + e.getMessage());
@@ -1930,7 +1928,7 @@ public class LanternaApp {
                 while (shouldRun.get()) {
                     try {
                         Thread.sleep(2000);
-                        String json = HttpService.getCombatState(Session.getUsername(), Session.getToken());
+                        String json = CombatHttpClient.getCombatState(Session.getUsername(), Session.getToken());
                         Gson gson = new GsonBuilder()
                                 .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                                 .create();
@@ -1941,7 +1939,7 @@ public class LanternaApp {
                             gui.getGUIThread().invokeLater(() -> {
                                 String winner = null;
                                 try {
-                                    String reponseJson = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                                    String reponseJson = CombatHttpClient.getLastWinner(Session.getUsername(), Session.getToken());
                                     JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
                                     winner = jsonObject.get("winner").getAsString();
                                 } catch (Exception e) {
@@ -1978,9 +1976,10 @@ public class LanternaApp {
 
                                 String winner = null;
                                 try {
-                                    String reponseJson  = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
+                                    String reponseJson  = CombatHttpClient.getLastWinner(Session.getUsername(), Session.getToken());
                                     JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
-                                    winner = jsonObject.get("winner").getAsString();                                } catch (Exception e) {
+                                    winner = jsonObject.get("winner").getAsString();
+                                } catch (Exception e) {
                                 }
 
 
@@ -2008,6 +2007,12 @@ public class LanternaApp {
                             labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
+                            //Update pour recherché la bonne valeur de l'endurence apres chaque tour
+                            int endur = updated.getArmorReliabilities(Session.getUsername());
+                            String message = (endur >= 0)
+                                ? "Endurence de l'armure : " + endur
+                                : "Aucune armure équipée";
+                            labelReliability.setText(message);
 
                             // Rafraîchi l'historique à chaque update
                             historyPanel.removeAllComponents();
@@ -2047,14 +2052,14 @@ public class LanternaApp {
         actionPanel.addComponent(new Label("Vos actions :"));
         actionPanel.addComponent(new Button("Attaque normale ", () -> {
             try {
-                HttpService.combatAttack(Session.getUsername(), "normal", Session.getToken());
+                CombatHttpClient.combatAttack(Session.getUsername(), "normal", Session.getToken());
             } catch (Exception e) {
                 MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
             }
         }));
         actionPanel.addComponent(new Button("Attaque spéciale ", () -> {
             try {
-                HttpService.combatAttack(Session.getUsername(), "special", Session.getToken());
+                CombatHttpClient.combatAttack(Session.getUsername(), "special", Session.getToken());
             } catch (Exception e) {
                 MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
             }
@@ -2068,7 +2073,7 @@ public class LanternaApp {
             if(obj instanceof  CoffreDesJoyaux) continue; //Cache le bouton utiliser pour le coffer
             actionPanel.addComponent(new Button("Utiliser objet : " + obj.getName(), () -> {
                 try {
-                    HttpService.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
+                    CombatHttpClient.combatUseObject(Session.getUsername(), obj.getId(), Session.getToken());
                 } catch (Exception e) {
                     MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
                 }
@@ -2096,7 +2101,7 @@ public class LanternaApp {
             for (ObjectBase obj : chest) {
                 panel.addComponent(new Button("Utiliser : " + obj.getName(), () -> {
                     try {
-                        HttpService.combatUseObject(Session.getUsername(), obj.getId(),Session.getToken());
+                        CombatHttpClient.combatUseObject(Session.getUsername(), obj.getId(),Session.getToken());
                         MessageDialog.showMessageDialog(gui, "Objet utilisé", obj.getName() + " a été utilisé !");
                         chestWindow.close();
                     }
@@ -2120,7 +2125,7 @@ public class LanternaApp {
 
 
             try {
-                String userJson = HttpService.getClassementPlayer(Session.getToken());
+                String userJson = CombatHttpClient.getClassementPlayer(Session.getToken());
                 if (userJson == null) {
                     panel.addComponent(new Label("Erreur : impossible de récupérer le classement"));
                 } else {
@@ -2179,7 +2184,7 @@ public class LanternaApp {
         panel.addComponent(new Label("Progression des trophées :"));
 
         try {
-            UserInfo user = HttpService.fetchUserInfo(Session.getUsername(), Session.getToken());
+            UserInfo user = Login_Register_UserHttpClient.fetchUserInfo(Session.getUsername(), Session.getToken());
 
             //nbr de tour
             int nombreTours = user.getDernierCombatTours();

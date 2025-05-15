@@ -49,6 +49,13 @@ public class StateCombat {
      * */
     private final Map<String, Integer> BonusAtkTemp = new HashMap<>();
 
+    //Cle-Valeur , ici c le username et l'endurence de l'armure
+    @JsonProperty("armorReliabilities") //force JackSon
+    private Map<String, Integer> armorReliabilities = new HashMap<>();
+
+    private boolean readyToBeCleaned = false; //Pour effacer apres combat
+
+
     /**
      * @param bp1
      * @param bp2
@@ -119,7 +126,7 @@ public class StateCombat {
     public void setBackpack(Map<String, List<ObjectBase>> backpack) {
         this.backpack = (backpack != null) ? backpack : new HashMap<>();
     }
-//Recup contenu du back
+    //Recup contenu du back
     public List<ObjectBase> getBackpack(String username) {
         if (backpack == null) return new ArrayList<>();
         return backpack.getOrDefault(username, new ArrayList<>());
@@ -201,6 +208,42 @@ public class StateCombat {
      * */
     public Map<String, Integer> getBonusATKTemporaire() {
         return BonusAtkTemp;
+    }
+
+
+
+    /***
+     * @param username
+     * @param reliability
+     * Changer la valuer de l'armure
+     *Si map armorReliabilities pas encore initialisé alors on le fait
+     * et on y met le username ainsi que l endu de l'armure (clé-valuer)
+     * */
+    public void setArmorReliability(String username, int reliability) {
+        if (this.armorReliabilities == null) this.armorReliabilities = new HashMap<>();
+        this.armorReliabilities.put(username, reliability);
+    }
+
+    /**
+     * @param username
+     * Obtenir l'armure
+     * SI null alors on retourn -1, Map pas initaliser
+     * le retun signifie que si defaultvalue vaut -1 alors pas d'armure
+     * **/
+    public int getArmorReliabilities(String username) {
+        if (armorReliabilities == null) return -1;
+        return armorReliabilities.getOrDefault(username, -1);
+    }
+
+
+
+    public boolean isReadyToBeCleaned() {
+        return readyToBeCleaned;
+    }
+
+
+    public void setReadyToBeCleaned(boolean readyToBeCleaned) {
+        this.readyToBeCleaned = readyToBeCleaned;
     }
 
 }

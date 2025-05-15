@@ -1,7 +1,7 @@
 
 package be.helha.labos.crystalclash.InventoryTest;
 
-import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import org.junit.jupiter.api.*;
 

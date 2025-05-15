@@ -1,36 +1,25 @@
 package be.helha.labos.crystalclash.ControllerTest;
 
 
-import be.helha.labos.crystalclash.Controller.InventoryController;
 import be.helha.labos.crystalclash.Controller.RouletteController;
 import be.helha.labos.crystalclash.DAO.RouletteDAO;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.RouletteDAOImpl;
-import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Service.RouletteService;
 import be.helha.labos.crystalclash.Service.UserService;
-import be.helha.labos.crystalclash.server_auth.*;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.api.*;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static com.mongodb.client.model.Filters.eq;
 

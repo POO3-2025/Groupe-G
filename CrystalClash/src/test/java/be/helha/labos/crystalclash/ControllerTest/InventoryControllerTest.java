@@ -2,14 +2,12 @@ package be.helha.labos.crystalclash.ControllerTest;
 
 import be.helha.labos.crystalclash.Controller.InventoryController;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
-import be.helha.labos.crystalclash.DAOImpl.RegistreDAOimpl;
-import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 
 //Simulation d'un user connécter pour les tests qui en ont besoin
-import be.helha.labos.crystalclash.Service.RegistreService;
 import be.helha.labos.crystalclash.Service.UserService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;

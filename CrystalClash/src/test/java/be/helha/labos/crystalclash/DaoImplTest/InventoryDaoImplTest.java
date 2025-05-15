@@ -1,20 +1,17 @@
 package be.helha.labos.crystalclash.DaoImplTest;
 
 import be.helha.labos.crystalclash.DAO.UserDAO;
-import be.helha.labos.crystalclash.DAOImpl.CharacterDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.UserDAOImpl;
-import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Object.Weapon;
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.Service.UserService;
 import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 import org.junit.jupiter.api.*;
 
-import java.util.List;
 import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
