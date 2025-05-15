@@ -92,7 +92,7 @@ public class    ObjectFactory {
                 break;
 
             case "venin dombre":
-                if (LevelPlayer >= 2) obj = new PotionOfStrenght("Venin d Ombre", 25, 2, 5);
+                if (LevelPlayer >= 2) obj = new PotionOfStrenght("Venin dOmbre", 25, 2, 5);
                 else throw new IllegalArgumentException("Niveau insuffisant pour Venin d'Ombre");
                 break;
             case "fiole des abysses":

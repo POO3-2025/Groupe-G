@@ -82,22 +82,33 @@ public class FightService {
 
                 resolveWinnerAndLoser(state);
 
+                // Première fois qu'on récupère un combat terminé → on le montre une fois
                 if (!state.isCombatDisplayed()) {
                     state.setCombatDisplayed(true);
+
+                    //  programme la suppression après 10 secondes
+                    Timer timer = new Timer();
+                    //schedule executé une action apres un certain dela donc la c la supressions de combat
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            String winner = state.getWinner();
+                            String loser = state.getLoser();
+                            if (winner != null && loser != null) {
+                                combats.remove(winner);
+                                combats.remove(loser);
+                            }
+                        }
+                    }, 10000); // 10 secondes
+
                     return state;
                 }
 
-                // Combat déjà affiché une fois , alors suppression
-                String winner = state.getWinner();
-                String loser = state.getLoser();
-                if (winner != null && loser != null) {
-                    derniersGagnants.put(winner, winner);
-                    derniersGagnants.put(loser, winner);
-                    combats.remove(winner);
-                    combats.remove(loser);
-                }
+                // si deja affiché 1 fois on affiche plus
                 return null;
             }
+            int endurance = getArmoRelibility(username);
+            state.setArmorReliability(username, endurance);
 
             return state;
         }
@@ -124,7 +135,7 @@ public class FightService {
      * met a jour le dernier gagnant et on delete le combat
      * */
     public void HandleAttach(String Player, String type) {
-        System.out.println("[DEBUG] useObject() appelé par " + Player + " avec  " + type);
+
 
         if (Player == null || type == null) return; // sécurité
 
@@ -139,6 +150,10 @@ public class FightService {
 
         if (type.equals("normal")) {
             Damage = attack.getAttackBase();
+            Integer bonusATK = state.getBonusATKTemporaire().remove(Player); //retire le bonus a l'attaque (remove que 1 usage)
+            if (bonusATK != null) {
+                Damage += bonusATK;
+            }
             attack.CompteurAttack(attack.getCompteurAttack() + 1);
             state.addLog(Player + " utilise " + attack.getNameAttackBase() + " (" + Damage + " damage)");
         }else{
@@ -153,6 +168,10 @@ public class FightService {
 
         int newPv = state.getPv(oppenent) - Damage;
         state.setPv(oppenent, newPv);
+
+        //oppenent adversaire
+        userArmorReliability(oppenent, state);
+
         if (state.isFinished()) {
             String winner = state.getWinner();
             String loser = state.getLoser();
@@ -208,26 +227,23 @@ public class FightService {
 
         if(obj instanceof Weapon){
             int dmg = ((Weapon) obj).getDamage();
-        String oppenent = state.getOpponent(Player);
-        int NewPv = state.getPv(oppenent) - dmg;
-        state.setPv(oppenent, NewPv);
-        state.addLog(Player + " utilise " + obj.getName() + " et inflige " + dmg + " dégâts !");
+            String oppenent = state.getOpponent(Player);
+            int NewPv = state.getPv(oppenent) - dmg;
+            state.setPv(oppenent, NewPv);
+            state.addLog(Player + " utilise " + obj.getName() + " et inflige " + dmg + " dégâts !");
+            userArmorReliability(oppenent, state);
         }else
         if(obj instanceof HealingPotion){
             int pv = state.getPv(Player);
             int heal = ((HealingPotion) obj).getHeal();
-            state.setPv(Player, heal);
+            state.setPv(Player, pv + heal);
             state.addLog(Player + " boit une potion de soin (+ " + heal + " PV)");
-        }/*else
-        if(obj instanceof Armor){
-            int bonus = ((Armor) obj).getBonusPV();
-            int pv = state.getPv(Player);
-            state.setPv(Player, pv + bonus);
-            state.addLog(Player + " utilise " + obj.getName() + " et gagne " + bonus + " PV temporairement");
+
         }else if(obj instanceof PotionOfStrenght){
             int bonus = ((PotionOfStrenght) obj).getBonusATK();
+            state.getBonusATKTemporaire().put(Player,bonus);//Ajoute effet de force a l attaque normale du perso
             state.addLog(Player + " boit une " + obj.getName() + " et gagne +" + bonus + " en attaque !");
-        }*/
+        }
 
         obj.Reducereliability();
 
@@ -317,16 +333,14 @@ public class FightService {
             userService.incrementWimConsecutive(winner);
             userService.resetWinConsecutives(loser);
 
-            //retire combat de la memoire (MAP), on libere juste de la memoire
-            //Inconiant car direct a la fin du combat c delete
-            combats.remove(username);
-            combats.remove(opponent);
+            //supp pas direct permet affichage avec le winner et loser
+            state.setCombatDisplayed(false);
         }
     }
 
 
     public List<UserInfo> getClassementPlayer() {
-    return fightDAO.getClassementPlayer();
+        return fightDAO.getClassementPlayer();
     }
 
     /**
@@ -363,4 +377,84 @@ public class FightService {
             .sum();//Ajoute le bonus de PV a ses points de vies.
     }
 
+
+
+    /**
+     * @param state = servir a ajoute un log voulu
+     * @param username
+     * Gestion de l'endurence de l'armure pdt le combat
+     * update voir si il a recu des dégats et si il possede au moins une armure
+     * **/
+    public void userArmorReliability(String username, StateCombat state) {
+
+        try{
+            Equipment equip = characterService.getEquipmentForCharacter(username);//Appelle méthode service
+            boolean update = false; //Savoir si il y a eu une update
+
+            for(ObjectBase ob : equip.getObjets()){
+                if(ob instanceof Armor armor){
+
+                    armor.Reducereliability();
+                    if(armor.getReliability() <= 0){
+                        state.addLog(username + "a perdu sur son armure" + armor.getName() + "(cassée");
+                    }else{
+                        state.addLog(username + "perd 1 de fiabilité sur son armure" + armor.getName());
+                    }
+                    update = true;
+                }
+            }
+            if (update){
+                //SI update a lieu alors on appele une methode du service
+                characterService.saveEquipmentForCharacter(username, equip);
+            }
+        } catch (Exception e) {
+            System.out.println("[ERREUR] Mise à jour fiabilité armure de " + username + " : " + e.getMessage());
+        }
+
     }
+
+    /**
+     * @param username*Avoir equipement endurence coté client
+     *                       encore ici si -1 alors pas d'armure
+     *                       for = parcourt tous les objets  de l'equip si un ets = a l'instance Armor alors retourne son endurence
+     **/
+    public int getArmoRelibility(String username) {
+        Equipment equipment = characterService.getEquipmentForCharacter(username);
+        if (equipment == null) return -1;
+        for (ObjectBase ob : equipment.getObjets()) {
+            if (ob instanceof Armor armor) { //Si correspond bien a une armure alors on retourne son endu
+                return armor.getReliability();
+            }
+        }
+        return -1; //pas d'armure
+    }
+       /*
+    //Set pour les tets pour que ce soit accessible pour les tests
+    //public pour y avoir acces, void retourne rien et ensuite un set et a l'interieure un  this..... : fait réference a l'attribut privée de la classe voulue
+    */
+    /***
+     * @param characterService
+     * */
+    public void setCharacterService(CharacterService characterService) {
+        this.characterService = characterService;
+    }
+
+    /**
+     * @param userService
+     * */
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    /***
+     * @param inventoryService
+     * */
+    public void setInventoryService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
+    public CharacterService getCharacterService() {
+        return this.characterService;
+    }
+
+}

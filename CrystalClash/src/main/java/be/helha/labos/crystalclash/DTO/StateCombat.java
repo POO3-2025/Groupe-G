@@ -22,6 +22,8 @@ public class StateCombat {
 
 
 
+
+
     private String player1; //Nom du joueur1
     private String player2;//Nom du joueur2
     @JsonProperty("character1") //nomme le champ ds le JSON  transmis (Jackson utile)
@@ -44,6 +46,13 @@ public class StateCombat {
     private String winner; //Winner fin de combat
     @JsonProperty("loser")
     private String loser; //Loser fin de combat
+    /**
+     * Map pour mémoriser temporairement que le user a un bonus temporaire de force a appliqué au prochain tour
+     * */
+    private final Map<String, Integer> BonusAtkTemp = new HashMap<>();
+    //Cle-Valeur , ici c le username et l'endurence de l'armure
+    @JsonProperty("armorReliabilities") //force JackSon
+    private Map<String, Integer> armorReliabilities = new HashMap<>();
 
     /**
      * @param bp1
@@ -191,4 +200,33 @@ public class StateCombat {
     public List<ObjectBase> getChest(String username){
         return chest.getOrDefault(username, new ArrayList<>());
     }
+
+    /**
+     * Obtenir bonus atk temp
+     * */
+    public Map<String, Integer> getBonusATKTemporaire() {
+        return BonusAtkTemp;
+    }
+
+    /**
+    @param username
+    @param reliability
+    Changer la valuer de l'armure*Si map armorReliabilities pas encore initialisé alors on le fait
+    et on y met le username ainsi que l endu de l'armure (clé-valuer)
+    */
+    public void setArmorReliability(String username, int reliability) {
+        if (this.armorReliabilities == null) this.armorReliabilities = new HashMap<>();
+        this.armorReliabilities.put(username, reliability);
+    }
+
+    /**
+     * @param username Obtenir l'armure
+     *                 SI null alors on retourn -1, Map pas initaliser
+     *                 le retun signifie que si defaultvalue vaut -1 alors pas d'armure
+     **/
+    public int getArmorReliabilities(String username) {
+        if (armorReliabilities == null) return -1;
+        return armorReliabilities.getOrDefault(username, -1);
+    }
+
 }

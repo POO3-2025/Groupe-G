@@ -77,7 +77,7 @@ public class CharacterDAOImplTest {
         var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
         var stmt = conn.prepareStatement("""
             INSERT INTO users (username, password, level, cristaux, is_connected,gagner,perdu,Winconsecutive)
-            VALUES (?, ?, ?, ?, ?,?,?)
+VALUES (?, ?, ?, ?, ?, ?, ?,?)
             ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         """);
         stmt.setString(1, "testusegetcharacter");

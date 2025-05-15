@@ -6,6 +6,7 @@ public class Armor extends ObjectBase {
     public Armor(String name, int price, int levelrequired,int reliability, int bonusPV) {
         super(name, price, levelrequired, reliability);
         this.bonusPV = bonusPV;
+        this.setType("Armor");
     }
 
 
@@ -36,4 +37,7 @@ public class Armor extends ObjectBase {
         return super.getDetails() + "\n"
                 + "Défense : " + bonusPV + "\n";
     }
+
+
+
 }
