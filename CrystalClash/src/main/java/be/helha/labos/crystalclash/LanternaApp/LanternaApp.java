@@ -1886,13 +1886,8 @@ public class LanternaApp {
             Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
             Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
 
-
-            EmptySpace espace = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
             Label labelReliability = new Label("Endurance de l'armure : ?");
             mainPanel.addComponent(labelReliability);
-
-            //Voir si il a une amure
-
 
             EmptySpace espace = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
 
