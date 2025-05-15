@@ -34,6 +34,53 @@ public class FightController {
     @Autowired
     private CharacterService characterService;
 
+
+    /**
+     * Lance un combat entre 2 joueurs
+     * @param body
+     * @return Map clé message valeur combat lancé ...
+     */
+    @PostMapping("/start")
+    public Map<String, Object> startCombat(@RequestBody Map<String, String> body) {
+        String player = body.get("username");
+
+        //true si null
+        if (player == null || player.isBlank()) {
+            throw new RuntimeException("Nom d'utilisateur manquant dans la requête !");
+        }
+
+        System.out.println("[DEBUG] FightController - startCombat() appelé par " + player);
+        Set<String> others = new HashSet<>(ConnectedUsers.getConnectedUsers().keySet());
+        others.remove(player);
+
+        if (others.isEmpty()) throw new RuntimeException("Aucun adversaire trouvé !");
+        String opponent = others.stream().findAny().get();
+
+        // Rechargement à jour du type de personnage sélectionné
+        String charType1 = characterService.getCharacterForUser(player);
+        String charType2 = characterService.getCharacterForUser(opponent);
+
+        if (charType1 == null || charType2 == null) {
+            throw new RuntimeException("Les personnages n'ont pas été sélectionnés !");
+        }
+
+        Personnage p1 = CharactersFactory.getCharacterByType(charType1);
+        Personnage p2 = CharactersFactory.getCharacterByType(charType2);
+
+        List<ObjectBase> bp1 = characterService.getBackPackForCharacter(player).getObjets();
+        List<ObjectBase> bp2 = characterService.getBackPackForCharacter(opponent).getObjets();
+
+        fightService.createCombat(player, opponent, p1, p2, bp1, bp2);
+
+        return Map.of("message", "Combat lancé contre " + opponent);
+    }
+
+
+    /**
+     * Gère l'attaque d'un joueur
+     * @param body
+     * @return ReponseEntity avec le statut du combat
+     */
     @PostMapping("/attack")
     public ResponseEntity<?> attack(@RequestBody Map<String, String> body) {
         String player = body.get("username");
@@ -66,6 +113,11 @@ public class FightController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Gère l'utilisation d'un objet par un joueur
+     * @param body
+     * @return ReponseEntity avec le statut du combat
+     */
     @PostMapping("/use-object")
     public ResponseEntity<?> useObject(@RequestBody Map<String, String> body) throws Exception {
         String player = body.get("username");
@@ -102,11 +154,21 @@ public class FightController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Récupère l'état du combat pour un joueur donné
+     * @param username
+     * @return
+     */
     @GetMapping("/state/{username}")
     public StateCombat getState(@PathVariable String username) {
         return fightService.getCombat(username);
     }
 
+    /**
+     * cree un comabt entre 2 joueurs
+     * @param body
+     * @return ReponseEntity avec le statut du combat
+     */
     @PostMapping("/challenge")
     public ResponseEntity<?> challenge(@RequestBody Map<String, String> body) {
         try{
