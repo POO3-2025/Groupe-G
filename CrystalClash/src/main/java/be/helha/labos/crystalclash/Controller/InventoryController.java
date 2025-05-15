@@ -21,7 +21,9 @@ public class InventoryController {
     private InventoryService inventoryService;
 
     /**
+     * Récupérer l'inventaire d'un utilisateur
      * @param username obtenir l'inventaire du username
+     * @return l'inventaire de l'utilisateur
      */
     @GetMapping("/{username}")
     public Inventory getInventory(@PathVariable String username) {
@@ -29,8 +31,10 @@ public class InventoryController {
     }
 
     /**
+     * Vendre un objet de l'inventaire
      * @param payload payload corps body de la requete http POST envoyé par le client
      *                name et type seront ganrit de ce que le user aura envoyé
+     * @return ReponseEntity contenant le message de succès ou d'erreur
      */
     @PostMapping("/sell")
     public ResponseEntity<ApiReponse> sellObject(@RequestBody Map<String, String> payload) {
@@ -47,6 +51,11 @@ public class InventoryController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Récupérer le coffre d'un utilisateur
+     * @param username obtenir le coffre du username
+     * @return le coffre de l'utilisateur
+     */
     @GetMapping("/{username}/coffre")
     public ResponseEntity<CoffreDesJoyaux> getCoffre(@PathVariable String username) {
         CoffreDesJoyaux coffre = inventoryService.getCoffreDesJoyauxForUser(username);
@@ -56,6 +65,13 @@ public class InventoryController {
         return ResponseEntity.ok(coffre);
     }
 
+    /**
+     * Ajouter un objet au coffre d'un utilisateur
+     * @param username nom du joueur
+     * @param payload payload corps body de la requete http POST envoyé par le client
+     *                name et type seront ganrit de ce que le user aura envoyé
+     * @return ReponseEntity contenant le message de succès ou d'erreur
+     */
     @PostMapping("/{username}/coffre/add")
     public ResponseEntity<ApiReponse> addObjectToCoffre(
             @PathVariable String username,

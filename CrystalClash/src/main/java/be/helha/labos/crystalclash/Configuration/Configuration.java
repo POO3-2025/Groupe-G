@@ -3,8 +3,8 @@ package be.helha.labos.crystalclash.Configuration;
 /**
  * Classe représentant la configuration de la base de données.
  *
- * <p>Cette classe contient les informations nécessaires pour établir une connexion à la base de données,
- * y compris le type de connexion, le type de base de données et les informations d'identification.</p>
+ * Cette classe contient les informations nécessaires pour établir une connexion à la base de données,
+ * y compris le type de connexion, le type de base de données et les informations d'identification.
  */
 public class Configuration {
     /**

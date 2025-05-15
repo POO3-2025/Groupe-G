@@ -79,7 +79,7 @@ public class FightController {
     /**
      * Gère l'attaque d'un joueur
      * @param body
-     * @return ReponseEntity avec le statut du combat
+     * @return ReponseEntity avce un message d'erreur ou de succes
      */
     @PostMapping("/attack")
     public ResponseEntity<?> attack(@RequestBody Map<String, String> body) {
@@ -116,7 +116,7 @@ public class FightController {
     /**
      * Gère l'utilisation d'un objet par un joueur
      * @param body
-     * @return ReponseEntity avec le statut du combat
+     * @return ReponseEntity avec un message d'erreur ou de succès
      */
     @PostMapping("/use-object")
     public ResponseEntity<?> useObject(@RequestBody Map<String, String> body) throws Exception {
@@ -157,7 +157,7 @@ public class FightController {
     /**
      * Récupère l'état du combat pour un joueur donné
      * @param username
-     * @return
+     * @return le combat
      */
     @GetMapping("/state/{username}")
     public StateCombat getState(@PathVariable String username) {
@@ -167,7 +167,7 @@ public class FightController {
     /**
      * cree un comabt entre 2 joueurs
      * @param body
-     * @return ReponseEntity avec le statut du combat
+     * @return ReponseEntity avec un message d'erreur ou de succès
      */
     @PostMapping("/challenge")
     public ResponseEntity<?> challenge(@RequestBody Map<String, String> body) {
@@ -204,6 +204,14 @@ public class FightController {
 
 
     //Endpoint si un joeur quitte le combat.
+
+    /**
+     * Si un joueur quitte le combat, il doit faire un forfait
+     * @param body
+     * @param token
+     * @return ReponseEntity avec un message d'erreur ou de succès
+     * @throws Exception
+     */
     @PostMapping("/forfait")
     public ResponseEntity<?> forfait(@RequestBody Map<String, String> body, @RequestHeader("Authorization") String token) throws Exception {
         String username = body.get("username");
@@ -212,7 +220,11 @@ public class FightController {
 
     }
 
-
+    /**
+     * Récupère le dernier gagnant d'un combat associé à un utilisateur donné.
+     * @param username
+     * @return ReponseEntity avec le nom du gagnant ou un message d'erreur
+     */
     @GetMapping("/Winner")
     public ResponseEntity<Map<String, String>> getLastWinner(@RequestParam String username) {
         String winner = fightService.getLastWinner(username);
@@ -224,6 +236,10 @@ public class FightController {
 
 
     //Petit GetMapping
+    /**
+     * Récupère le classement actuel des joueurs.
+     * @return ReponseEntity avec la liste des joueurs triés par classement
+     */
     @GetMapping("/classement")
     public ResponseEntity<List<UserInfo>> getClassementPlayer() {
       List<UserInfo> classement = fightService.getClassementPlayer();
@@ -231,10 +247,10 @@ public class FightController {
 
     }
 
-//Ajout encore de set pour y avoir acces dans les tests
-public void setFightService(FightService fightService) {
-    this.fightService = fightService;
-}
+    //Ajout encore de set pour y avoir acces dans les tests
+    public void setFightService(FightService fightService) {
+        this.fightService = fightService;
+    }
 
     public void setCharacterService(CharacterService characterService) {
         this.characterService = characterService;
