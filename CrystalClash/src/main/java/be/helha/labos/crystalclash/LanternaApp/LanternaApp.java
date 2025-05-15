@@ -1858,13 +1858,28 @@ public class LanternaApp {
             Label tourLabel = new Label("Tour : " + state.getTour());
             mainPanel.addComponent(tourLabel);
 
-            Label horizontalLine = new Label("----------------------------------------");
+            Label horizontalLine = new Label("---------------------------------------------------");
             mainPanel.addComponent(horizontalLine);
+
+            Panel characterPanel = new Panel(new GridLayout(3));
+
+            Label nomJoueur = new Label("Joueur : " + Session.getUsername());
+            Label nomAdversaire = new Label("Adversaire : " + adversaire);
+
+            EmptySpace espace1 = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
+            characterPanel.addComponent(nomJoueur);
+            characterPanel.addComponent(espace1);
+            characterPanel.addComponent(nomAdversaire);
+
+            mainPanel.addComponent(characterPanel);
+            Label horizontalLine2 = new Label("---------------------------------------------------");
+            mainPanel.addComponent(horizontalLine2);
 
             Panel pvPanel = new Panel(new GridLayout(3));
 
             Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
             Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
+
 
             Label labelReliability = new Label("Endurance de l'armure : ?");
             mainPanel.addComponent(labelReliability);
@@ -1881,7 +1896,7 @@ public class LanternaApp {
 
             mainPanel.addComponent(pvPanel);
 
-            Label horizontalLine1 = new Label("----------------------------------------");
+            Label horizontalLine1 = new Label("---------------------------------------------------");
             mainPanel.addComponent(horizontalLine1);
 
             Panel historyPanel = new Panel(new GridLayout(1));
@@ -1974,6 +1989,7 @@ public class LanternaApp {
                                 labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
 
+
                                 String winner = null;
                                 try {
                                     String reponseJson  = CombatHttpClient.getLastWinner(Session.getUsername(), Session.getToken());
@@ -2010,9 +2026,11 @@ public class LanternaApp {
                             //Update pour recherché la bonne valeur de l'endurence apres chaque tour
                             int endur = updated.getArmorReliabilities(Session.getUsername());
                             String message = (endur >= 0)
+
                                 ? "Endurence de l'armure : " + endur
                                 : "Aucune armure équipée";
                             labelReliability.setText(message);
+
 
                             // Rafraîchi l'historique à chaque update
                             historyPanel.removeAllComponents();

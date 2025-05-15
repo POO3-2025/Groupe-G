@@ -12,12 +12,21 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
+/**
+ * La classe ConfigManager gère la configuration de l'application, notamment
+ * les connexions aux bases de données SQL et MongoDB.
+ * Elle utilise le pattern Singleton pour garantir une instance unique.
+ */
 public class ConfigManager {
     private static ConfigManager instance;
     private JsonObject config;
 
-    // Constructeur privé pour empêcher l'instanciation externe
+    /**
+     * Constructeur privé pour empêcher l'instanciation externe.
+     * Charge le fichier de configuration `config.json`.
+     *
+     * @throws RuntimeException si une erreur survient lors du chargement du fichier.
+     */
     private ConfigManager() {
         try {
             Gson gson = new Gson();
@@ -33,7 +42,15 @@ public class ConfigManager {
         }
     }
 
-    // Méthode pour obtenir l'instance unique
+    /**
+     * Méthode statique pour obtenir l'instance unique de ConfigManager.
+     * Utilise le pattern Singleton pour garantir qu'il n'y a qu'une seule instance.
+     * Verif l'instance est null ça rentre dans un bloque synchronisé (ça bloque d'autre entrée)
+     * Et une fois dans le bloque si instance etait null
+     * dans la premiere verif on crée l'instance dans la second
+     *
+     * @return L'instance unique de ConfigManager.
+     */
     public static ConfigManager getInstance() {
         if (instance == null) {
             synchronized (ConfigManager.class) {
@@ -47,13 +64,18 @@ public class ConfigManager {
 
     /**
      * Retourne la configuration complète
+     *
+     * @return La configuration complète.
      */
     public JsonObject getConfig() {
         return config;
     }
 
     /**
-     * Vérifie si une base de données SQL existe et la crée si elle est absente
+     *  Vérifie si un SQL existe et la crée si elle est absente
+     * @param dbKey sert a choisir quelle db on utilise depuis le config
+     * @return Une connexion SQL active.
+     * @throws SQLException si une erreur survient lors de la connexion ou si la clé est invalide.
      */
     public Connection getSQLConnection(String dbKey) throws SQLException {
         try {
@@ -84,6 +106,9 @@ public class ConfigManager {
     /**
      * Vérifie si une base MongoDB existe et la crée si elle est absente
      * Modif pour permettre un affichage moins brute lors de test
+     * @param dbKey sert a choisir quelle db on utilise depuis le config
+     * @return Une instance de MongoDatabase.
+     * @throws RuntimeException si une erreur survient lors de la connexion ou si la clé est invalide.
      */
     public MongoDatabase getMongoDatabase(String dbKey) {
         try {

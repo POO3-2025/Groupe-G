@@ -25,6 +25,7 @@ public class ConnectedUsersController {
     /***
      * Retourne le nbr d'uti co
      * Basé sur ConnectedUsers qui garde en mémoire
+     * @return le nombre d'uti co
      * */
     @GetMapping("/users/connected/count")
     public int getConnectedUserCount() {
@@ -33,6 +34,7 @@ public class ConnectedUsersController {
 
     /**
      * Renvoie la liste complète des user co avec leurs infos
+     * @return la liste des user co
      * */
     @GetMapping("/users/connected/list")
     public Collection<UserInfo> getConnectedUsernames() {
@@ -44,6 +46,8 @@ public class ConnectedUsersController {
      * retire le user de la map ConnectedUsers
      * met a jour le status en db a 0
      * et retourne deconnecté avec succès
+     * @param request = LogoutRequest qui contient le username
+     * @return ResponseEntity avec le message de succès
      * */
     @PostMapping("/users/logout")
     public ResponseEntity<String> logoutUser(@RequestBody LogoutRequest request) {
@@ -62,6 +66,7 @@ public class ConnectedUsersController {
 
     /**
     * @param userInfo = user renvoie le json avec ses infos
+     * @return ResponseEntity avec un message de succès
     * matchmakingWaitingRoom qui est Map<String, UserInfo>
      *ajout useer ds la salle d'attente matchmakingWaitingRoom si username pas null
     * */
@@ -78,6 +83,7 @@ public class ConnectedUsersController {
     /**
      * @param request = user renvoie juste son username dans une map JSON
      * puis on supprimer ce user dans la map, matchmakingWaitingRoom.remove
+     * @return ResponseEntity avec un message de succès
      * */
     @PostMapping("/matchmaking/exit")
     public ResponseEntity<Void> exitMatchmaking(@RequestBody Map<String, String> request) {
@@ -90,6 +96,7 @@ public class ConnectedUsersController {
 
     /**
      * @param username
+     * @return retourner tous les joueurs ds la salle sauf sois meme
      * ici on va retourner tous les joueurs ds la salle sauf sois meme
      * synchronized = lui permet de faire une action a la fois sur la MAP matchmakingWaitingRoom pour garder une bonne cohérance quoi
      * que ce soit pour le put, remove ou le for dans getAvailableOpponents

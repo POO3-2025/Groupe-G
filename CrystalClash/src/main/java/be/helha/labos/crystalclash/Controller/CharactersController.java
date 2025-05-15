@@ -26,7 +26,8 @@ public class CharactersController {
 
     /**
      * @param payload
-     *Permet de selectionné un personnage
+     * @return Reponse de type ApiReponse avec un message d'erreur ou de succès
+     * Permet de selectionné un personnage
      * passe plusieurs vérfi
      * */
     @PostMapping("/select")
@@ -74,7 +75,12 @@ public class CharactersController {
         }
     }
 
-
+    /**
+     * @param username
+     * @return Reponse de type ApiReponse avec un message d' erreur  ou un message de succès
+     * @throws Exception
+     * Récupérer le personnage sélectionné pour l'utilisateur
+     * */
     @GetMapping("/{username}")
     public ResponseEntity<Map<String, Object>> getCharacter(@PathVariable String username) {
         String characterType = characterService.getCharacterForUser(username);
@@ -92,7 +98,8 @@ public class CharactersController {
 
     /**
      * @param username
-     * @return
+     * @return Reponse de type ApiReponse avec un message d' erreur
+     * ou un message de succès avec la liste des objet du backPack
      * @throws Exception
      * Récupérer le backpack du personnage
      * */
@@ -116,6 +123,7 @@ public class CharactersController {
 
     /**
      * @param username
+     * @return Reponse de type ApiReponse avec un message d'erreur ou un message de succès
      * Ajoute un objet au backpack du personnage
      * */
     @PostMapping("/{username}/backpack/add")
@@ -130,7 +138,9 @@ public class CharactersController {
         return ResponseEntity.ok(response);
     }
 
-    /*
+    /**
+     * @param username
+     * @return Reponse de type ApiReponse avec un message d'erreur ou un message de succès
      * Supprime un objet du backpack du personnage
      * */
     @PostMapping("/{username}/backpack/remove")
@@ -146,9 +156,10 @@ public class CharactersController {
 
     /**
      * @param username
-     * @return
+     * @param payload
+     * @return Reponse de type ApiReponse avec un message d'erreur ou de succès
      * @throws Exception
-     * Récupérer le personnage sélectionné pour l'utilisateur
+     * Ajoute un objet au coffre du backpack du personnage
      * */
     @PostMapping("/{username}/backpack/coffre/add")
     public ResponseEntity<ApiReponse> addObjectToCoffreInBackPack(@PathVariable String username, @RequestBody Map<String, String> payload) { {
@@ -168,8 +179,10 @@ public class CharactersController {
         }
     }
     /**
-     * Modifie la reliability d'un objet (Weapon) dans le backpack d'un personnage
-     */
+     * @param username
+     * @return Reponse de type ApiReponse avec un message d'erreur ou de succès
+     * Modifier la reliability d'un objet (Weapon) dans le backpack du personnage
+     * */
     @PutMapping("/{username}/backpack/update/{objectId}")
     public ResponseEntity<ApiReponse> updateObjectReliability(
             @PathVariable String username,
@@ -187,8 +200,10 @@ public class CharactersController {
     }
 
     /**
-     * Modifie la reliability d'un objet (Armor) dans l'equipement d'un personnage
-     */
+     * @param username
+     * @return Reponse de type ApiReponse avec un message d'erreur ou de succès
+     * Modifier la reliability d'un objet (Armor) dans l'equipement du personnage
+     * */
     @PutMapping("/{username}/equipment/update/{objectId}")
     public ResponseEntity<ApiReponse> updateArmorReliability(
             @PathVariable String username,
@@ -205,12 +220,17 @@ public class CharactersController {
         return ResponseEntity.ok(response);
     }
 
-
+    //pour les tests
     public void setCharacterServices(CharacterService characterService) {
         this.characterService = characterService;
     }
 
-
+    /**
+     * @param username
+     * @param objectId
+     * @return Reponse de type ApiReponse avec le message de succès ou d'erreur
+     * Supprime un objet  du backpack du personnage
+     * */
     @PostMapping("/{username}/backpack/delete/{objectId}")
     public ResponseEntity<ApiReponse> deleteObjectFromBackpack(
             @PathVariable String username,
@@ -230,8 +250,9 @@ public class CharactersController {
 
     /**
      * @param username
-     * @return
+     * @return Reponse de type ApiReponse
      * @throws Exception
+     * @return ReponseEntity avec le message de succès et la liste d'equipement ou d'erreur
      * Récupérer l'equipement du personnage
      * */
     @GetMapping("/{username}/equipment")
@@ -254,6 +275,8 @@ public class CharactersController {
 
     /**
      * @param username
+     * @param payload
+     * @return ReponseEntity avec le message de succès ou d'erreur
      * Ajoute une armure a l'equipement du personnage
      * */
     @PostMapping("/{username}/equipment/add")
@@ -268,8 +291,11 @@ public class CharactersController {
         return ResponseEntity.ok(response);
     }
 
-    /*
-     * Supprime un equipement du backpack du personnage
+    /**
+     * @param username
+     * @param payload
+     * Supprime une armure de l'equipement du personnage
+     * @return ReponseEntity avec le message de succès ou d'erreur
      * */
     @PostMapping("/{username}/equipment/remove")
     public ResponseEntity<ApiReponse> removeArmorToEquipment(@PathVariable String username, @RequestBody Map<String, String> payload) {

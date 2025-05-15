@@ -85,6 +85,8 @@ public class FightService {
 
                 return state; // ← ON AUTORISE une dernière visualisation
             }
+            int endurance = getArmoRelibility(username);
+            state.setArmorReliability(username, endurance);
 
             // combat a déjà été affiché → on supprime maintenant
             combats.remove(state.getPlayer1());
@@ -394,22 +396,24 @@ public class FightService {
     }
 
 
+
+
     /**
-     * @param username
-     *Avoir equipement endurence coté client
-     * encore ici si -1 alors pas d'armure
-     * for = parcourt tous les objets  de l'equip si un ets = a l'instance Armor alors retourne son endurence
-     * **/
-    public  int getArmoRelibility(String username) {
+     * @param username*Avoir equipement endurence coté client
+     *                       encore ici si -1 alors pas d'armure
+     *                       for = parcourt tous les objets  de l'equip si un ets = a l'instance Armor alors retourne son endurence
+     **/
+    public int getArmoRelibility(String username) {
+
         Equipment equipment = characterService.getEquipmentForCharacter(username);
         if (equipment == null) return -1;
         for (ObjectBase ob : equipment.getObjets()) {
             if (ob instanceof Armor armor) { //Si correspond bien a une armure alors on retourne son endu
                 return armor.getReliability();
             }
+
         } return -1; //pas d'armure
     }
-
 
 
 

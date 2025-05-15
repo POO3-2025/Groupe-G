@@ -3,8 +3,8 @@ package be.helha.labos.crystalclash.Configuration;
 /**
  * Classe représentant les informations d'identification pour accéder à une base de données.
  *
- * <p>Cette classe contient les détails nécessaires pour établir une connexion à une base de données,
- * y compris le nom d'hôte, le nom d'utilisateur, le mot de passe, le nom de la base de données et le port.</p>
+ * Cette classe contient les détails nécessaires pour établir une connexion à une base de données,
+ * y compris le nom d'hôte, le nom d'utilisateur, le mot de passe, le nom de la base de données et le port.
  */
 public class Credentials {
     /**
