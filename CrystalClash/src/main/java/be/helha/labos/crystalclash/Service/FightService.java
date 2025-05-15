@@ -184,7 +184,12 @@ public class FightService {
 
     }
 
-
+    /**
+     * utiliser  un objet
+     * @param Player
+     * @param objectId
+     * @throws Exception
+     * */
     public void useObject(String Player, String objectId) throws Exception {
         System.out.println("[DEBUG] useObject() appelé par " + Player + " avec objet " + objectId);
 
@@ -286,6 +291,11 @@ public class FightService {
 
     }
 
+    /**
+     * Abandonne le combat
+     * @param username
+     * @throws Exception
+     */
     public void forfait(String username) throws Exception {
         StateCombat state = combats.get(username);
         if (state == null) return;
@@ -320,7 +330,10 @@ public class FightService {
         }
     }
 
-
+    /**
+     * Recupere le classement des joueurs
+     * @return
+     */
     public List<UserInfo> getClassementPlayer() {
         return fightDAO.getClassementPlayer();
     }
@@ -348,6 +361,12 @@ public class FightService {
 
 
     //gere l'armure
+
+    /**
+     * recupere un armure
+     * @param username
+     * @return
+     */
     public int getArmure(String username){
         Equipment equipment = characterService.getEquipmentForCharacter(username);
         if(equipment == null){

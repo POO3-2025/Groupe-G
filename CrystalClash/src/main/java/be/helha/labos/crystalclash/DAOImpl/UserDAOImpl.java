@@ -69,6 +69,13 @@ public class UserDAOImpl implements UserDAO {
     /*
     * Va check si le user est deja co dans la db.
     * */
+
+    /**
+     * Vérifie si l'utilisateur est déjà connecté.
+     * @param username le nom d'utilisateur
+     * @return
+     * @throws Exception
+     */
     @Override
     public boolean isAlreadyConnected(String username) throws Exception {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
@@ -83,6 +90,12 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+    /**
+     * Met à jour le statut de connexion de l'utilisateur.
+     * @param username le nom d'utilisateur
+     * @param isConnected {@code true} si connecté, {@code false} sinon
+     * @throws Exception
+     */
     //Va mettre a jour le boolean de is_connected
     @Override
     public void updateIsConnected(String username, boolean isConnected)throws Exception{
@@ -96,6 +109,12 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+    /**
+     * Met à jour le niveau de l'utilisateur.
+     * @param username le nom d'utilisateur
+     * @param newLevel le nouveau niveau
+     * @throws Exception
+     */
     @Override
     public void updateLevel(String username, int newLevel) throws Exception {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
@@ -114,15 +133,30 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-
+    /**
+     * Incrémente le nombre de victoires ou de défaites d'un utilisateur.
+     * @param username le nom d'utilisateur
+     * @throws Exception
+     */
     public void IncrementWinner(String username) throws Exception {
         updateWin_Lose(username, "gagner");
     }
 
+    /**
+     * Incrémente le nombre de défaites d'un utilisateur.
+     * @param username le nom d'utilisateur
+     * @throws Exception
+     */
     public void IncrementDefeat(String username) throws Exception {
         updateWin_Lose(username, "perdu");
     }
 
+    /**
+     * Met à jour le nombre de victoires ou de défaites d'un utilisateur.
+     * @param username le nom d'utilisateur
+     * @param New la nouvelle valeur (par exemple "win" ou "lose")
+     * @throws Exception
+     */
     @Override
     public void updateWin_Lose(String username, String New) throws Exception {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
@@ -138,6 +172,11 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+    /**
+     * Incrémente le nombre de victoires consécutives d'un utilisateur.
+     * @param username le nom d'utilisateur
+     * @throws SQLException
+     */
     @Override
     public void incrementWinconsecutive(String username) throws SQLException {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
@@ -153,6 +192,11 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
+    /**
+     * Réinitialise le nombre de victoires consécutives d'un utilisateur.
+     * @param username le nom d'utilisateur
+     * @throws Exception
+     */
     @Override
     public void resetWinconsecutiveConsecutive(String username) throws Exception{
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
