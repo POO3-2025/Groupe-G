@@ -1,4 +1,4 @@
-package be.helha.labos.crystalclash.Inventory;
+package be.helha.labos.crystalclash.DTO;
 
 import be.helha.labos.crystalclash.Object.ObjectBase;
 

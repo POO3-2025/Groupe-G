@@ -4,7 +4,7 @@ import be.helha.labos.crystalclash.ApiResponse.ApiReponse;
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAO.InventoryDAO;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
-import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.*;
 import be.helha.labos.crystalclash.Service.UserService;
 import com.google.gson.Gson;
@@ -15,9 +15,7 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Repository

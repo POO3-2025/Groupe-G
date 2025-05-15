@@ -2,13 +2,8 @@ package be.helha.labos.crystalclash.DaoImplTest;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
-import be.helha.labos.crystalclash.DAOImpl.RouletteDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.ShopDAOImpl;
-import be.helha.labos.crystalclash.Inventory.Inventory;
-import be.helha.labos.crystalclash.Object.ObjectBase;
-import be.helha.labos.crystalclash.Factory.ObjectFactory;
-import be.helha.labos.crystalclash.Service.ShopService;
-import be.helha.labos.crystalclash.DAO.UserDAO;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Service.UserService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import com.mongodb.client.MongoDatabase;

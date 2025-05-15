@@ -2,14 +2,9 @@ package be.helha.labos.crystalclash.Service;
 
 
 import be.helha.labos.crystalclash.DAO.FightDAO;
-import be.helha.labos.crystalclash.DAO.ShopDAO;
 import be.helha.labos.crystalclash.DTO.StateCombat;
 import be.helha.labos.crystalclash.Characters.Personnage;
-import be.helha.labos.crystalclash.Factory.CharactersFactory;
-import be.helha.labos.crystalclash.Inventory.Inventory;
-import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Object.*;
-import be.helha.labos.crystalclash.User.ConnectedUsers;
 import be.helha.labos.crystalclash.User.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,44 +72,35 @@ public class FightService {
      * **/
     public StateCombat getCombat(String username) {
         StateCombat state = combats.get(username);
-        if (state != null) {
-            if (state.isFinished()) {
 
-                resolveWinnerAndLoser(state);
+        if (state == null) return null;
 
-                // Première fois qu'on récupère un combat terminé → on le montre une fois
-                if (!state.isCombatDisplayed()) {
-                    state.setCombatDisplayed(true);
+        // le combat est terminé
+        if (state.isFinished()) {
+            if (!state.isCombatDisplayed()) {
+                resolveWinnerAndLoser(state); // obligatoirement ici
 
-                    //  programme la suppression après 10 secondes
-                    Timer timer = new Timer();
-                    //schedule executé une action apres un certain dela donc la c la supressions de combat
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            String winner = state.getWinner();
-                            String loser = state.getLoser();
-                            if (winner != null && loser != null) {
-                                combats.remove(winner);
-                                combats.remove(loser);
-                            }
-                        }
-                    }, 10000); // 10 secondes
+                state.setCombatDisplayed(true);
+                state.setReadyToBeCleaned(true); // marquer pour suppression à la prochaine lecture
 
-                    return state;
-                }
-
-                // si deja affiché 1 fois on affiche plus
-                return null;
+                return state; // ← ON AUTORISE une dernière visualisation
             }
             int endurance = getArmoRelibility(username);
             state.setArmorReliability(username, endurance);
 
-            return state;
+            // combat a déjà été affiché → on supprime maintenant
+            combats.remove(state.getPlayer1());
+            combats.remove(state.getPlayer2());
+            return null;
         }
 
-        return null;
+        // combat en cours
+        int endurance = getArmoRelibility(username);
+        state.setArmorReliability(username, endurance);
+
+        return state;
     }
+
 
 
 
@@ -173,6 +159,8 @@ public class FightService {
         userArmorReliability(oppenent, state);
 
         if (state.isFinished()) {
+
+            resolveWinnerAndLoser(state);
             String winner = state.getWinner();
             String loser = state.getLoser();
 
@@ -189,10 +177,7 @@ public class FightService {
             state.addLog(winner + " remporte le combat ! +1 niveau, +50 cristaux");
             derniersGagnants.put(winner, winner);
             derniersGagnants.put(loser, winner);
-            combats.remove(winner);
-            combats.remove(loser);
-            state.setWinner(winner);
-            state.setLoser(loser);
+            state.setReadyToBeCleaned(true);
             return;
         }
         state.NextTurn();
@@ -290,10 +275,7 @@ public class FightService {
             //trophé
             userService.incrementWimConsecutive(winner);
             userService.resetWinConsecutives(loser);
-            combats.remove(winner);
-            combats.remove(loser);
-            state.setWinner(winner);
-            state.setLoser(loser);
+            state.setReadyToBeCleaned(true);
 
         }else {
             state.NextTurn();
@@ -413,21 +395,28 @@ public class FightService {
 
     }
 
+
+
+
     /**
      * @param username*Avoir equipement endurence coté client
      *                       encore ici si -1 alors pas d'armure
      *                       for = parcourt tous les objets  de l'equip si un ets = a l'instance Armor alors retourne son endurence
      **/
     public int getArmoRelibility(String username) {
+
         Equipment equipment = characterService.getEquipmentForCharacter(username);
         if (equipment == null) return -1;
         for (ObjectBase ob : equipment.getObjets()) {
             if (ob instanceof Armor armor) { //Si correspond bien a une armure alors on retourne son endu
                 return armor.getReliability();
             }
-        }
-        return -1; //pas d'armure
+
+        } return -1; //pas d'armure
     }
+
+
+
        /*
     //Set pour les tets pour que ce soit accessible pour les tests
     //public pour y avoir acces, void retourne rien et ensuite un set et a l'interieure un  this..... : fait réference a l'attribut privée de la classe voulue

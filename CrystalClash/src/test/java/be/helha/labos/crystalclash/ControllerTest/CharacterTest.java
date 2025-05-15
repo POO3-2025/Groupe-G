@@ -5,10 +5,8 @@ import be.helha.labos.crystalclash.Controller.CharactersController;
 import be.helha.labos.crystalclash.DAO.CharacterDAO;
 import be.helha.labos.crystalclash.DAOImpl.CharacterDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
-import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.BackPack;
-import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
-import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Service.UserService;
@@ -17,12 +15,9 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 

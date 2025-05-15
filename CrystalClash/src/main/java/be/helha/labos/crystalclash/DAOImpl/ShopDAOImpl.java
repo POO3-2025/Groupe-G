@@ -6,14 +6,9 @@ import be.helha.labos.crystalclash.User.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import be.helha.labos.crystalclash.DAO.ShopDAO;
-import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Factory.ObjectFactory;
-import com.google.gson.Gson;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
-import org.springframework.stereotype.Repository;
 
 import java.util.*;
 @Repository
@@ -24,11 +19,11 @@ public class ShopDAOImpl implements ShopDAO{
     @Autowired
     private InventoryService inventoryService;
 
-    /*
+    /**
      *Grace a la méthode dans ObjectFactory qui est getAllObjectsByName ou va aller rechercher les objects dispo
      * Retourne tous les objest dispo dans la Map (afit comme un catalogue)
      *Chaque Map represente un objet de la boutique
-     */
+    * */
     @Override
     public List<Map<String, Object>> getShopItems() {
 
@@ -113,13 +108,15 @@ public class ShopDAOImpl implements ShopDAO{
         }
     }
 
-    /*
+    /**
+     * @param userService
     * Pq ces méthodes ? car dans les tests y a pas le moteur Spring, donc tout ce qui est AutoWired ne fonctionne pas
     * donc inc on injecte manuellement les dépendances pour que les tests y accendent
-    * */
+    ** */
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
+
 
     public void setInventoryService(InventoryService inventoryService) {
         this.inventoryService = inventoryService;

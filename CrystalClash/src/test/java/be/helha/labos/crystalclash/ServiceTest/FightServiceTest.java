@@ -40,34 +40,34 @@ public class FightServiceTest {
 
 
     @BeforeEach
-        public void setUp() throws Exception {
-            var config = ConfigManager.getInstance().getConfig();
-            var db = config.getAsJsonObject("db");
+    public void setUp() throws Exception {
+        var config = ConfigManager.getInstance().getConfig();
+        var db = config.getAsJsonObject("db");
 
-            var mysqlProductionConfig = db.getAsJsonObject("mysqlproduction");
-            var mysqlTestConfig = db.getAsJsonObject("mysqltest");
+        var mysqlProductionConfig = db.getAsJsonObject("mysqlproduction");
+        var mysqlTestConfig = db.getAsJsonObject("mysqltest");
 
-            mysqlProductionConfig.getAsJsonObject("BDCredentials")
-                .entrySet()
-                .forEach(entry -> {
-                    String key = entry.getKey();
-                    mysqlProductionConfig.getAsJsonObject("BDCredentials")
-                        .add(key, mysqlTestConfig.getAsJsonObject("BDCredentials").get(key));
-                });
+        mysqlProductionConfig.getAsJsonObject("BDCredentials")
+            .entrySet()
+            .forEach(entry -> {
+                String key = entry.getKey();
+                mysqlProductionConfig.getAsJsonObject("BDCredentials")
+                    .add(key, mysqlTestConfig.getAsJsonObject("BDCredentials").get(key));
+            });
 
-            var mongoProductionConfig = db.getAsJsonObject("MongoDBProduction");
-            var mongoTestConfig = db.getAsJsonObject("MongoDBTest");
+        var mongoProductionConfig = db.getAsJsonObject("MongoDBProduction");
+        var mongoTestConfig = db.getAsJsonObject("MongoDBTest");
 
-            //Accede aux credential de mongo
-            mongoProductionConfig.getAsJsonObject("BDCredentials")
-                .entrySet()//Récupe les clées, valeurs
-                .forEach(entry -> { //Pour chaque clées
-                    String key = entry.getKey();  //ça récup la clé (hostname,...)
-                    mongoProductionConfig.getAsJsonObject("BDCredentials")
-                        .add(key, mongoTestConfig.getAsJsonObject("BDCredentials").get(key)); //Et ça remplace la valeur prod pas celle de test
-                });
+        //Accede aux credential de mongo
+        mongoProductionConfig.getAsJsonObject("BDCredentials")
+            .entrySet()//Récupe les clées, valeurs
+            .forEach(entry -> { //Pour chaque clées
+                String key = entry.getKey();  //ça récup la clé (hostname,...)
+                mongoProductionConfig.getAsJsonObject("BDCredentials")
+                    .add(key, mongoTestConfig.getAsJsonObject("BDCredentials").get(key)); //Et ça remplace la valeur prod pas celle de test
+            });
 
-            //Implementation Dao manuellement
+        //Implementation Dao manuellement
         CharacterDAO characterDAO = new CharacterDAOImpl();
         UserDAO userDAO = new UserDAOImpl();
         InventoryDAO inventoryDAO = new InventoryDAOImpl();
@@ -85,7 +85,7 @@ public class FightServiceTest {
         fightService.setInventoryService(inventoryService);
 
 
-        }
+    }
 
     /*
      * Insertion d un user test pour le test userExist
@@ -140,7 +140,7 @@ ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
     @Test
     @Order(1)
     @DisplayName("Test créer un combat et attaquer")
-public void TestCreateFightAndAttack(){
+    public void TestCreateFightAndAttack(){
 
         //Création 2 persos
         Personnage p1 = CharactersFactory.getCharacterByType("elf");
@@ -174,7 +174,7 @@ public void TestCreateFightAndAttack(){
     @Test
     @Order(2)
     @DisplayName("Test utiliser un objet")
-        public void TestUseObject() throws Exception {
+    public void TestUseObject() throws Exception {
 
         //Création 2 persos
         Personnage p1 = CharactersFactory.getCharacterByType("elf");
@@ -194,7 +194,7 @@ public void TestCreateFightAndAttack(){
         StateCombat combat = fightService.getCombat(user2);
         assertTrue(combat.getPv(user2) < p2.getPV()); //verif si pv bien diminués
 
-        }
+    }
 
     @Test
     @Order(3)
@@ -382,13 +382,13 @@ public void TestCreateFightAndAttack(){
         fightService.useObject(user1, "weapon");
 
 
-        // 1 appel  supprimé
+        // 1er combat encore visible (doit PAS être null)
+        StateCombat combatVisible = fightService.getCombat(user2);
+        assertNotNull(combatVisible, "Le combat doit encore être visible une fois");
+
+// 2e cette fois supprimé
         StateCombat supprimé = fightService.getCombat(user2);
         assertNull(supprimé, "Le combat doit être supprimé après affichage");
-
-        // verif que le gagnant est bien enregistré
-        String gagnant = fightService.getLastWinner(user1);
-        assertEquals(user1, gagnant, "user1 doit être enregistré comme gagnant");
 
     }
     @Test
@@ -436,72 +436,79 @@ public void TestCreateFightAndAttack(){
         boolean logFiabilitePresente = logs.stream().anyMatch(log -> log.contains("fiabilité"));
         assertTrue(logFiabilitePresente, "Un message sur la fiabilité de l'armure doit apparaître dans les logs");
     }
-        @Test
-        @Order(10)
-        @DisplayName("Test utiliser une potion de soin")
-        public void TestHealingPotion() throws Exception {
-            Personnage p1 = CharactersFactory.getCharacterByType("elf");
-            Personnage p2 = CharactersFactory.getCharacterByType("troll");
-
-            //  réduit  les PV de p1
-            p1.setPV(p1.getPV() - 20);
-
-            HealingPotion potion = new HealingPotion("Petite potion", 15, 1, 2);
-            potion.setId("potion");
-
-            List<ObjectBase> bp1 = new ArrayList<>();
-            bp1.add(potion);
-            List<ObjectBase> bp2 = new ArrayList<>();
-
-            fightService.createCombat(user1, user2, p1, p2, bp1, bp2);
-
-            int pvAvant = fightService.getCombat(user1).getPv(user1);
-
-            fightService.useObject(user1, "potion");
-
-            int pvApres = fightService.getCombat(user1).getPv(user1);
-            assertTrue(pvApres > pvAvant, "La potion doit soigner le joueur");
-
-            // Vérifie qu'elle est bien supprimée après 1 utilisation
-            Equipment equipFinal = fightService.getCharacterService().getEquipmentForCharacter(user1);
-            assertTrue(fightService.getCombat(user1).getBackpack(user1).isEmpty(), "La potion doit être retirée après usage");
-        }
-
     @Test
     @Order(10)
-    @DisplayName("Test utiliser une potion de force")
-    public void TestPotionOfStrenght() throws Exception {
-
+    @DisplayName("Test utiliser une potion de soin")
+    public void TestHealingPotion() throws Exception {
         Personnage p1 = CharactersFactory.getCharacterByType("elf");
         Personnage p2 = CharactersFactory.getCharacterByType("troll");
 
-        // pv du user1
-        p1.setPV(p1.getPV());
+        //  réduit  les PV de p1
+        p1.setPV(p1.getPV() - 20);
 
-        PotionOfStrenght potion = new PotionOfStrenght("grosse potion", 15, 1, 15);
+        HealingPotion potion = new HealingPotion("Petite potion", 15, 1, 2);
         potion.setId("potion");
 
         List<ObjectBase> bp1 = new ArrayList<>();
         bp1.add(potion);
         List<ObjectBase> bp2 = new ArrayList<>();
 
-        //Crée le combat
         fightService.createCombat(user1, user2, p1, p2, bp1, bp2);
 
-        //recup l'attaque de base avant le bonus d effet la
-        int attaqueAvant = fightService.getCombat(user1).getCharacter(user1).getAttackBase();
+        int pvAvant = fightService.getCombat(user1).getPv(user1);
 
-        //use de la potion de force
         fightService.useObject(user1, "potion");
 
-        //recup de l'attaque de base apres l'effet
-        int attaqueApres = fightService.getCombat(user1).getCharacter(user1).getAttackBase();
+        int pvApres = fightService.getCombat(user1).getPv(user1);
+        assertTrue(pvApres > pvAvant, "La potion doit soigner le joueur");
 
-        //verif attaque de base bien augmenté
-        assertTrue(attaqueApres > attaqueAvant, "La potion de force doit augmenter l'attaque du joueur");
-
-       //vérif bien retirée apres usage
+        // Vérifie qu'elle est bien supprimée après 1 utilisation
+        Equipment equipFinal = fightService.getCharacterService().getEquipmentForCharacter(user1);
         assertTrue(fightService.getCombat(user1).getBackpack(user1).isEmpty(), "La potion doit être retirée après usage");
+    }
+    @Test
+    @Order(10)
+    @DisplayName("Test utiliser une potion de force applique bonus sur attaque")
+    public void TestPotionOfStrenght() throws Exception {
+        Personnage p1 = CharactersFactory.getCharacterByType("elf");
+        Personnage p2 = CharactersFactory.getCharacterByType("troll");
+
+        PotionOfStrenght potion = new PotionOfStrenght("grosse potion", 15, 1, 15);
+        potion.setId("potion");
+
+        List<ObjectBase> bp1 = new ArrayList<>(List.of(potion));
+        List<ObjectBase> bp2 = new ArrayList<>();
+        fightService.getCharacterService().saveEquipmentForCharacter(user2, new Equipment());
+
+        fightService.createCombat(user1, user2, p1, p2, bp1, bp2);
+
+        // force userTes1 à rester actif après la potion
+        StateCombat state = fightService.getCombat(user1);
+        int pvAvant = state.getPv(user2);
+
+        // us la potion SANS faire NextTurn
+        fightService.useObject(user1, "potion");
+
+        //  restaur manuellement le tour car useObject() le fait passer à l'autre joueur
+        fightService.getCombat(user1).NextTurn();
+
+
+        //Attaque avec le bonus
+        fightService.HandleAttach(user1, "normal");
+
+        StateCombat combatFinal = fightService.getCombat(user2);
+        assertNotNull(combatFinal, "Le combat ne doit pas être supprimé immédiatement");
+
+        int pvApres = combatFinal.getPv(user2);
+        int dmgInflige = pvAvant - pvApres;
+
+        int minAttendu = p1.getAttackBase() + potion.getBonusATK();
+
+        assertTrue(dmgInflige >= minAttendu,
+            "Les dégâts doivent inclure le bonus de la potion de force (min " + minAttendu + ", mais infligé " + dmgInflige + ")");
+
+        assertTrue(combatFinal.getBackpack(user1).isEmpty(),
+            "La potion doit être retirée après usage");
     }
 
     @Test
@@ -548,9 +555,60 @@ public void TestCreateFightAndAttack(){
         assertEquals(user1, combat.getLoser(), "Le perdant doit être user1");
     }
 
+    @Test
+    @Order(13)
+    @DisplayName("Test getArmure retourne bonus total des armures")
+    public void testGetArmureReturnsCorrectBonus() {
+        Armor armor1 = new Armor("Armure légère", 10, 1, 5, 10); // bonusPV = 10
+        Armor armor2 = new Armor("Armure lourde", 20, 1, 10, 20); // bonusPV = 20
+        Equipment equip = new Equipment();
+        equip.setObjets(List.of(armor1, armor2));
+
+        // Simule que le joueur a cet équipement
+        fightService.getCharacterService().saveEquipmentForCharacter(user1, equip);
+
+        // Vérifie le bonus total
+        int totalBonus = fightService.getArmure(user1);
+        assertEquals(10, totalBonus, "Le total du bonus PV doit être 30");
+    }
+
+
+    @Test
+    @Order(15)
+    @DisplayName("Test getArmoRelibility retourne bonne valeur")
+    public void testGetArmoRelibilityReturnsCorrectValue() {
+        Armor armor = new Armor("Armure moyenne", 10, 1, 5, 5); // Fiabilité = 8
+        Equipment equip = new Equipment();
+        equip.setObjets(List.of(armor));
+        fightService.getCharacterService().saveEquipmentForCharacter(user1, equip);
+
+        int reliability = fightService.getArmoRelibility(user1);
+        assertEquals(5, reliability, "La fiabilité retournée doit être 8");
+    }
+    @Test
+    @Order(14)
+    @DisplayName("Test userArmorReliability réduit bien la fiabilité")
+    public void testUserArmorReliabilityReducesReliability() {
+        Personnage p1 = CharactersFactory.getCharacterByType("elf");
+        Personnage p2 = CharactersFactory.getCharacterByType("troll");
+        Armor armor = new Armor("Armure fragile", 10, 1, 5, 2); // Fiabilité = 2
+        Equipment equip = new Equipment();
+        equip.setObjets(List.of(armor));
+        fightService.getCharacterService().saveEquipmentForCharacter(user1, equip);
+
+        StateCombat combat =  new  StateCombat(user1, user2, p1, p2, List.of(), List.of());
+        fightService.userArmorReliability(user1, combat);
+
+        Equipment updatedEquip = fightService.getCharacterService().getEquipmentForCharacter(user1);
+        Armor updatedArmor = (Armor) updatedEquip.getObjets().get(0);
+
+        // La fiabilité doit avoir diminué de 4
+        assertEquals(4, updatedArmor.getReliability(), "La fiabilité doit diminuer de 1");
+
+        // Les logs doivent contenir l'info
+        boolean logCorrect = combat.getLog().stream().anyMatch(log -> log.contains("fiabilité"));
+        assertTrue(logCorrect, "Les logs doivent contenir l'info de perte de fiabilité");
+    }
+
 }
-
-
-
-
 

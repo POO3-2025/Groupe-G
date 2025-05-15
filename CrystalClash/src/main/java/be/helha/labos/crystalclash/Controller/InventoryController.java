@@ -1,9 +1,8 @@
 package be.helha.labos.crystalclash.Controller;
 
-import be.helha.labos.crystalclash.Inventory.Inventory;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Service.InventoryService;
-import be.helha.labos.crystalclash.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;

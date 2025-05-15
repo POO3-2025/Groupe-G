@@ -6,7 +6,7 @@ import be.helha.labos.crystalclash.Factory.CharactersFactory;
 import be.helha.labos.crystalclash.Object.BackPack;
 import be.helha.labos.crystalclash.Object.Equipment;
 import be.helha.labos.crystalclash.Service.CharacterService;
-import be.helha.labos.crystalclash.Services.HttpService;
+import be.helha.labos.crystalclash.HttpClient.Login_Register_UserHttpClient;
 import be.helha.labos.crystalclash.User.UserInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ public class CharactersController {
         try {
 
 
-            String userJson = HttpService.getUserInfo(username, token);
+            String userJson = Login_Register_UserHttpClient.getUserInfo(username, token);
             UserInfo user = new ObjectMapper().readValue(userJson, UserInfo.class);
 
 
