@@ -5,7 +5,7 @@
         "DBType": "mysql",
         "HostName": "127.0.0.1",
         "UserName": "root",
-        "Port": "",
+        "Port": "3306",
         "Password": "",
         "DBName": "mysqlproduction"
       }

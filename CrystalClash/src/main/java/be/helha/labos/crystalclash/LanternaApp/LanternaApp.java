@@ -1872,6 +1872,8 @@ public class LanternaApp {
             Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
             Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
             EmptySpace espace = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
+            Label labelReliability = new Label("Endurance de l'armure : ?");
+            mainPanel.addComponent(labelReliability);
 
 
             labelMesPv.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.CENTER, true, false));
@@ -1976,6 +1978,7 @@ public class LanternaApp {
                                 labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
 
+
                                 String winner = null;
                                 try {
                                     String reponseJson  = HttpService.getLastWinner(Session.getUsername(), Session.getToken());
@@ -2007,6 +2010,13 @@ public class LanternaApp {
                             tourLabel.setText("Tour : " + updated.getTour());
                             labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
+
+                            //Update pour recherché la bonne valeur de l'endurence apres chaque tour
+                            int endur = updated.getArmorReliabilities(Session.getUsername());
+                            String message = (endur >= 0)
+                                    ? "Endurence de l'armure : " + endur
+                                    : "Aucune armure équipée";
+                            labelReliability.setText(message);
 
 
                             // Rafraîchi l'historique à chaque update

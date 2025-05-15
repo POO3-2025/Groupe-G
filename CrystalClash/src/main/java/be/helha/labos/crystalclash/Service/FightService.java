@@ -107,6 +107,8 @@ public class FightService {
                 // si deja affiché 1 fois on affiche plus
                 return null;
             }
+            int endurance = getArmoRelibility(username);
+            state.setArmorReliability(username, endurance);
 
             return state;
         }
@@ -409,6 +411,22 @@ public class FightService {
             System.out.println("[ERREUR] Mise à jour fiabilité armure de " + username + " : " + e.getMessage());
         }
 
+    }
+
+    /**
+     * @param username*Avoir equipement endurence coté client
+     *                       encore ici si -1 alors pas d'armure
+     *                       for = parcourt tous les objets  de l'equip si un ets = a l'instance Armor alors retourne son endurence
+     **/
+    public int getArmoRelibility(String username) {
+        Equipment equipment = characterService.getEquipmentForCharacter(username);
+        if (equipment == null) return -1;
+        for (ObjectBase ob : equipment.getObjets()) {
+            if (ob instanceof Armor armor) { //Si correspond bien a une armure alors on retourne son endu
+                return armor.getReliability();
+            }
+        }
+        return -1; //pas d'armure
     }
        /*
     //Set pour les tets pour que ce soit accessible pour les tests
