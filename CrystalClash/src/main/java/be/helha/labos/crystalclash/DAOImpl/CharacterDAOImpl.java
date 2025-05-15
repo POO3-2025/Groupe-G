@@ -118,6 +118,11 @@ public class CharacterDAOImpl implements CharacterDAO {
         collection.updateOne(filtre, update);
     }
 
+    /**
+     * Crée un équipement pour un personnage
+     * @param username le nom d'utilisateur
+     * @param characterType le type de personnage
+     */
     @Override
     public void createEquipmentForCharacter(String username, String characterType) {
         MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
@@ -167,7 +172,12 @@ public class CharacterDAOImpl implements CharacterDAO {
 
         return new BackPack(); // retourne un backpack vide si erreur ou pas trouvé
     }
-
+    /**
+     * Récupère l'équipement du personnage du joueur
+     *
+     * @param username Nom d'utilisateur
+     * @return L'équipement du personnage
+     */
     @Override
     public Equipment getEquipmentForCharacter(String username) {
         Equipment equipment = new Equipment(); // On prépare l'équipement (même si vide en cas d'erreur)
@@ -232,6 +242,11 @@ public class CharacterDAOImpl implements CharacterDAO {
         return equipment; // Retourne l'équipement (vide si erreur ou pas d'armure)
     }
 
+    /**
+     * Sauvegarde l'équipement du personnage du joueur
+     * @param username le nom d'utilisateur
+     * @param equipment l'objet Equipment à sauvegarder
+     */
     @Override
     public void saveEquipmentForCharacter(String username, Equipment equipment) {
         try {
@@ -280,12 +295,14 @@ public class CharacterDAOImpl implements CharacterDAO {
             System.err.println("Erreur lors de la sauvegarde de l'équipement pour " + username);
         }
     }
-
-
-
-
-
-
+    /**
+     * Ajoute une armure à l'équipement du personnage du joueur
+     *
+     * @param username Nom d'utilisateur
+     * @param name     Nom de l'objet
+     * @param type     Type de l'objet
+     * @return Réponse de l'API reponse
+     */
     @Override
     public ApiReponse addArmorToEquipment(String username, String name, String type) {
         try {
@@ -373,6 +390,12 @@ public class CharacterDAOImpl implements CharacterDAO {
         }
     }
 
+    /**
+     * Retire une armure de l'équipement du personnage du joueur
+     * @param username le nom d'utilisateur
+     * @param name le nom de l'armure à retirer
+     * @return
+     */
     @Override
     public ApiReponse removeArmorFromEquipment(String username, String name) {
         try {
@@ -422,8 +445,6 @@ public class CharacterDAOImpl implements CharacterDAO {
             return new ApiReponse("Erreur lors de la suppression de l'armure de l'équipement : " + e.getMessage(), null);
         }
     }
-
-
 
     /**
      * Met a jour le personnage sélectionné pour un utilisateur
@@ -703,6 +724,13 @@ public class CharacterDAOImpl implements CharacterDAO {
         }
     }
 
+    /**
+     * Ajoute un objet au coffre des joyaux du personnage du joueur
+     * @param username le nom d'utilisateur
+     * @param name le nom de l'objet
+     * @param type le type de l'objet
+     * @return
+     */
     @Override
     public ApiReponse addObjectToCoffre(String username, String name, String type) {
         try {
@@ -848,6 +876,13 @@ public class CharacterDAOImpl implements CharacterDAO {
             return new ApiReponse("Erreur lors de la modification de la reliability : " + e.getMessage(), null);
         }
     }
+
+    /**
+     * Supprime un objet du backpack du personnage du joueur
+     * @param username le nom d'utilisateur
+     * @param objectId l'identifiant de l'objet
+     * @return
+     */
     @Override
     public ApiReponse deleteObjectFromBackPack(String username, String objectId) {
         try {
@@ -882,9 +917,6 @@ public class CharacterDAOImpl implements CharacterDAO {
             return new ApiReponse("Erreur interne lors de la suppression de l'objet.", null);
         }
     }
-
-
-
 
 }
 

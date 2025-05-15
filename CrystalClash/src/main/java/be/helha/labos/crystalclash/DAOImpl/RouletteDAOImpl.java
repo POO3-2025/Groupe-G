@@ -58,7 +58,7 @@ public class RouletteDAOImpl implements RouletteDAO{
         //si pas null ou diff alors date dernier partie jouée
         return LocalDate.parse(doc.getString("lastPlay"), FORMATTER);
     }
-
+    //pour le stest
     public void setUserService(UserService userService) {
         this.userService = userService;
     }

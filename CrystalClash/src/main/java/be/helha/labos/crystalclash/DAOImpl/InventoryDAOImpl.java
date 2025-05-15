@@ -178,6 +178,11 @@ public class InventoryDAOImpl implements InventoryDAO {
 
     }
 
+    /**
+     * Récupère le coffre des joyaux pour un utilisateur donné.
+     * @param username le nom d'utilisateur
+     * @return
+     */
     public CoffreDesJoyaux getCoffreDesJoyauxForUser(String username) {
         try {
             Inventory inventory = getInventoryForUser(username);
@@ -199,6 +204,13 @@ public class InventoryDAOImpl implements InventoryDAO {
         }
     }
 
+    /**
+     * Ajoute un objet au coffre des joyaux d'un utilisateur.
+     * @param username le nom d'utilisateur
+     * @param name le nom de l'objet à ajouter
+     * @param type le type de l'objet
+     * @return
+     */
     public ApiReponse addObjectToCoffre(String username, String name, String type) {
         try {
             Inventory inventory = getInventoryForUser(username);
@@ -252,7 +264,7 @@ public class InventoryDAOImpl implements InventoryDAO {
             return new ApiReponse("Erreur lors de l'ajout au coffre : " + e.getMessage(), null);
         }
     }
-
+//pour les tests
     public void setUserService(UserService userService) {
         this.userService = userService;
     }

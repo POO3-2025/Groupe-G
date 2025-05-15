@@ -428,7 +428,10 @@ public class LanternaApp {
             }
         };
     }
-
+    /**
+     * Affiche le personnage
+     * @param gui
+     */
     private static void afficherPersonnage(WindowBasedTextGUI gui) {
         BasicWindow persoWindow = new BasicWindow("Mon Personnage");
         persoWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -511,10 +514,6 @@ public class LanternaApp {
         persoWindow.setComponent(panel);
         gui.addWindowAndWait(persoWindow);
     }
-
-
-
-
 
 
     /**
@@ -841,7 +840,11 @@ public class LanternaApp {
         window.setComponent(panel);
         gui.addWindowAndWait(window);
     }
-
+    /**
+     * Affiche l'équipement du joueur
+     *
+     * @param gui => pour afficher les messages
+     */
     private static void afficherEquipement(WindowBasedTextGUI gui, Runnable refreshEquipement) {
         BasicWindow window = new BasicWindow("Mon Equipement");
         window.setHints(Arrays.asList(Hint.CENTERED));
@@ -915,7 +918,10 @@ public class LanternaApp {
         gui.addWindowAndWait(window);
     }
 
-
+    /**
+     * jouer à la roulette
+     * @param gui
+     */
     private static void PLayRoulette(WindowBasedTextGUI gui) {
         try {
             String json = RouletteHttpClient.PlayRoulette(Session.getUsername(), Session.getToken());
@@ -1082,6 +1088,13 @@ public class LanternaApp {
         gui.addWindowAndWait(coffreWindow);
     }
 
+    /**
+     * Affiche les détails d'un objet dans le coffre
+     * @param gui
+     * @param obj
+     * @param depuisBackpack
+     * @param refreshCoffre
+     */
     public static void detailContenuCoffre(WindowBasedTextGUI gui, ObjectBase obj, Boolean depuisBackpack, Runnable refreshCoffre) {
         BasicWindow detailsWindow = new BasicWindow("Détails de l'objet dans le coffre");
         detailsWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -1119,6 +1132,10 @@ public class LanternaApp {
         gui.addWindowAndWait(detailsWindow);
     }
 
+    /**
+     * Affiche la salle de matchmaking
+     * @param gui
+     */
     public static void MatchMaking(WindowBasedTextGUI gui) {
         BasicWindow combatWindow = new BasicWindow("Salle de matchMaking");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -1253,15 +1270,17 @@ public class LanternaApp {
 
     }
 
-
-
-
+    /**
+     * Met à jour le label des tours restants pour l'attaque spéciale
+     * @param perso
+     * @param label
+     */
     private static void updateToursRestants(Personnage perso, Label label) {
         int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
         if (toursRestants <= 0) {
-            label.setText("✅ Attaque spéciale disponible !");
+            label.setText("Attaque spéciale disponible !");
         } else {
-            label.setText("⏳ Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l’attaque spéciale.");
+            label.setText("Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l’attaque spéciale.");
         }
     }
 
@@ -1289,7 +1308,7 @@ public class LanternaApp {
         Panel statsPanel = new Panel(new GridLayout(1));
         statsPanel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL));
 
-        Label combatTitle = new Label("🔥 Combat contre le bot d'entrainement 🔥");
+        Label combatTitle = new Label(" Combat contre le bot d'entrainement ");
         combatTitle.setForegroundColor(TextColor.ANSI.RED);
         combatTitle.addStyle(SGR.BOLD);
         statsPanel.addComponent(combatTitle);
@@ -1309,7 +1328,7 @@ public class LanternaApp {
         statsPanel.addComponent(new Label(""));
 
         AtomicInteger tourCounter = new AtomicInteger(1);
-        Label tourLabel = new Label("🕒 Tour : " + tourCounter.get());
+        Label tourLabel = new Label(" Tour : " + tourCounter.get());
         tourLabel.setForegroundColor(TextColor.ANSI.CYAN);
         tourLabel.addStyle(SGR.BOLD);
         statsPanel.addComponent(tourLabel);
@@ -1532,6 +1551,13 @@ public class LanternaApp {
         gui.addWindowAndWait(combatWindow);
     }
 
+    /**
+     * Affiche les actions principales du joueur
+     * @param actionsPanel
+     * @param normalAttack
+     * @param specialAttack
+     * @param objectButton
+     */
     private static void showMainActions(Panel actionsPanel, Button normalAttack, Button specialAttack, Button objectButton) {
         actionsPanel.removeAllComponents();
         actionsPanel.addComponent(normalAttack);
@@ -1540,6 +1566,27 @@ public class LanternaApp {
         actionsPanel.addComponent(new EmptySpace(new TerminalSize(1, 1)));
         actionsPanel.addComponent(objectButton);
     }
+
+    /**
+     * Gère le tour de l'ennemi
+     * @param gui
+     * @param playerHealth
+     * @param enemyHealth
+     * @param combatWindow
+     * @param playerHP
+     * @param enemyHP
+     * @param historyLabel
+     * @param history
+     * @param tourCounter
+     * @param tourLabel
+     * @param actionsPanel
+     * @param showNormalAttacks
+     * @param showSpecialAttacks
+     * @param objectButton
+     * @param perso
+     * @param playerHPmax
+     * @param enemyhpmax
+     */
     private static void enemyTurn(WindowBasedTextGUI gui,
                                   Label playerHealth, Label enemyHealth, BasicWindow combatWindow,
                                   AtomicInteger playerHP, AtomicInteger enemyHP,
@@ -1586,7 +1633,7 @@ public class LanternaApp {
 
         // Passer au tour suivant
         int currentTour = tourCounter.incrementAndGet();
-        tourLabel.setText("🕒 Tour : " + currentTour);
+        tourLabel.setText("Tour : " + currentTour);
 
         if (currentTour % 5 == 0) {
             // On veut garder le contenu du tour précédent (tour - 1)
@@ -1614,6 +1661,10 @@ public class LanternaApp {
         showMainActions(actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton);
     }
 
+    /**
+     * Met à jour la fiabilité de l'armure
+     * @param history
+     */
     private static void UpdateReliabilityArmorPanel (StringBuilder history) {
 
         String username = Session.getUsername();
@@ -1634,7 +1685,6 @@ public class LanternaApp {
                 // Utilisation de l'armure
                 String armorUseMessage = armor.use();
 
-                // 🔥 MAJ MongoDB (fiabilité)
                 try {
                     String responseupdateobject = CharacterHttpClient.updateArmorReliability(
                             username,
@@ -1646,7 +1696,7 @@ public class LanternaApp {
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    history.append("⚠️ Erreur de synchro fiabilité.\n");
+                    history.append("Erreur de synchro fiabilité.\n");
                 }
 
                 // Vérification si l'arme est cassée et affichage du message après l'attaque
@@ -1659,7 +1709,30 @@ public class LanternaApp {
         }
     }
 
-
+    /**
+     * Crée le panel du backpack
+     * @param gui
+     * @param actionsPanel
+     * @param playerHP
+     * @param enemyHP
+     * @param playerHealth
+     * @param enemyHealth
+     * @param perso
+     * @param historyLabel
+     * @param history
+     * @param tourCounter
+     * @param tourLabel
+     * @param combatWindow
+     * @param showNormalAttacks
+     * @param showSpecialAttacks
+     * @param objectButton
+     * @param bonusNextAttack
+     * @param turnPotionForce
+     * @param bonusattaque
+     * @param playerHPmax
+     * @param enemyhpmax
+     * @return
+     */
     private static Panel createBackpackPanel(WindowBasedTextGUI gui, Panel actionsPanel, AtomicInteger playerHP, AtomicInteger enemyHP,
                                              Label playerHealth, Label enemyHealth, Personnage perso,
                                              Label historyLabel, StringBuilder history, AtomicInteger tourCounter, Label tourLabel,
@@ -1707,7 +1780,6 @@ public class LanternaApp {
                                 enemyHP.addAndGet(-weaponDamage);
                                 history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
 
-                                // 🔥 MAJ MongoDB (fiabilité)
                                 try {
                                     String responseupdateobject = CharacterHttpClient.updateObjectReliability(
                                             username,
@@ -1764,7 +1836,7 @@ public class LanternaApp {
                                     System.out.println("Suppression potion : " + responseDelete);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
-                                    history.append("⚠️ Erreur lors de la suppression de la potion.\n");
+                                    history.append("Erreur lors de la suppression de la potion.\n");
                                 }
 
                                 // Vider et recharger l’affichage du backpack après suppression
@@ -1803,7 +1875,7 @@ public class LanternaApp {
                                     System.out.println("Suppression potion de force : " + responseDelete);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
-                                    history.append("⚠️ Erreur lors de la suppression de la potion.\n");
+                                    history.append("Erreur lors de la suppression de la potion.\n");
                                 }
 
                                 // Vider et recharger l’affichage du backpack après suppression
@@ -2113,6 +2185,10 @@ public class LanternaApp {
         gui.addWindow(chestWindow);
     }
 
+    /**
+     * Affiche le classement
+     * @param gui
+     */
     private static void DisplayClassement (WindowBasedTextGUI gui){
         BasicWindow profileWindow = new BasicWindow("Classement");
         profileWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -2152,6 +2228,7 @@ public class LanternaApp {
 
 
     /**
+     * Generer une bare de progression pour trophée
      * @param actuel = value actuel atteinte
      * @param objectif = value cible a atteindre
      **/

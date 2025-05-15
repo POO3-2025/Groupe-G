@@ -17,6 +17,11 @@ import java.util.List;
 @Repository
 public class FightDAOImpl implements FightDAO {
 
+    /**
+     * Récupère la liste des utilisateurs triée par le nombre de victoires.
+     *
+     * @return Une liste d'objets UserInfo contenant les informations des utilisateurs.
+     */
     @Override
     public List<UserInfo> getClassementPlayer(){
         List<UserInfo> list = new ArrayList<UserInfo>();
