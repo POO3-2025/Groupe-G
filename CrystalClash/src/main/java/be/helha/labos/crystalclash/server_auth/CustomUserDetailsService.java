@@ -12,19 +12,22 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Collections;
-/*
-* Permet a spring Security de retrouver l'uti ds la db mysql lors de la connexion
-* UserDetailsService interface officielle de springSecurity appelle automatiquement lors d'une tentative de connection
-* Dès qu'il y a un login avec un username Spring appelle direct cette méthode pour chercher le compte en db
-* Connection a la base de données mysqlproduction
-*Il y a la requête sql (checher le user avec le username)
-* si trouvé on crée un userDetails
-*  -> on récup le mdp déjà hashé fans la db et construit l objet User que spring pourra comparer avec le MDP recu depuis /login
-* Erreur 401 si pas trouvé
- * */
+
+/**
+ *UserDetailsService = authentifier les uti depuis la base de données
+ * Classe qui permet a Spring Sercurity de recup un uti ds la db lors de la connexion /login
+ * @service = detectable auto par spring
+ * UserDetailsService = interface de spring use pour charger les infos d'un uti en base depuis son username
+ * **/
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
+    /**
+     * @param username
+     * méthode call automatiquement psa spring lors d'1 tentative de co /lohin
+     * recoit un username du form en JSON et doit renvoyer objet userDetails qui contient le username et le mdp deja hashé lui
+     * et le role
+     * */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) { // Utilisation du singleton

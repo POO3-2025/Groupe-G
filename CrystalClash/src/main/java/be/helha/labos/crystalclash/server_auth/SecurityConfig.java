@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * et quels filtres a appliquer
  * **/
 @Configuration //Classe de config spring
-@EnableWebSecurity //Active secu pring
+@EnableWebSecurity //Active le systeme de secu pring
 @EnableMethodSecurity(securedEnabled = true) //Permet l'uti de certaines annotations
 public class SecurityConfig  {
     @Autowired

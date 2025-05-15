@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * C'est le cerveau de la secu JWT
  * Permet la creation, lecture validation, extraction du username et role sur le token
  * **/
 @Component
@@ -28,7 +29,7 @@ public class JwtUtils {
      * @param authentication
      * Recup l'uti avec authentication.getPrincipal();
      * prend son username et recup ses roles
-     * et lui genere un JWT token
+     * et lui genere un JWT token signé
      *
      **/
     public String generateToken(Authentication authentication) {
@@ -46,7 +47,7 @@ public class JwtUtils {
 
     /**
      * @param request
-     * Extraction du Jwt depuis une requte
+     * Extraction du Jwt depuis une requete
      * Lit L'en tete http supp le Bearer
      * */
     public String extractJwtFromRequest(HttpServletRequest request) {

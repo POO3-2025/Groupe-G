@@ -39,22 +39,25 @@ public class AuthController {
 
     /**
      * @param loginRequest
-     * Attend un Json avec username et password
-     * si tout ok, stock le user
-     * lui crée un token
+     * But : authentification HTTP POST /login
+     * recoit un loginRequest (Json avec username et password), vérif les infos, genere le token et marque l'uti comme connecté
      * et renvoie la reponse du serveur
+     * LoginRequest loginRequest contient le username et password
      * **/
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
-             //On check avant si le user est deja co .
-            //ce que ça retourne ça peut etre vide ou pas
+
+            //Récup l'uti en db via le username,
+            //Optional = gere si un uti existe pas
             Optional<UserInfo> optionalInfo = userService.getUserInfo(loginRequest.getUsername()); //chercher le user en base
+            //SI compte deja a true, bloque la co et envoie un message
            if (optionalInfo.isPresent() && optionalInfo.get().isConnected()) { //si present ds la DBB et regarde le champ is_connected
                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                    .body("{\"message\":\"Ce compte est déjà connecté.\"}");
            }
 
+           //Verif les identifaint, demande a SpringSecu de valider username et password grave a authenticationManager
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getUsername(),
@@ -62,7 +65,7 @@ public class AuthController {
                 )
             );
 
-            // Stocker l'authentification dans le SecurityContext
+            // SI authen ok, stocke ds SecurityContextHolder (permet de savoir si le user est bien co durant la session)
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // Génération du token JWT

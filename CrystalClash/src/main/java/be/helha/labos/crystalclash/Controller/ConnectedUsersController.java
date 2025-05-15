@@ -114,7 +114,7 @@ public class ConnectedUsersController {
 
           synchronized (matchmakingWaitingRoom) {
             for(Map.Entry<String, UserInfo> entry : matchmakingWaitingRoom.entrySet()) {
-                if (entry.getKey().equals(username)) {
+                if (!entry.getKey().equals(username)) {
                     user.add(entry.getValue());
                 }
             }

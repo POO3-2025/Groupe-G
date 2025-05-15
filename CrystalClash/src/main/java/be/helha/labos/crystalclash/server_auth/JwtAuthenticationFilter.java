@@ -16,18 +16,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Sécu pour le token JWT
- * sert a lire le token envoyé par le cliant a chaque requete $
- * Verifier si il est valide
- * Extration du nom de l'uti et role du token
- * et apres ok joueur bien authentifé
+ * JwtAuthenticationFilter = permet a SPRING Security de lire le tk JWT depuis les requetes entrante ( le Bearer la )
+ * Verif si il est valide, Extraiit le username et role
+ *et crée une authentification interne
+ * OncePerRequestFilter = execution a chaque requete
  * **/
 //Toute les requetes, il vérif le token
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    //injection
     private final JwtUtils jwtUtils;
 
-    //lire, valider et decoder le token recu
+    /**
+     * @param jwtUtils
+     * Lis depuis l'en-tete
+     * valide la signature et extrait les données du user
+     * */
     public JwtAuthenticationFilter(JwtUtils jwtUtils) {
         this.jwtUtils = jwtUtils;
     }
@@ -36,6 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @param request
      * @param response
      * @param chain
+     * Recup le token depuis l'entete Authorization (pour ça que dans postman il faut mettre Authorization: Bearer <token>
+     *     sinon le user n'est pas autentifier pour faire des requetes
      * **/
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -44,11 +50,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         //Recup le token depuis l'en tete Authorization: Bearer <token>
         String jwtToken = jwtUtils.extractJwtFromRequest(request);
 
-        //Si token est bien la et valide avec la signature
+        //Verif que le token existe et si il est valide
         if (jwtToken != null && jwtUtils.validateJwtToken(jwtToken)) {
                 String username = jwtUtils.getUsernameFromJwtToken(jwtToken); //Recup username
 
-            //Il faut transformer le role texte du user en GrantedAuthority pour que spring comprene le role
+            //Il faut transformer le role texte du user en objet GrantedAuthority pour que spring comprene le role
             List<GrantedAuthority> authorities = jwtUtils.getRolesFromJwtToken(jwtToken).stream()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
@@ -56,17 +62,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             //SI pas null creation d un objet d'authentification sans le mdt juste identifiant et role
             if (username != null) {
-                // Créer une authentification basée sur le token
+                // Créer objet authentication a partir de username, tole
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         username, null, authorities);
 
-                //ajoute des détailes sur la requete, la session, l'ip,ect,....
-                //et dit ok uti identifié
+                //inject dans le SecurityContext l'objet de l'athentif et les details de la requete
+                //ip,session
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
 
-        chain.doFilter(request, response);
+        chain.doFilter(request, response); //Continuer la requete
     }
 }
