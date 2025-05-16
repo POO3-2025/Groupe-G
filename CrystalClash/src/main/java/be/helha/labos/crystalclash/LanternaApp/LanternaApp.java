@@ -715,6 +715,7 @@ public class LanternaApp {
         }
         UserInfo info = Session.getUserInfo();
         panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
+        panel.addComponent(new EmptySpace());
 
         try {
             String json = ShopHttpClient.getShops(Session.getToken());
@@ -1197,8 +1198,6 @@ public class LanternaApp {
 
                     // Ajout en haut de la boucle pour détecter si l'utilisateur est défié
                     String json = FightHttpCLient.getCombatState(Session.getUsername(), Session.getToken());
-                    System.out.println("CombatState reçu (thread matchmaking) : " + json);
-
                     Gson gson = new GsonBuilder()
                             .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                             .create();
@@ -2431,7 +2430,6 @@ public class LanternaApp {
     }
 
     /**
-<<<<<<< HEAD
      * @param condition
      * Calcule la preogression des trophés,obligé sinon les conditions sons foireusses (0,1)
      * **/
@@ -2499,7 +2497,7 @@ public class LanternaApp {
 
 
 
-=======
+/**
      * @return
      *  permet d'afficher les regles du jeu
      * **/
@@ -2559,7 +2557,7 @@ public class LanternaApp {
 
     }
 
->>>>>>> 9ddcfc096593cfab8d4a67f7d334d4fcdbc3051d
+
     /**
      * @param panel
      *juste a servir a convertir le contenu visuel  label en String

@@ -62,23 +62,6 @@ public class UserDAOImpl implements UserDAO {
     }
 
 
-/**
- * @param username
- * @param user
- * Charger le trop depuis mongo
- * **/
-    @Override
-   public void loadFrmMongoTrophy(UserInfo user, String username) {
-        String stats = userCombatStatService.getStats(username);
-        if(stats != null) {
-            Document doc = Document.parse(stats);
-            if (doc.getBoolean("Bronze", false)) user.affTrophee(new Trophee("Bronze", "Chargé depuis Mongo"));
-            if (doc.getBoolean("Silver", false)) user.affTrophee(new Trophee("Silver", "Chargé depuis Mongo"));
-            if (doc.getBoolean("Or", false)) user.affTrophee(new Trophee("Or", "Chargé depuis Mongo"));
-        }
-    }
-
-
     /**
      * @param username
      * @param newCristaux

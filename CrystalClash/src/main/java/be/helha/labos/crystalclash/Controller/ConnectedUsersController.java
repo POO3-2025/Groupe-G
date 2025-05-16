@@ -91,12 +91,14 @@ public class ConnectedUsersController {
      * @return ResponseEntity avec un message de succès
      * */
     @PostMapping("/matchmaking/exit")
-    public ResponseEntity<Void> exitMatchmaking(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String,String>> exitMatchmaking(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         if (username != null && !username.isBlank()) {
             matchmakingWaitingRoom.remove(username);
         }
-        return ResponseEntity.ok().build();
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Utilisateur quitte la salle d'attente");
+        return ResponseEntity.ok(response);
     }
 
     /**
