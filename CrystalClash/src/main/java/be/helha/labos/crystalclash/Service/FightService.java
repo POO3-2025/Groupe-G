@@ -485,7 +485,8 @@ public class FightService {
 
 
     /**
-     * @param username*Avoir equipement endurence coté client
+     * @param username
+     **Avoir equipement endurence coté client
      *                       encore ici si -1 alors pas d'armure
      *                       for = parcourt tous les objets  de l'equip si un ets = a l'instance Armor alors retourne son endurence
      **/

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 
@@ -21,7 +22,7 @@ import java.util.*;
 public class ConnectedUsersController {
 
     // username, infos complètes du joueur, synchronizedMap va etre utilise pour les post,get,delete
-    private static final Map<String, UserInfo> matchmakingWaitingRoom = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<String, UserInfo> matchmakingWaitingRoom = new ConcurrentHashMap<>();
 
 
     @Autowired

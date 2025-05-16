@@ -325,6 +325,7 @@ public class LanternaApp {
     }
 
 
+
     /**
      * Affiche les section du menu
      * avec le style et la couleur
@@ -741,7 +742,8 @@ public class LanternaApp {
                     double price = (double) item.get("price");
                     double requiredLevel = (double) item.get("requiredLevel");
 
-                    if (level < requiredLevel)return;
+
+                    if (level < requiredLevel) continue;
 
                     String label = name + ": " + price + "cristaux, niveau" + requiredLevel ;
                     column.addComponent(new Button(label, () -> {
@@ -2498,17 +2500,17 @@ public class LanternaApp {
                 "Trophé Silver  débloqué ! \n\n" +
                     "Conditions remplies : \n" +
                     "5 victoires concécutives\nGagnez un combat en 10 tours ou moins \nGagnez 200 cristaux " +
-                    "Récompense : Couteau en diamant");
+                    "Récompense : Couteau en diamant + 50 cristaux");
             Session.addTrophyNoti("or");
 
         }
         boolean orOK = (winconcec >= 10) && (cristaux >=500) && (win >= 1 && nbrtours <= 6) && (bazooka > 0);
         if (orOK && !Session.getTrophyNoti("or")) {
             MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
-                "Trophé Or  débloqué ! \n\n" +
+                "Trophé Or débloqué ! \n\n" +
                     "Conditions remplies : \n" +
                     "10 victoires concécutives\nGagnez un combat en 6 tours ou moins \nGagnez 500 cristaux\nBazooka utilisé\n\n " +
-                    "Récompense : Couteau en diamant");
+                    "Récompense : Couteau en diamant + 75 cristaux");
             Session.addTrophyNoti("or");
 
         }
@@ -2518,7 +2520,7 @@ public class LanternaApp {
 
 
 
-/**
+    /**
      * @return
      *  permet d'afficher les regles du jeu
      * **/
