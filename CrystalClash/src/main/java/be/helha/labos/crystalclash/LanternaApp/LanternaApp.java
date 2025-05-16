@@ -694,10 +694,9 @@ public class LanternaApp {
     }
 
     /**
-     * Affiche la boutique
-     *
-     * @param gui
-     */
+
+     Affiche la boutique*
+     @param gui*/
     private static void DisplayShop(WindowBasedTextGUI gui) {
         BasicWindow shopWindow = new BasicWindow("Boutique");
         shopWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -715,44 +714,67 @@ public class LanternaApp {
         }
         UserInfo info = Session.getUserInfo();
         panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
+        panel.addComponent(new EmptySpace());
 
         try {
             String json = ShopHttpClient.getShops(Session.getToken());
             List<Map<String, Object>> shopItems = new Gson().fromJson(json, List.class);
 
-            panel.addComponent(new Label("Objets disponibles :"));
+            //Groupe juste les object par type
+            Map<String,List<Map<String,Object>>> itemByType = new HashMap<>();
             for (Map<String, Object> item : shopItems) {
-                String name = (String) item.get("name");
                 String type = (String) item.get("type");
-                double price = (double) item.get("price");
-                double requiredLevel = (double) item.get("requiredLevel");
-                if (level < requiredLevel) continue;
-                panel.addComponent(new Button(name + " (" + type + ", " + price + "c, niv " + requiredLevel + "+)", () -> {
-                    try {
-                        String resultJson = ShopHttpClient.buyItem(name, type, Session.getToken());
-                        JsonObject result = JsonParser.parseString(resultJson).getAsJsonObject();
-                        String message = result.get("message").getAsString();
-                        MessageDialog.showMessageDialog(gui, "Achat", message);
-                        try {
-                            String userJson = Login_Register_userHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
-                            UserInfo updateUserInfo = new Gson().fromJson(userJson, UserInfo.class);
+                itemByType.putIfAbsent(type, new ArrayList<>());
+                itemByType.get(type).add(item);
+            }
+
+            //Affiche de chaque groupe
+            for (String type : itemByType.keySet()) {
+                panel.addComponent(new Separator(Direction.HORIZONTAL));
+                panel.addComponent(new Label("Type : " + type).addStyle(SGR.BOLD));
+                panel.addComponent(new EmptySpace());
+
+                Panel column = new Panel(new LinearLayout(Direction.VERTICAL));
+
+                for (Map<String,Object> item : itemByType.get(type)) {
+                    String name = (String) item.get("name");
+                    double price = (double) item.get("price");
+                    double requiredLevel = (double) item.get("requiredLevel");
+
+                    if (level < requiredLevel)return;
+
+                    String label = name + ": " + price + "cristaux, niveau" + requiredLevel ;
+                    column.addComponent(new Button(label, () -> {
+                        try{
+                            String Resultjson = ShopHttpClient.buyItem(name,type,Session.getToken());
+                            JsonObject js = JsonParser.parseString(Resultjson).getAsJsonObject();
+                            String message = js.get("message").getAsString();
+                            MessageDialog.showMessageDialog(gui, "Achat", message);
+
+                            String userJson = Login_Register_userHttpClient.getUserInfo(Session.getUsername(),Session.getToken());
+                            Session.setUserInfo(new Gson().fromJson(userJson, UserInfo.class));
+
+                            //mis a jour cristaux apres achat
+                            shopWindow.close();
+                            DisplayShop(gui);
                         } catch (Exception e) {
-                            System.out.println("Impossible de mettre a jour les info du joueur" + e.getMessage());
+                            MessageDialog.showMessageDialog(gui, "Erreur", "Impossible d'acheter : " + e.getMessage());
                         }
-                    } catch (Exception e) {
-                        MessageDialog.showMessageDialog(gui, "Erreur", "Impossible d'acheter : " + e.getMessage());
-                    }
-                }));
+                    }));
+                }
+                panel.addComponent(column);
             }
 
         } catch (Exception e) {
             panel.addComponent(new Label("Erreur lors du chargement de la boutique : " + e.getMessage()));
         }
 
+        panel.addComponent(new EmptySpace());
         panel.addComponent(new Button("Retour", shopWindow::close));
         shopWindow.setComponent(panel);
         gui.addWindowAndWait(shopWindow);
     }
+
 
     /**
      * Affiche le contenu du BackPack
