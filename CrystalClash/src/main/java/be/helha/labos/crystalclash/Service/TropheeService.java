@@ -21,7 +21,7 @@ public class TropheeService {
 
     private final UserCombatStatService userCombatStatService;
 
-
+    private InventoryService inventoryService;
 
     public TropheeService(UserCombatStatService userCombatStatService) {
         this.userCombatStatService = userCombatStatService;
@@ -35,9 +35,9 @@ public class TropheeService {
      * List pour retourne tous les trophés débloqués lors d'un comnbat joué
      * **/
     public List<Trophee> getTrophees(UserInfo userInfo, int cristauxWin, int nbTours,List<ObjectBase> objectUse) {
-      List<Trophee> newtrophees = new ArrayList<>();
+        List<Trophee> newtrophees = new ArrayList<>();
 
-      //Bronze
+        //Bronze
         if(!userInfo.haveTrophee("Bronze")){
             if(userInfo.getGagner() >= 1 && nbTours <= 15){
                 Trophee bronze = new Trophee("Bronze", "Gagnez un combat en moins de 15 tours", true);
@@ -45,7 +45,11 @@ public class TropheeService {
 
                 userCombatStatService.updateStatsTrophy(userInfo.getUsername(),"Bronze");
 
+                ObjectBase recompense = ObjectFactory.CreateObject("epee en bois", "Weapon", userInfo.getLevel());
 
+                Inventory inv = inventoryService.getInventoryForUser(userInfo.getUsername());
+                inv.ajouterObjet(recompense);
+                inventoryService.saveInventoryForUser(userInfo.getUsername(), inv);
                 newtrophees.add(bronze);
             }
         }
@@ -56,6 +60,12 @@ public class TropheeService {
                 Trophee silver = new Trophee("Silver", "Gagner 5 combats consécutif, gagnez 200 cristaux et un combat en moins de 10 tours", true);
 
                 userInfo.affTrophee(silver);
+                userCombatStatService.updateStatsTrophy(userInfo.getUsername(),"Silver");
+                ObjectBase recompense = ObjectFactory.CreateObject("couteau en diamant", "Weapon", userInfo.getLevel());
+                Inventory inv = inventoryService.getInventoryForUser(userInfo.getUsername());
+                inv.ajouterObjet(recompense);
+                inventoryService.saveInventoryForUser(userInfo.getUsername(), inv);
+
                 newtrophees.add(silver);
             }
         }
@@ -67,7 +77,10 @@ public class TropheeService {
                 Trophee or = new Trophee("Or","Gagnez 10 combats d'affilés, 500 cristaux, un combat en moins de 6 tours et utilisez un bazooka", true);
                 userInfo.affTrophee(or);
                 userCombatStatService.updateStatsTrophy(userInfo.getUsername(),"Or");
-
+                ObjectBase recompense = ObjectFactory.CreateObject("bazooka", "Weapon", userInfo.getLevel());
+                Inventory inv = inventoryService.getInventoryForUser(userInfo.getUsername());
+                inv.ajouterObjet(recompense);
+                inventoryService.saveInventoryForUser(userInfo.getUsername(), inv);
                 newtrophees.add(or);
             }
         }
