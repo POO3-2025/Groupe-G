@@ -15,9 +15,9 @@
       "BDCredentials": {
         "DBType": "mysql",
         "HostName": "127.0.0.1",
-        "Port": "3306",
+        "Port": "8889",
         "UserName": "root",
-        "Password": "",
+        "Password": "root",
         "DBName": "mysqltest"
       }
     },
