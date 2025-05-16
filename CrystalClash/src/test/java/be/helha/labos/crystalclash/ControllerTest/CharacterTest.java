@@ -478,5 +478,148 @@ public class CharacterTest {
         assertEquals("Armure", equipment.getObjets().get(0).getName(), "L'equipement doit être correctement ajouté");
     }
 
+    @Test
+    @Order(11)
+    @DisplayName("Test suppression d'une armure de l'équipement")
+    public void testRemoveArmorFromEquipment() throws Exception {
+        String username = "CharacterRemoveArmorUser";
+
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Characters").deleteMany(new Document("username", username));
+
+        // Simuler un utilisateur connecté
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, null);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        var character = new be.helha.labos.crystalclash.Characters.Aquaman();
+        characterService.saveCharacterForUser(username, character.getClass().getSimpleName());
+        characterService.createEquipmentForCharacter(username, character.getClass().getSimpleName());
+
+        // Créer l'inventaire
+        inventoryDAO.createInventoryForUser(username);
+        Inventory inventory = inventoryDAO.getInventoryForUser(username);
+
+        // Créer et ajouter une armure à l'inventaire
+        var armor = new be.helha.labos.crystalclash.Object.Armor("Armure Supprime", 120, 10, 3, 12);
+        armor.setType("Armor");
+        inventory.ajouterObjet(armor);
+        inventoryDAO.saveInventoryForUser(username, inventory);
+
+        // Ajouter l'armure à l'équipement
+        characterService.addArmorToEquipment(username, armor.getName(), armor.getType());
+
+        // Vérification : l'armure est bien ajoutée
+        Equipment equipment = characterService.getEquipmentForCharacter(username);
+        assertNotNull(equipment);
+        assertEquals(1, equipment.getObjets().size());
+        assertEquals("Armure Supprime", equipment.getObjets().get(0).getName());
+
+        // Appel de la méthode de suppression
+        characterService.removeArmorFromEquipment(username, armor.getName());
+
+        // Récupération après suppression
+        Equipment updatedEquipment = characterService.getEquipmentForCharacter(username);
+        assertNotNull(updatedEquipment);
+        assertTrue(updatedEquipment.getObjets().isEmpty(), "L'équipement devrait être vide après suppression");
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("Test de la mise à jour de la fiabilité d’un objet dans le backpack")
+    public void testUpdateReliabilityInBackPack() throws Exception {
+        String username = "CharacterTestUser";
+
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Characters").deleteMany(new org.bson.Document("username", username));
+
+        // Simuler un utilisateur connecté
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, null);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        var character = new be.helha.labos.crystalclash.Characters.Aquaman();
+
+        characterService.saveCharacterForUser(username, character.getClass().getSimpleName());
+        characterService.createBackPackForCharacter(username, character.getClass().getSimpleName());
+
+        // Créer l'inventaire
+        inventoryDAO.createInventoryForUser(username);
+        Inventory inventory = inventoryDAO.getInventoryForUser(username);
+
+        // Ajouter un objet dans l'inventaire
+        var objet = new be.helha.labos.crystalclash.Object.Weapon("Épée de test", 100, 5, 5, 50);
+        objet.setType("Weapon");
+        inventory.ajouterObjet(objet);
+        inventoryDAO.saveInventoryForUser(username, inventory);
+
+        // Ajout de l’objet au backpack via le nom et type
+        characterService.addObjectToBackPack(username, objet.getName(), objet.getType());
+
+        // Récupérer le backpack et obtenir l'ID réel de l'objet inséré
+        BackPack backpack = characterService.getBackPackForCharacter(username);
+        assertEquals(1, backpack.getObjets().size(), "Le backpack doit contenir un objet");
+
+
+
+        // Mise à jour de la fiabilité en utilisant l'ID correct
+        characterService.updateReliabilityInBackPack(username, backpack.getObjets().get(0).getId(), 80);
+
+        // Vérification post-update
+        BackPack updatedBackpack = characterService.getBackPackForCharacter(username);
+        var updatedObject = updatedBackpack.getObjets().get(0);
+
+        assertEquals("Épée de test", updatedObject.getName(), "Le nom de l’objet doit rester inchangé");
+        assertEquals(80, updatedObject.getReliability(), "La fiabilité de l’objet doit avoir été mise à jour à 80");
+    }
+
+    @Test
+    @Order(13)
+    @DisplayName("Test de la mise à jour de la fiabilité d’une armure dans l'equipement'")
+    public void testUpdateReliabilityInEquipment() throws Exception {
+        String username = "CharacterTestUser";
+
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Characters").deleteMany(new org.bson.Document("username", username));
+
+        // Simuler un utilisateur connecté
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, null);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        var character = new be.helha.labos.crystalclash.Characters.Aquaman();
+
+        characterService.saveCharacterForUser(username, character.getClass().getSimpleName());
+        characterService.createEquipmentForCharacter(username, character.getClass().getSimpleName());
+
+        // Créer l'inventaire
+        inventoryDAO.createInventoryForUser(username);
+        Inventory inventory = inventoryDAO.getInventoryForUser(username);
+
+        // Ajouter un objet dans l'inventaire
+        var objet = new be.helha.labos.crystalclash.Object.Armor("Armure de test", 100, 5, 5, 50);
+        objet.setType("Armor");
+        inventory.ajouterObjet(objet);
+        inventoryDAO.saveInventoryForUser(username, inventory);
+
+        // Ajout de l’objet a l'equipement via le nom et type
+        characterService.addArmorToEquipment(username, objet.getName(), objet.getType());
+
+        // Récupérer l'equipement et obtenir l'ID réel de l'objet inséré
+        Equipment equipment = characterService.getEquipmentForCharacter(username);
+        assertEquals(1, equipment.getObjets().size(), "L'equipement doit contenir un objet");
+
+
+
+        // Mise à jour de la fiabilité en utilisant l'ID correct
+        characterService.updateReliabilityInEquipment(username, equipment.getObjets().get(0).getId(), 80);
+
+        // Vérification post-update
+        Equipment updatedEquipment = characterService.getEquipmentForCharacter(username);
+        var updatedObject = updatedEquipment.getObjets().get(0);
+
+        assertEquals("Armure de test", updatedObject.getName(), "Le nom de l’objet doit rester inchangé");
+        assertEquals(80, updatedObject.getReliability(), "La fiabilité de l’objet doit avoir été mise à jour à 80");
+    }
+
+
+
 }
 
