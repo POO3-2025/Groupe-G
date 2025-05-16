@@ -2092,11 +2092,12 @@ public class LanternaApp {
                         }
 
                         // Met à jour les actions si le tour change
+                        //lasttour : apres apprel au back, getTour compare avec lasttour si tour diff alors il regarde getPlayerNow pour know a qui le tour
                         if (updated.getTour() != lasttour[0]) {
-                            lasttour[0] = updated.getTour();
+                            lasttour[0] = updated.getTour(); //Met a jour le cpt
                             actionPanel.removeAllComponents();
                             if (updated.getPlayerNow().equals(Session.getUsername())) {
-                                updateActionPanel(actionPanel, updated, gui);
+                                updateActionPanel(actionPanel, updated, gui); //affiche bouton
                             } else {
                                 actionPanel.addComponent(new Label("En attente du tour de l'adversaire..."));
                             }
@@ -2259,20 +2260,28 @@ public class LanternaApp {
         panel.addComponent(new Label("Progression des trophées :"));
 
         try {
-            UserInfo user = Login_Register_userHttpClient.fetchUserInfo(Session.getUsername(), Session.getToken());
-
-            Document stats = Login_Register_userHttpClient.fetchUserStats(Session.getUsername(), Session.getToken());
+            UserInfo user = Login_Register_userHttpClient.fetchUserInfo(Session.getUsername(), Session.getToken()); //Pour winConcecutive ds mysql
+            Document stats = Login_Register_userHttpClient.fetchUserStats(Session.getUsername(), Session.getToken()); //Pour stat dans mongo
 
             int cristaux = stats.getInteger("cristauxWin", 0);
             int nombreTours = stats.getInteger("derniercombattour", 0);
             int bazooka = stats.getInteger("utilisationBazooka", 0);
-
             int win = user.getGagner();
-
             int winConcecutive = user.getWinconsecutive();
 
+            boolean bronze = stats.getBoolean("Bronze",false);
+            boolean silver = stats.getBoolean("Silver",false);
+            boolean or = stats.getBoolean("Or",false);
+
+            String bronzeLabel = "Bronze : " + generateBar(win,1);
+            if (bronze) bronzeLabel += "obtenu";
+            String sliverLabel = "Silver : " + generateBar(win,1);
+            if (silver) sliverLabel += "obtenu";
+            String orLabel = "Or : " + generateBar(win,1);
+            if (or) orLabel += "obtenu";
+
             //   BRONZE
-            Button bronzeBtn = new Button("Bronze : " + generateBar(win, 1), () -> {
+            Button bronzeBtn = new Button(bronzeLabel, () -> {
                 Panel details = new Panel(new GridLayout(1));
                 details.addComponent(new Label("Conditions du trophée Bronze :"));
                 details.addComponent(new Label("Gagner 1 combat : " + generateBar(win, 1)));
@@ -2281,7 +2290,7 @@ public class LanternaApp {
             });
             panel.addComponent(bronzeBtn);
 
-            Button SilverBtn = new Button("Silver :" +generateBar(winConcecutive,1), () -> {
+            Button SilverBtn = new Button(sliverLabel, () -> {
                 Panel details = new Panel(new GridLayout(1));
                 details.addComponent(new Label("Conditions du trophée Silver :"));
                 details.addComponent(new Label("5 victoires consécutives : " + generateBar(winConcecutive, 5)));
@@ -2292,13 +2301,13 @@ public class LanternaApp {
             });
             panel.addComponent(SilverBtn);
 
-            Button OrBtn = new Button("Or :" +generateBar(winConcecutive,1), () -> {
+            Button OrBtn = new Button(orLabel, () -> {
                 Panel details = new Panel(new GridLayout(1));
                 details.addComponent(new Label("Conditions du trophée Or :"));
                 details.addComponent(new Label("10 victoires consécutives : " + generateBar(winConcecutive, 10)));
                 details.addComponent(new Label("Gagnez 500 cristaux : " + generateBar(cristaux,500)));
                 details.addComponent(new Label("Combat en ≤ 6 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 6 ? 1 : 0, 1)));
-                details.addComponent(new Label("Avoir utilisé un bazooka : " + generateBar(user.getUtilisationBazooka() > 0 ? 1 : 0, 1)));
+                details.addComponent(new Label("Avoir utilisé un bazooka : " + generateBar(bazooka > 0 ? 1 : 0, 1)));
                 MessageDialog.showMessageDialog(gui, "Trophée Silver", detailsToString(details));
             });
             panel.addComponent(OrBtn);

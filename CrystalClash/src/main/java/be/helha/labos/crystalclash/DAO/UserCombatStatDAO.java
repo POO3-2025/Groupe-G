@@ -29,5 +29,13 @@ public interface UserCombatStatDAO {
      * **/
     void setBazookaUsed(String username);
 
+    /**
+     * @param username
+     * @param nameTrophy
+     * met a jour le boolean d un trophee sit debloqué
+     * **/
+    void updateStatsTrophy(String username, String nameTrophy);
 
-}
+
+
+    }

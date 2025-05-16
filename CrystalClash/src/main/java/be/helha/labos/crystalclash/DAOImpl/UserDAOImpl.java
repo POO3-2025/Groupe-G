@@ -1,8 +1,13 @@
 package be.helha.labos.crystalclash.DAOImpl;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
+import be.helha.labos.crystalclash.DAO.UserCombatStatDAO;
 import be.helha.labos.crystalclash.DAO.UserDAO;
+import be.helha.labos.crystalclash.DTO.Trophee;
+import be.helha.labos.crystalclash.Service.UserCombatStatService;
 import be.helha.labos.crystalclash.User.UserInfo;
+import org.bson.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
@@ -13,6 +18,9 @@ import java.util.Optional;
 
 @Repository
 public class UserDAOImpl implements UserDAO {
+
+    @Autowired
+    private UserCombatStatService userCombatStatService;
 
     /**
      * @param username
@@ -36,6 +44,15 @@ public class UserDAOImpl implements UserDAO {
                 user.setGagner(rs.getInt("gagner"));
                 user.setPerdu(rs.getInt("perdu"));
 
+                String stats = userCombatStatService.getStats(username);
+                if(stats != null) {
+                  Document doc = Document.parse(stats);
+
+                  boolean bronze = doc.getBoolean("Bronze",false);
+                  boolean silver = doc.getBoolean("Silver",false);
+                  boolean or = doc.getBoolean("Or",false);
+                }
+
                 return Optional.of(user);
             }
         } catch (Exception e) {
@@ -43,6 +60,24 @@ public class UserDAOImpl implements UserDAO {
         }
         return Optional.empty();
     }
+
+
+/**
+ * @param username
+ * @param user
+ * Charger le trop depuis mongo
+ * **/
+    @Override
+   public void loadFrmMongoTrophy(UserInfo user, String username) {
+        String stats = userCombatStatService.getStats(username);
+        if(stats != null) {
+            Document doc = Document.parse(stats);
+            if (doc.getBoolean("Bronze", false)) user.affTrophee(new Trophee("Bronze", "Chargé depuis Mongo", true));
+            if (doc.getBoolean("Silver", false)) user.affTrophee(new Trophee("Silver", "Chargé depuis Mongo", true));
+            if (doc.getBoolean("Or", false)) user.affTrophee(new Trophee("Or", "Chargé depuis Mongo", true));
+        }
+    }
+
 
     /**
      * @param username

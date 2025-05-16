@@ -96,4 +96,11 @@ public interface UserDAO {
      * @throws Exception en cas de problème d'accès aux données
      */
     void resetWinconsecutiveConsecutive(String username) throws Exception;
+
+    /**
+     * @param username
+     * @param userInfo
+     * Load depuis mongo
+     * **/
+    void loadFrmMongoTrophy (UserInfo userInfo, String username) throws Exception;
 }

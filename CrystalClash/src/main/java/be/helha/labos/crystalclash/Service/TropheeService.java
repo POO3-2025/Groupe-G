@@ -1,9 +1,14 @@
 package be.helha.labos.crystalclash.Service;
 
+import be.helha.labos.crystalclash.DAO.UserCombatStatDAO;
+import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.DTO.Trophee;
 import be.helha.labos.crystalclash.User.UserInfo;
 import be.helha.labos.crystalclash.Object.Weapon;
 import be.helha.labos.crystalclash.Object.ObjectBase;
+import be.helha.labos.crystalclash.Factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +18,14 @@ import java.util.List;
  * logique métier pur pour gérer les trophés (pas d'acces a une db et uniquement des conditions, validations)
  **/
 public class TropheeService {
+
+    private final UserCombatStatService userCombatStatService;
+
+
+
+    public TropheeService(UserCombatStatService userCombatStatService) {
+        this.userCombatStatService = userCombatStatService;
+    }
 
     /**
      * @param cristauxWin  -> nbr de cristaux obtenus lors des combats
@@ -29,6 +42,10 @@ public class TropheeService {
             if(userInfo.getGagner() >= 1 && nbTours <= 15){
                 Trophee bronze = new Trophee("Bronze", "Gagnez un combat en moins de 15 tours", true);
                 userInfo.affTrophee(bronze);
+
+                userCombatStatService.updateStatsTrophy(userInfo.getUsername(),"Bronze");
+
+
                 newtrophees.add(bronze);
             }
         }
@@ -37,6 +54,7 @@ public class TropheeService {
         if(!userInfo.haveTrophee("Silver")){
             if(userInfo.getWinconsecutive() >= 5 && cristauxWin <= 200 && nbTours <= 10){
                 Trophee silver = new Trophee("Silver", "Gagner 5 combats consécutif, gagnez 200 cristaux et un combat en moins de 10 tours", true);
+
                 userInfo.affTrophee(silver);
                 newtrophees.add(silver);
             }
@@ -48,6 +66,8 @@ public class TropheeService {
             if (userInfo.getWinconsecutive() >= 10 && cristauxWin <= 500 && nbTours <=6 && userInfo.getUtilisationBazooka() > 0){
                 Trophee or = new Trophee("Or","Gagnez 10 combats d'affilés, 500 cristaux, un combat en moins de 6 tours et utilisez un bazooka", true);
                 userInfo.affTrophee(or);
+                userCombatStatService.updateStatsTrophy(userInfo.getUsername(),"Or");
+
                 newtrophees.add(or);
             }
         }

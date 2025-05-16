@@ -1,9 +1,12 @@
 package be.helha.labos.crystalclash.ServiceTest;
 
+import be.helha.labos.crystalclash.DAO.UserCombatStatDAO;
+import be.helha.labos.crystalclash.DAOImpl.UserCombatStatDAOImpl;
 import be.helha.labos.crystalclash.DTO.Trophee;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Object.Weapon;
 import be.helha.labos.crystalclash.Service.TropheeService;
+import be.helha.labos.crystalclash.Service.UserCombatStatService;
 import be.helha.labos.crystalclash.User.UserInfo;
 import org.junit.jupiter.api.*;
 
@@ -18,7 +21,10 @@ public class TropheeServiceTest {
 
     @BeforeEach
     public void setUp() {
-        tropheeService = new TropheeService();
+        UserCombatStatDAO dao = new UserCombatStatDAOImpl();
+        UserCombatStatService service = new UserCombatStatService(dao);
+
+        tropheeService = new TropheeService(service);
     }
 
     @BeforeEach

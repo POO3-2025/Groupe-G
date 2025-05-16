@@ -31,6 +31,10 @@ public class UserCombatStatDAOImpl implements UserCombatStatDAO {
             document.append("cristauxWin", 0);
             document.append("derniercombattour", 0);
             document.append("utilisationBazooka", 0);
+            document.append("Bronze",false );
+            document.append("Silver",false );
+            document.append("Or",false );
+
             collection.insertOne(document);
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,6 +96,26 @@ public class UserCombatStatDAOImpl implements UserCombatStatDAO {
             bazookaUtilisation.remove(username);
         }
      }
+    /**
+     * @param username
+     * @param nameTrophy
+     * Mis a jour du doc souhaité de la collection userCristauxWin pour les trophees
+     * **/
+    @Override
+    public void updateStatsTrophy(String username, String nameTrophy){
+        try{
+            MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
+            MongoCollection<Document> collection = mongoDB.getCollection("userCristauxWin");
+
+            Document filter = new Document("username", username);
+            Document up = new Document("$set", new Document(nameTrophy, true));
+
+            collection.updateOne(filter, up);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
      /**
       * @param username

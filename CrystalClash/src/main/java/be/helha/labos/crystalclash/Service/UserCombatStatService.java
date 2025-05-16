@@ -36,6 +36,10 @@ public class UserCombatStatService {
         userCombatStatDAO.updateStatsAfterCombat(username, cristauxGagnes, nbTours);
     }
 
+    public void updateStatsTrophy(String username, String nameTrophy){
+        userCombatStatDAO.updateStatsTrophy(username, nameTrophy);
+    }
+
     /**
      * Récupère les statistiques d’un utilisateur
      */
