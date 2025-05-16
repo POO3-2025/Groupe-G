@@ -1,10 +1,15 @@
 package be.helha.labos.crystalclash.ControllerTest;
 
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
+import be.helha.labos.crystalclash.Controller.UserController;
+import be.helha.labos.crystalclash.DAOImpl.CharacterDAOImpl;
+import be.helha.labos.crystalclash.DAOImpl.UserCombatStatDAOImpl;
 import be.helha.labos.crystalclash.DTO.RegisterRequest;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
+import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Service.RegistreService;
+import be.helha.labos.crystalclash.Service.UserCombatStatService;
 import be.helha.labos.crystalclash.server_auth.AuthResponse;
 import org.junit.jupiter.api.*;
 import org.springframework.http.HttpStatus;
@@ -25,6 +30,7 @@ public class RegistreControllerTest {
 
     private RegistreController registreController;
 
+    private UserController userController;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -57,21 +63,32 @@ public class RegistreControllerTest {
                     .add(key, mongoTestConfig.getAsJsonObject("BDCredentials").get(key));
             });
 
-        // Maintenant même si DAO fait mysqlproduction, il ira sur mysqltest vraiment
-        RegistreDAOimpl registreDAO = new RegistreDAOimpl();
-        InventoryDAOImpl inventoryDAO = new InventoryDAOImpl(); // utilise MongoDBTest par défaut
 
-        // Création services
-        RegistreService registreService = new RegistreService(registreDAO);
-        InventoryService inventoryService = new InventoryService(inventoryDAO);
+        // DAO et Service des stats (Mongo)
+        var statsDAO = new UserCombatStatDAOImpl();
+        var statsService = new UserCombatStatService(statsDAO);
 
-        // Encoder
-        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        // DAO et Service utilisateur (MySQL + Mongo)
+        var userDAO = new be.helha.labos.crystalclash.DAOImpl.UserDAOImpl();
+        userDAO.setUserCombatStatService(statsService);
+        var userService = new be.helha.labos.crystalclash.Service.UserService(userDAO);
 
-        // Injection dans le controller
-        registreController.setPasswordEncoder(encoder);
-        registreController.setRegistreService(registreService);
-        registreController.setInventoryService(inventoryService);
+        // DAO et Service inventaire
+        var inventoryDAO = new InventoryDAOImpl();
+        inventoryDAO.setUserService(userService);
+        var inventoryService = new InventoryService(inventoryDAO);
+        inventoryService.setUserService(userService);
+
+        // DAO et Service personnages
+        var characterDAO = new CharacterDAOImpl();
+        characterDAO.setInventoryService(inventoryService);
+        var characterService = new CharacterService(characterDAO);
+
+        // Controller à tester
+        userController = new UserController();
+        userController.setUserService(userService);
+        userController.setCharacterService(characterService);
+        userController.setUserCombatStatService(statsService);
     }
 
 

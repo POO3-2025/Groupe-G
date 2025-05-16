@@ -4,8 +4,10 @@ package be.helha.labos.crystalclash.Service;
 import be.helha.labos.crystalclash.DAO.FightDAO;
 import be.helha.labos.crystalclash.DTO.StateCombat;
 import be.helha.labos.crystalclash.Characters.Personnage;
+import be.helha.labos.crystalclash.DTO.Trophee;
 import be.helha.labos.crystalclash.Object.*;
 import be.helha.labos.crystalclash.User.UserInfo;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +40,9 @@ public class FightService {
     public FightService(FightDAO fightDAO) {
         this.fightDAO = fightDAO;
     }
+
+    @Autowired
+    private TropheeService tropheeService;
 
     /**
      * Cration du comabt
@@ -110,8 +115,25 @@ public class FightService {
 
 
     //Get pour avoir le dernier gagnant
+    /**
+     * @param username va recup le dernier winner save dans mongo
+     * **/
     public String getLastWinner(String username) {
-        return derniersGagnants.get(username);
+        String winner = derniersGagnants.get(username);
+        if (winner != null) return winner;
+
+        // Chercher dans Mongo
+        String jsonStats = userCombatStatService.getStats(username);
+        if (jsonStats != null) {
+            try {
+                Document doc = Document.parse(jsonStats);
+                return doc.getString("dernierVainqueur");
+            } catch (Exception e) {
+                System.out.println("[DEBUG] Erreur parsing JSON stats : " + e.getMessage());
+            }
+        }
+
+        return null;
     }
 
 
@@ -171,10 +193,28 @@ public class FightService {
 
             try {
                 userService.rewardWinner(winner, 50, 1);
-                userCombatStatService.updateStatsAfterCombat(winner, 50, state.getTour());
+                userCombatStatService.updateStatsAfterCombat(winner, 50, state.getTour(), winner);
 
                 userService.IncrementWinner(winner);
                 userService.incrementDefeat(loser);
+
+                /**
+                 * userService attend lui un optional mais getTrophees lui un userInfi simple
+                 *On stocke dans optionalUser puis on y récup le username et on l'utilise
+                 * **/
+                Optional<UserInfo> optionalUser = userService.getUserInfo(winner);
+                if (optionalUser.isPresent()) {
+                    UserInfo user = optionalUser.get();
+                    List<ObjectBase> objetsUtilises = new ArrayList<>();
+                    List<Trophee> nouveauxTrophees = tropheeService.getTrophees(
+                        user,
+                        50,
+                        state.getTour(),
+                        objetsUtilises
+                    );
+                }
+
+
             } catch (Exception e) {
                 System.out.println("[ERREUR] Mise à jour des statistiques : " + e.getMessage());
                 e.printStackTrace(); // Facultatif mais utile
@@ -276,10 +316,26 @@ public class FightService {
 
             try {
                 userService.rewardWinner(winner, 50, 1);
-                userCombatStatService.updateStatsAfterCombat(winner, 50, state.getTour());
+                userCombatStatService.updateStatsAfterCombat(winner, 50, state.getTour(), winner);
 
                 userService.IncrementWinner(winner);
                 userService.incrementDefeat(loser);
+
+                /**
+                 * userService attend lui un optional mais getTrophees lui un userInfi simple
+                 *On stocke dans optionalUser puis on y récup le username et on l'utilise
+                 * **/
+                Optional<UserInfo> optionalUser = userService.getUserInfo(winner);
+                if (optionalUser.isPresent()) {
+                    UserInfo user = optionalUser.get();
+                    List<ObjectBase> objetsUtilises = new ArrayList<>();
+                    List<Trophee> nouveauxTrophees = tropheeService.getTrophees(
+                        user,
+                        50,
+                        state.getTour(),
+                        objetsUtilises
+                    );
+                }
             } catch (Exception e) {
                 System.out.println("[ERREUR] Mise à jour des statistiques : " + e.getMessage());
                 e.printStackTrace(); // Facultatif mais utile

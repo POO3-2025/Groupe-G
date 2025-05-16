@@ -17,7 +17,7 @@ public class TropheeTest {
     @Test
     @DisplayName("Test constructeur avec paramètre et getter")
     public void testConstructeurEtGetters() {
-        Trophee trophee = new Trophee("Vainqueur", "Gagner un combat", false);
+        Trophee trophee = new Trophee("Vainqueur", "Gagner un combat");
 
         assertEquals("Vainqueur", trophee.getNom());
         assertEquals("Gagner un combat", trophee.getDescription());
@@ -28,7 +28,7 @@ public class TropheeTest {
     @Test
     @DisplayName("Test constructeur vide + setter")
     public void testConstructeurVideEtSetters() {
-        Trophee trophee = new Trophee("", "", false);
+        Trophee trophee = new Trophee("", "");
         trophee.setNom("Champion");
         trophee.setDescription("Gagner le tournoi");
         trophee.setObtenu(true);
@@ -42,7 +42,7 @@ public class TropheeTest {
     @Test
     @DisplayName("Test valeur vide")
     public void testValeurVide() {
-        Trophee trophee = new Trophee("", "", false);
+        Trophee trophee = new Trophee("", "");
 
         assertEquals("", trophee.getNom());
         assertEquals("", trophee.getDescription());
@@ -53,7 +53,7 @@ public class TropheeTest {
     @Test
     @DisplayName("Test Setters")
     public void testSetters() {
-        Trophee trophee = new Trophee("A", "B", false);
+        Trophee trophee = new Trophee("A", "B");
         trophee.setNom("Explorateur");
         trophee.setDescription("Visiter 10 zones");
         trophee.setObtenu(true);
@@ -67,7 +67,7 @@ public class TropheeTest {
     @Test
     @DisplayName("Test debloquer")
     public void testDebloquer() {
-        Trophee trophee = new Trophee("Débloqueur", "Tester débloquer", false);
+        Trophee trophee = new Trophee("Débloqueur", "Tester débloquer");
         trophee.debloquer();
         assertTrue(trophee.isObtenu());
     }

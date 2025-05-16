@@ -31,9 +31,10 @@ public class UserCombatStatDAOImpl implements UserCombatStatDAO {
             document.append("cristauxWin", 0);
             document.append("derniercombattour", 0);
             document.append("utilisationBazooka", 0);
-            document.append("Bronze",false );
-            document.append("Silver",false );
-            document.append("Or",false );
+            document.append("bronze",false );
+            document.append("silver",false );
+            document.append("or",false );
+            document.append("dernierVainqueur", "");
 
             collection.insertOne(document);
         } catch (Exception e) {
@@ -72,16 +73,25 @@ public class UserCombatStatDAOImpl implements UserCombatStatDAO {
      * Mis a jour du doc souhaité de la collection userCristauxWin
      * **/
      @Override
-    public void updateStatsAfterCombat(String username, int cristauxGagnes, int nbTours){
+    public void updateStatsAfterCombat(String username, int cristauxGagnes, int nbTours,String dernierVainqueur){
         try{
             MongoDatabase mongoDB = ConfigManager.getInstance().getMongoDatabase("MongoDBProduction");
             MongoCollection<Document> collection = mongoDB.getCollection("userCristauxWin");
 
             Document filter = new Document("username", username);
+            Document exist = collection.find(filter).first();
+
+            int cristauxNow = 0;
+            if (exist != null && exist.containsKey("cristauxWin")) {
+                cristauxNow = exist.getInteger("cristauxWin",0);
+            }
+
+            int newTotal = cristauxNow + cristauxGagnes;
 
             Document updates = new Document()
-                .append("cristauxWin", cristauxGagnes)
-                .append("derniercombattour", nbTours);
+                .append("cristauxWin", newTotal)
+                .append("derniercombattour", nbTours)
+            .append("dernierVainqueur", dernierVainqueur);
 
             if (bazookaUtilisation.getOrDefault(username, false)) {
                 updates.append("utilisationBazooka", 1);
@@ -110,7 +120,8 @@ public class UserCombatStatDAOImpl implements UserCombatStatDAO {
             Document filter = new Document("username", username);
             Document up = new Document("$set", new Document(nameTrophy, true));
 
-            collection.updateOne(filter, up);
+         var result =   collection.updateOne(filter, up);
+
 
         } catch (Exception e) {
             throw new RuntimeException(e);

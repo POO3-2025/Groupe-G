@@ -21,7 +21,7 @@ public interface UserCombatStatDAO {
      * @param cristauxGagnes
      * Mettre a jou apres combat
      * **/
-    void updateStatsAfterCombat(String username, int cristauxGagnes, int nbTours);
+    void updateStatsAfterCombat(String username, int cristauxGagnes, int nbTours,String dernierVainqueur);
 
     /**
      * @param username

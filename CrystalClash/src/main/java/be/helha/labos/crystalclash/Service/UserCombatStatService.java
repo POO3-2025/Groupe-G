@@ -32,8 +32,8 @@ public class UserCombatStatService {
     /**
      * Mise à jour des stats après un combat gagné
      */
-    public void updateStatsAfterCombat(String username, int cristauxGagnes, int nbTours) {
-        userCombatStatDAO.updateStatsAfterCombat(username, cristauxGagnes, nbTours);
+    public void updateStatsAfterCombat(String username, int cristauxGagnes, int nbTours,String dernierVainqueur) {
+        userCombatStatDAO.updateStatsAfterCombat(username, cristauxGagnes, nbTours, dernierVainqueur);
     }
 
     public void updateStatsTrophy(String username, String nameTrophy){
