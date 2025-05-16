@@ -1,5 +1,7 @@
 package be.helha.labos.crystalclash.Characters;
 
+import be.helha.labos.crystalclash.Object.Equipment;
+
 /**
  * La classe Personnage représente un personnage générique dans le jeu CrystalClash.
  * Elle contient les attributs et comportements de base pour tous les personnages.
@@ -135,4 +137,6 @@ public class Personnage {
     public int getRestrictionAttackSpecial() {
         return RestrictionAttackSpecial;
     }
+
+
 }

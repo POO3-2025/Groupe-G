@@ -72,9 +72,9 @@ public class UserDAOImpl implements UserDAO {
         String stats = userCombatStatService.getStats(username);
         if(stats != null) {
             Document doc = Document.parse(stats);
-            if (doc.getBoolean("Bronze", false)) user.affTrophee(new Trophee("Bronze", "Chargé depuis Mongo", true));
-            if (doc.getBoolean("Silver", false)) user.affTrophee(new Trophee("Silver", "Chargé depuis Mongo", true));
-            if (doc.getBoolean("Or", false)) user.affTrophee(new Trophee("Or", "Chargé depuis Mongo", true));
+            if (doc.getBoolean("Bronze", false)) user.affTrophee(new Trophee("Bronze", "Chargé depuis Mongo"));
+            if (doc.getBoolean("Silver", false)) user.affTrophee(new Trophee("Silver", "Chargé depuis Mongo"));
+            if (doc.getBoolean("Or", false)) user.affTrophee(new Trophee("Or", "Chargé depuis Mongo"));
         }
     }
 
@@ -245,6 +245,13 @@ public class UserDAOImpl implements UserDAO {
             e.printStackTrace();
             throw e;
         }
+    }
+    /**
+     * @param userCombatStatService
+     * setter pour les test
+     * **/
+    public void setUserCombatStatService(UserCombatStatService userCombatStatService) {
+        this.userCombatStatService = userCombatStatService;
     }
 
 }

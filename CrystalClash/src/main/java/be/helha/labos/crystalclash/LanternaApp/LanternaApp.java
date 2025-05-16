@@ -26,6 +26,7 @@ import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import org.bson.Document;
+import org.hibernate.boot.model.internal.ListBinder;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -2198,6 +2199,8 @@ public class LanternaApp {
         Panel panel = new Panel(new GridLayout(1));
         panel.setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
 
+        panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
 
         try {
             String userJson = FightHttpCLient.getClassementPlayer(Session.getToken());
@@ -2210,7 +2213,7 @@ public class LanternaApp {
                 if (classement.isEmpty()) {
                     panel.addComponent(new Label("classement vide"));
                 } else {
-                    List<UserInfo> top3 = classement.size() > 3 ? classement.subList(0, 3) : classement;
+                    List<UserInfo> top3 = classement.size() > 3 ? classement.subList(0, 3) : classement; //Affiche les 3 meilleurs
                     int pos = 1;
                     for (UserInfo user : top3) {
                         String resul = user.getUsername() + " Victoire : " + user.getGagner();
@@ -2262,54 +2265,82 @@ public class LanternaApp {
         try {
             UserInfo user = Login_Register_userHttpClient.fetchUserInfo(Session.getUsername(), Session.getToken()); //Pour winConcecutive ds mysql
             Document stats = Login_Register_userHttpClient.fetchUserStats(Session.getUsername(), Session.getToken()); //Pour stat dans mongo
-
+            NotifThropy(gui, stats, user);
             int cristaux = stats.getInteger("cristauxWin", 0);
             int nombreTours = stats.getInteger("derniercombattour", 0);
             int bazooka = stats.getInteger("utilisationBazooka", 0);
             int win = user.getGagner();
             int winConcecutive = user.getWinconsecutive();
 
-            boolean bronze = stats.getBoolean("Bronze",false);
-            boolean silver = stats.getBoolean("Silver",false);
-            boolean or = stats.getBoolean("Or",false);
+            boolean bronze = stats.getBoolean("bronze",false);
+            boolean silver = stats.getBoolean("silver",false);
+            boolean or = stats.getBoolean("or",false);
 
-            String bronzeLabel = "Bronze : " + generateBar(win,1);
-            if (bronze) bronzeLabel += "obtenu";
-            String sliverLabel = "Silver : " + generateBar(win,1);
+            String bronzeLabel = "bronze : " + CalculateProgression(List.of(
+              win >= 1,
+                win >= 1 && nombreTours <= 15
+            ));
+            if (bronze) bronzeLabel += " obtenu";
+
+            String sliverLabel = "silver : " + CalculateProgression(List.of(
+                winConcecutive >= 5,
+                cristaux >= 200,
+                win >= 1 && nombreTours <=10
+            ));
             if (silver) sliverLabel += "obtenu";
-            String orLabel = "Or : " + generateBar(win,1);
+
+
+            String orLabel = "or : " + CalculateProgression(List.of(
+                winConcecutive >= 10,
+                cristaux >= 500,
+                win >=1 && nombreTours <= 6,
+                bazooka > 0
+            ));
             if (or) orLabel += "obtenu";
+
+            panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
             //   BRONZE
             Button bronzeBtn = new Button(bronzeLabel, () -> {
                 Panel details = new Panel(new GridLayout(1));
-                details.addComponent(new Label("Conditions du trophée Bronze :"));
+                details.addComponent(new Label("Objectif : Gagner 1 combat et le finir en 15 tours ou moins."));
+                details.addComponent(new EmptySpace());
+                details.addComponent(new Label("Progression :"));
                 details.addComponent(new Label("Gagner 1 combat : " + generateBar(win, 1)));
                 details.addComponent(new Label("Combat en ≤ 15 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 15 ? 1 : 0, 1)));
                 MessageDialog.showMessageDialog(gui, "Trophée Bronze", detailsToString(details));
             });
             panel.addComponent(bronzeBtn);
 
+            panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+
             Button SilverBtn = new Button(sliverLabel, () -> {
                 Panel details = new Panel(new GridLayout(1));
-                details.addComponent(new Label("Conditions du trophée Silver :"));
+                details.addComponent(new Label("Objectif : Gagner 5 combats consécutifs, collecter 200 cristaux et finir un combat en 10 tours ou moins."));
+                details.addComponent(new EmptySpace());
+                details.addComponent(new Label("Progression :"));
                 details.addComponent(new Label("5 victoires consécutives : " + generateBar(winConcecutive, 5)));
-                details.addComponent(new Label("Gagnez 200 cristaux : " + generateBar(cristaux,200)));
-                details.addComponent(new Label("Combat en ≤ 10 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 10 ? 1 : 0, 1)
-                ));
+                details.addComponent(new Label("Gagnez 200 cristaux : " + generateBar(cristaux, 200)));
+                details.addComponent(new Label("Combat en ≤ 10 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 10 ? 1 : 0, 1)));
                 MessageDialog.showMessageDialog(gui, "Trophée Silver", detailsToString(details));
             });
+
             panel.addComponent(SilverBtn);
+
+            panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
             Button OrBtn = new Button(orLabel, () -> {
                 Panel details = new Panel(new GridLayout(1));
-                details.addComponent(new Label("Conditions du trophée Or :"));
+                details.addComponent(new Label("Objectif : Gagner 10 combats consécutifs, collecter 500 cristaux, finir un combat en 6 tours ou moins, et utiliser un bazooka."));
+                details.addComponent(new EmptySpace());
+                details.addComponent(new Label("Progression :"));
                 details.addComponent(new Label("10 victoires consécutives : " + generateBar(winConcecutive, 10)));
-                details.addComponent(new Label("Gagnez 500 cristaux : " + generateBar(cristaux,500)));
+                details.addComponent(new Label("Gagnez 500 cristaux : " + generateBar(cristaux, 500)));
                 details.addComponent(new Label("Combat en ≤ 6 tours : " + generateBar(user.getGagner() > 0 && nombreTours <= 6 ? 1 : 0, 1)));
                 details.addComponent(new Label("Avoir utilisé un bazooka : " + generateBar(bazooka > 0 ? 1 : 0, 1)));
-                MessageDialog.showMessageDialog(gui, "Trophée Silver", detailsToString(details));
+                MessageDialog.showMessageDialog(gui, "Trophée Or", detailsToString(details));
             });
+
             panel.addComponent(OrBtn);
 
         } catch (Exception e) {
@@ -2322,6 +2353,74 @@ public class LanternaApp {
         window.setComponent(panel);
         gui.addWindowAndWait(window);
     }
+
+    /**
+     * @param condition
+     * Calcule la preogression des trophés,obligé sinon les conditions sons foireusses (0,1)
+     * **/
+    public static String CalculateProgression(List<Boolean> condition){
+        int totalCondition = condition.size();
+        int valid = 0;
+
+        for (boolean conditions : condition) {
+            if (conditions) {
+                valid++;
+            }
+        }
+        return generateBar(valid,totalCondition); //1/2 avec barre
+    }
+
+
+    /**
+     * Notif appelée dans DisplayTrphy qui signal au joueur qu'il a obtenu le trophé
+     * **/
+    public static String NotifThropy(WindowBasedTextGUI gui, Document state, UserInfo user) {
+        int win = user.getGagner();
+        int winconcec = user.getWinconsecutive();
+        int cristaux = state.getInteger("cristauxWin", 0);
+        int nbrtours = state.getInteger("derniercombattour", 0);
+        int bazooka = state.getInteger("utilisationBazooka", 0);
+
+        boolean bronze = state.getBoolean("bronze", false);
+        boolean silver = state.getBoolean("silver", false);
+        boolean or = state.getBoolean("or", false);
+
+        //bronze
+        boolean bronzeOk = (win >= 1) && (win >= 1 && nbrtours <= 15);
+        if (bronzeOk && !Session.getTrophyNoti("bronze")) {
+            MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
+                "Trophé Bronze débloqué ! \n\n" +
+                    "Conditions remplies : \n" +
+                    "Gagnez 1 combat\nGagnez un combat en 15 tours ou moins \n\n " +
+                    "Récompense : Epée en bois");
+            Session.addTrophyNoti("bronze");
+        }
+
+        boolean silverok = (winconcec >= 5) && (cristaux >=200) && (win >= 1 && nbrtours <= 10);
+        if (silverok && !Session.getTrophyNoti("silver")) {
+            MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
+                "Trophé Silver  débloqué ! \n\n" +
+                    "Conditions remplies : \n" +
+                    "5 victoires concécutives\nGagnez un combat en 10 tours ou moins \nGagnez 200 cristaux " +
+                    "Récompense : Couteau en diamant");
+            Session.addTrophyNoti("or");
+
+        }
+        boolean orOK = (winconcec >= 10) && (cristaux >=500) && (win >= 1 && nbrtours <= 6) && (bazooka > 0);
+        if (orOK && !Session.getTrophyNoti("or")) {
+            MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
+                "Trophé Or  débloqué ! \n\n" +
+                    "Conditions remplies : \n" +
+                    "10 victoires concécutives\nGagnez un combat en 6 tours ou moins \nGagnez 500 cristaux\nBazooka utilisé\n\n " +
+                    "Récompense : Couteau en diamant");
+            Session.addTrophyNoti("or");
+
+        }
+
+        return "";
+    }
+
+
 
     /**
      * @param panel

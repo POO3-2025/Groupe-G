@@ -18,6 +18,8 @@ import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.FightService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Service.UserService;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -128,7 +130,22 @@ ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         stmt2.executeUpdate();
         stmt2.close();
         conn2.close();
+
+        MongoDatabase mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        Document docu = new Document("username", "userTes1")
+            .append("type", "troll")
+            .append("backpack", "backpack")
+            .append("selected", true);
+        mongo.getCollection("Characters").insertOne(docu);
+
+        Document docu2 = new Document("username", "userTes2")
+            .append("type", "elf")
+            .append("backpack", "backpack")
+            .append("selected", true);
+        mongo.getCollection("Characters").insertOne(docu2);
     }
+
+
 
     //Pour les noms des tests
     @BeforeEach
@@ -402,10 +419,11 @@ ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         // créa d'une armure pour p2 avec fiabilité 2 et bonus de 10 PV
         Armor armure = new Armor("Armure de test", 10, 2,2,10);
         Equipment equipement = new Equipment();
-        equipement.setObjets(List.of(armure));
+        equipement.AddArmor(armure);
 
         // Sauvegarde de l'équipement pour user2
         fightService.getCharacterService().saveEquipmentForCharacter(user2, equipement);
+
 
         // PV initiaux du personnage sans armure
         int pvSansBonus = p2.getPV();
@@ -569,7 +587,7 @@ ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
 
         // Vérifie le bonus total
         int totalBonus = fightService.getArmure(user1);
-        assertEquals(10, totalBonus, "Le total du bonus PV doit être 30");
+        assertEquals(10, totalBonus, "Le total du bonus PV doit être 10");
     }
 
 
@@ -608,6 +626,25 @@ ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         // Les logs doivent contenir l'info
         boolean logCorrect = combat.getLog().stream().anyMatch(log -> log.contains("fiabilité"));
         assertTrue(logCorrect, "Les logs doivent contenir l'info de perte de fiabilité");
+    }
+
+    @AfterAll
+    public static void resetMySQLUsers_AND_Mongo() throws Exception {
+        var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
+        var stmt = conn.prepareStatement("DELETE FROM users");
+        stmt.executeUpdate();
+        stmt.close();
+        conn.close();
+        System.out.println("Tous les utilisateurs MySQL ont été supprimés.");
+
+        MongoDatabase db = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+
+        db.getCollection("Characters").deleteMany(new Document());
+        // Ajoute d'autres collections si besoin
+        db.getCollection("Inventory").deleteMany(new Document());
+
+        System.out.println("Toutes les données Mongo ont été supprimées.");
     }
 
 }

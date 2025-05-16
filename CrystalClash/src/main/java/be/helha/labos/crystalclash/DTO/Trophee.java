@@ -13,9 +13,9 @@ public class Trophee {
      * Constructeur de la classe Trophee
      * @param description
      * @param nom
-     * @param obtenu
+     *
      * **/
-    public Trophee(String nom, String description, boolean obtenu) {
+    public Trophee(String nom, String description) {
         this.nom = nom;
         this.description = description;
         this.obtenu = obtenu;

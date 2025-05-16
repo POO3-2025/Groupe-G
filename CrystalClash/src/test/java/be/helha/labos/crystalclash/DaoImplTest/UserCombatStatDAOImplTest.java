@@ -9,14 +9,21 @@ import org.junit.jupiter.api.*;
 
 import static com.mongodb.client.model.Filters.eq;
 import static org.junit.jupiter.api.Assertions.*;
+
 /**
- * Classe de test pour UserCombatStatDAOImpl.
- * Elle teste les opérations MongoDB liées aux statistiques de combat utilisateur :
- * - Création d'un document de stats
- * - Mise à jour après combat (avec/sans bazooka)
- * - Lecture des statistiques en JSON
+ * Classe de test pour {@link UserCombatStatDAOImpl}.
+ * <p>
+ * Elle vérifie le bon fonctionnement de l’implémentation DAO responsable
+ * de la gestion des statistiques de combat utilisateur dans MongoDB.
  *
- * Les tests sont exécutés sur la base de données MongoDB de test.
+ * <ul>
+ *     <li>Création initiale des stats utilisateur</li>
+ *     <li>Mise à jour après combat (avec ou sans bazooka)</li>
+ *     <li>Mise à jour de trophée (bronze/silver/or)</li>
+ *     <li>Lecture des stats via JSON</li>
+ * </ul>
+ *
+ * Tous les tests sont exécutés contre une base MongoDB de test.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -27,9 +34,9 @@ public class UserCombatStatDAOImplTest {
     private static final String TEST_USERNAME = "CombatStatsTestUser";
 
     /**
-     * Configure la connexion à la base MongoDB de test en redirigeant
-     * la configuration de production vers celle de test.
-     * Supprime les éventuels anciens documents du test utilisateur.
+     * Prépare la configuration de test avant chaque test.
+     * Remplace dynamiquement les credentials de production par ceux de test pour MongoDB.
+     * Supprime également tout document existant pour l'utilisateur de test.
      */
     @BeforeEach
     public void setUp() throws Exception {
@@ -52,8 +59,8 @@ public class UserCombatStatDAOImplTest {
     }
 
     /**
-     * Vérifie que la méthode createStatsForUser crée bien un document
-     * initialisé avec des valeurs par défaut (0) dans MongoDB.
+     * Vérifie que {@code createStatsForUser} crée bien un document avec les champs par défaut :
+     * cristauxWin = 0, derniercombattour = 0, utilisationBazooka = 0.
      */
     @Test
     @Order(1)
@@ -69,26 +76,26 @@ public class UserCombatStatDAOImplTest {
     }
 
     /**
-     * Vérifie que updateStatsAfterCombat met à jour les cristaux gagnés et le nombre
-     * de tours, sans modifier le champ "utilisationBazooka".
+     * Vérifie que {@code updateStatsAfterCombat} met à jour les cristaux et le nombre de tours
+     * sans modifier l'utilisation du bazooka (resté à 0 par défaut).
      */
     @Test
     @Order(2)
     @DisplayName("Met à jour stats après combat (sans bazooka)")
     public void testUpdateStatsWithoutBazooka() {
         dao.createStatsForUser(TEST_USERNAME);
-        dao.updateStatsAfterCombat(TEST_USERNAME, 100, 7);
+        dao.updateStatsAfterCombat(TEST_USERNAME, 150, 8, "gagnant123");
 
         Document doc = db.getCollection("userCristauxWin").find(eq("username", TEST_USERNAME)).first();
         assertNotNull(doc);
-        assertEquals(100, doc.getInteger("cristauxWin"));
-        assertEquals(7, doc.getInteger("derniercombattour"));
+        assertEquals(150, doc.getInteger("cristauxWin"));
+        assertEquals(8, doc.getInteger("derniercombattour"));
         assertEquals(0, doc.getInteger("utilisationBazooka"));
     }
 
     /**
-     * Vérifie que le champ "utilisationBazooka" est bien mis à 1 si la méthode
-     * setBazookaUsed est appelée avant updateStatsAfterCombat.
+     * Vérifie que l'appel à {@code setBazookaUsed} active correctement le flag,
+     * et que celui-ci est pris en compte lors du prochain {@code updateStatsAfterCombat}.
      */
     @Test
     @Order(3)
@@ -96,18 +103,18 @@ public class UserCombatStatDAOImplTest {
     public void testUpdateStatsWithBazooka() {
         dao.createStatsForUser(TEST_USERNAME);
         dao.setBazookaUsed(TEST_USERNAME);
-        dao.updateStatsAfterCombat(TEST_USERNAME, 200, 5);
+        dao.updateStatsAfterCombat(TEST_USERNAME, 150, 8, "gagnant123");
 
         Document doc = db.getCollection("userCristauxWin").find(eq("username", TEST_USERNAME)).first();
         assertNotNull(doc);
-        assertEquals(200, doc.getInteger("cristauxWin"));
-        assertEquals(5, doc.getInteger("derniercombattour"));
+        assertEquals(150, doc.getInteger("cristauxWin"));
+        assertEquals(8, doc.getInteger("derniercombattour"));
         assertEquals(1, doc.getInteger("utilisationBazooka")); // doit être à 1 si bazooka utilisé
     }
 
     /**
-     * Vérifie que la méthode getStats retourne un JSON valide et contenant les champs attendus.
-     * Le JSON est retransformé en Document pour valider les champs de manière fiable.
+     * Vérifie que {@code getStats} retourne un JSON contenant bien les champs
+     * attendus pour un utilisateur nouvellement initialisé.
      */
     @Test
     @Order(4)
@@ -125,4 +132,63 @@ public class UserCombatStatDAOImplTest {
         assertEquals(0, doc.getInteger("utilisationBazooka"));
     }
 
+    /**
+     * Vérifie que la méthode {@code updateStatsTrophy} active correctement le champ trophée spécifié (ex: "bronze").
+     */
+    @Test
+    @Order(5)
+    @DisplayName("Mise à jour du trophée Bronze")
+    public void testUpdateStatsTrophy() {
+        dao.createStatsForUser(TEST_USERNAME);
+
+        // Appliquer la mise à jour pour le trophée "bronze"
+        dao.updateStatsTrophy(TEST_USERNAME, "bronze");
+
+        Document doc = db.getCollection("userCristauxWin").find(eq("username", TEST_USERNAME)).first();
+        assertNotNull(doc, "Le document utilisateur doit exister");
+        assertTrue(doc.getBoolean("bronze"), "Le trophée 'bronze' doit être à true");
+    }
+
+    /**
+     * Vérifie l'effet cumulé de {@code setBazookaUsed} suivi de {@code updateStatsAfterCombat}.
+     * Confirme que le champ {@code utilisationBazooka} passe bien à 1.
+     */
+    @Test
+    @Order(6)
+    @DisplayName("setBazookaUsed applique bien le flag à updateStatsAfterCombat")
+    public void testSetBazookaUsedEffectively() {
+        dao.createStatsForUser(TEST_USERNAME);
+
+        // Déclenche l'usage du bazooka
+        dao.setBazookaUsed(TEST_USERNAME);
+
+        // Mise à jour des stats
+        dao.updateStatsAfterCombat(TEST_USERNAME, 50, 6, "vainqueurTest");
+
+        Document doc = db.getCollection("userCristauxWin").find(eq("username", TEST_USERNAME)).first();
+        assertNotNull(doc, "Le document utilisateur doit exister");
+        assertEquals(1, doc.getInteger("utilisationBazooka"), "utilisationBazooka doit être à 1 après usage");
+        assertEquals(50, doc.getInteger("cristauxWin"), "Les cristaux doivent être mis à jour correctement");
+        assertEquals(6, doc.getInteger("derniercombattour"), "Le nombre de tours doit être mis à jour correctement");
+        assertEquals("vainqueurTest", doc.getString("dernierVainqueur"), "Le vainqueur doit être mis à jour correctement");
+    }
+
+    @AfterAll
+    public static void resetMySQLUsers_AND_Mongo() throws Exception {
+        var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
+        var stmt = conn.prepareStatement("DELETE FROM users");
+        stmt.executeUpdate();
+        stmt.close();
+        conn.close();
+        System.out.println("Tous les utilisateurs MySQL ont été supprimés.");
+
+        MongoDatabase db = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+
+        db.getCollection("Characters").deleteMany(new Document());
+        // Ajoute d'autres collections si besoin
+        db.getCollection("Inventory").deleteMany(new Document());
+
+        System.out.println("Toutes les données Mongo ont été supprimées.");
+    }
 }
