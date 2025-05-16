@@ -157,6 +157,7 @@ public class CharacterTest {
 
         characterService.saveCharacterForUser(username, character.getClass().getSimpleName());
         characterService.createBackPackForCharacter(username, character.getClass().getSimpleName());
+        characterService.createEquipmentForCharacter(username, character.getClass().getSimpleName());
         characterService.setSelectedCharacter(username, character.getClass().getSimpleName());
 
         String selectedCharacter = characterService.getCharacterForUser(username);

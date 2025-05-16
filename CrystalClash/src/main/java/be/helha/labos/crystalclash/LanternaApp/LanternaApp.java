@@ -2499,7 +2499,7 @@ public class LanternaApp {
 
 
 
-=======
+    /**
      * @return
      *  permet d'afficher les regles du jeu
      * **/
@@ -2559,7 +2559,7 @@ public class LanternaApp {
 
     }
 
->>>>>>> 9ddcfc096593cfab8d4a67f7d334d4fcdbc3051d
+
     /**
      * @param panel
      *juste a servir a convertir le contenu visuel  label en String
