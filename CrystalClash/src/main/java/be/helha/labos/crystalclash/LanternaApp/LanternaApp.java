@@ -325,6 +325,7 @@ public class LanternaApp {
     }
 
 
+
     /**
      * Affiche les section du menu
      * avec le style et la couleur
@@ -741,7 +742,7 @@ public class LanternaApp {
                     double price = (double) item.get("price");
                     double requiredLevel = (double) item.get("requiredLevel");
 
-                    if (level < requiredLevel)return;
+                    if (level < requiredLevel) continue;
 
                     String label = name + ": " + price + "cristaux, niveau" + requiredLevel ;
                     column.addComponent(new Button(label, () -> {
@@ -2373,24 +2374,24 @@ public class LanternaApp {
             boolean or = stats.getBoolean("or",false);
 
             String bronzeLabel = "bronze : " + CalculateProgression(List.of(
-              win >= 1,
-                win >= 1 && nombreTours <= 15
+                    win >= 1,
+                    win >= 1 && nombreTours <= 15
             ));
             if (bronze) bronzeLabel += " obtenu";
 
             String sliverLabel = "silver : " + CalculateProgression(List.of(
-                winConcecutive >= 5,
-                cristaux >= 200,
-                win >= 1 && nombreTours <=10
+                    winConcecutive >= 5,
+                    cristaux >= 200,
+                    win >= 1 && nombreTours <=10
             ));
             if (silver) sliverLabel += "obtenu";
 
 
             String orLabel = "or : " + CalculateProgression(List.of(
-                winConcecutive >= 10,
-                cristaux >= 500,
-                win >=1 && nombreTours <= 6,
-                bazooka > 0
+                    winConcecutive >= 10,
+                    cristaux >= 500,
+                    win >=1 && nombreTours <= 6,
+                    bazooka > 0
             ));
             if (or) orLabel += "obtenu";
 
@@ -2485,30 +2486,30 @@ public class LanternaApp {
         boolean bronzeOk = (win >= 1) && (win >= 1 && nbrtours <= 15);
         if (bronzeOk && !Session.getTrophyNoti("bronze")) {
             MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
-                "Trophé Bronze débloqué ! \n\n" +
-                    "Conditions remplies : \n" +
-                    "Gagnez 1 combat\nGagnez un combat en 15 tours ou moins \n\n " +
-                    "Récompense : Epée en bois");
+                    "Trophé Bronze débloqué ! \n\n" +
+                            "Conditions remplies : \n" +
+                            "Gagnez 1 combat\nGagnez un combat en 15 tours ou moins \n\n " +
+                            "Récompense : Epée en bois");
             Session.addTrophyNoti("bronze");
         }
 
         boolean silverok = (winconcec >= 5) && (cristaux >=200) && (win >= 1 && nbrtours <= 10);
         if (silverok && !Session.getTrophyNoti("silver")) {
             MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
-                "Trophé Silver  débloqué ! \n\n" +
-                    "Conditions remplies : \n" +
-                    "5 victoires concécutives\nGagnez un combat en 10 tours ou moins \nGagnez 200 cristaux " +
-                    "Récompense : Couteau en diamant");
+                    "Trophé Silver  débloqué ! \n\n" +
+                            "Conditions remplies : \n" +
+                            "5 victoires concécutives\nGagnez un combat en 10 tours ou moins \nGagnez 200 cristaux " +
+                            "Récompense : Couteau en diamant + 50 cristaux");
             Session.addTrophyNoti("or");
 
         }
         boolean orOK = (winconcec >= 10) && (cristaux >=500) && (win >= 1 && nbrtours <= 6) && (bazooka > 0);
         if (orOK && !Session.getTrophyNoti("or")) {
             MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
-                "Trophé Or  débloqué ! \n\n" +
-                    "Conditions remplies : \n" +
-                    "10 victoires concécutives\nGagnez un combat en 6 tours ou moins \nGagnez 500 cristaux\nBazooka utilisé\n\n " +
-                    "Récompense : Couteau en diamant");
+                    "Trophé Or débloqué ! \n\n" +
+                            "Conditions remplies : \n" +
+                            "10 victoires concécutives\nGagnez un combat en 6 tours ou moins \nGagnez 500 cristaux\nBazooka utilisé\n\n " +
+                            "Récompense : Couteau en diamant + 75 cristaux");
             Session.addTrophyNoti("or");
 
         }
@@ -2518,7 +2519,7 @@ public class LanternaApp {
 
 
 
-/**
+    /**
      * @return
      *  permet d'afficher les regles du jeu
      * **/
