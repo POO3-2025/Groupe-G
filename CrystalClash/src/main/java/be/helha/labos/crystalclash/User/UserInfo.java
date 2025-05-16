@@ -121,13 +121,6 @@ import java.util.List;
     }
 
 
-    /**
-     * Récupère la liste des trophées de l'utilisateur.
-     * @return La liste des trophées.
-     */
-    public List<Trophee> getTrophees() { return trophees; }
-
-    //Nv pour les victoires concecutives trophé
 
     /**
      * Récupère le nombre de victoires consécutives de l'utilisateur.
@@ -159,19 +152,9 @@ import java.util.List;
 
     //Pour barre et trophés
 
-    private int dernierCombatTours;
+
     private int utilisationBazooka; // incrémenté quand il le user use bazooka en combat
 
-    /**
-     * Récupère le nombre de tours du dernier combat.
-     * @return Le nombre de tours.
-     */
-    public int getDernierCombatTours() { return dernierCombatTours; }
-    /**
-     * CHange le nombre de tours du dernier combat.
-     * @param tours Le nombre de tours.
-     */
-    public void setDernierCombatTours(int tours) { this.dernierCombatTours = tours; }
 
     //Utile pour le trophé Or, on regarde si le user a use le bazooka.
 
@@ -181,8 +164,5 @@ import java.util.List;
      */
     public int getUtilisationBazooka() { return utilisationBazooka; }
 
-    /**
-     * Incrémente le nombre d'utilisations du bazooka par l'utilisateur.
-     */
-    public void incrementUtilisationBazooka() { this.utilisationBazooka++; }
+
 }

@@ -67,7 +67,9 @@ public class TropheeService {
                 Inventory inv = inventoryService.getInventoryForUser(userInfo.getUsername());
                 inv.ajouterObjet(recompense);
                 inventoryService.saveInventoryForUser(userInfo.getUsername(), inv);
-
+                UserInfo user = new UserInfo();
+                //ajout donne 50 cristaux au joueur
+                user.setCristaux(50);
                 newtrophees.add(silver);
             }
         }
@@ -84,6 +86,9 @@ public class TropheeService {
                 Inventory inv = inventoryService.getInventoryForUser(userInfo.getUsername());
                 inv.ajouterObjet(recompense);
                 inventoryService.saveInventoryForUser(userInfo.getUsername(), inv);
+                //ajout donne 75 cristaux au joueur
+                UserInfo user = new UserInfo();
+                user.setCristaux(75);
                 newtrophees.add(or);
             }
         }

@@ -95,7 +95,7 @@ public class FightHttpCLient {
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
-            throw new RuntimeException("Erreur entrée matchmaking : " + response.body());
+            throw new RuntimeException("Erreur sortie matchmaking : " + response.body());
         }
     }
 
