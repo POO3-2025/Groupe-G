@@ -22,7 +22,7 @@ public class BackPackTest {
 
     @Order(1)
     @Test
-    @DisplayName("Ajout d'un objet dans le BackPacj vide")
+    @DisplayName("Ajout d'un objet dans le BackPack vide")
     public void testAddObject() {
         ObjectBase obj = new ObjectBase("Epee en bois",15,5,5);
         boolean result = backPack.AddObjects(obj);

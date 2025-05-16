@@ -1,5 +1,5 @@
-package be.helha.labos.crystalclash.ServiceTest;
 
+<<<<<<< HEAD
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAO.InventoryDAO;
 import be.helha.labos.crystalclash.DAO.UserCombatStatDAO;
@@ -123,3 +123,5 @@ public class TropheeServiceTest {
         System.out.println("Toutes les données Mongo ont été supprimées.");
     }
 }
+=======
+>>>>>>> 9ddcfc096593cfab8d4a67f7d334d4fcdbc3051d

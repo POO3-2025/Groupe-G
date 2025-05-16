@@ -250,6 +250,11 @@ public class LanternaApp {
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
+
+        mainPanel.addComponent(createSectionLabel("Règles du jeu"));
+        mainPanel.addComponent(new Button("Voir les règles du jeu", ()->showRules(gui)));
+
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         // Section Profil
         mainPanel.addComponent(createSectionLabel("Profil"));
         mainPanel.addComponent(new Button("Voir profil", () -> afficherMonProfil(gui)));
@@ -1898,6 +1903,77 @@ public class LanternaApp {
                                         actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton,  perso, playerHPmax, enemyhpmax);
                                 break;
 
+
+
+
+                            case "CoffreDesJoyaux":
+                                CoffreDesJoyaux coffre = (CoffreDesJoyaux) objlist;
+
+                                // Crée le sous-panel pour le contenu (initialement masqué)
+                                Panel contenuPanel = new Panel(new GridLayout(1));
+                                contenuPanel.setVisible(false); // caché au début
+
+                                List<ObjectBase> contenu = coffre.getContenu();
+                                if (contenu == null || contenu.isEmpty()) {
+                                    contenuPanel.addComponent(new Label("→ Le coffre est vide."));
+                                } else {
+                                    for (ObjectBase item : contenu) {
+                                        String itemLabel = "→ " + item.getName() + " (" + item.getType() + ")";
+                                            /*
+                                        // Crée un bouton pour chaque objet dans le coffre
+                                        Button itemButton = new Button(itemLabel, () -> {
+                                            try {
+                                                // 1️⃣ Supprimer l'objet du contenu du coffre (MongoDB)
+                                                String responseRemoveFromCoffre = HttpService.removeObjectFromCoffre(username, coffre.getId(), item.getId(), Session.getToken());
+                                                System.out.println("Suppression de l'objet du coffre : " + responseRemoveFromCoffre);
+
+                                                // 2️⃣ Ajouter l'objet au backpack (MongoDB)
+                                                String responseAddToBackpack = HttpService.addObjectToBackpack(username, item.getId(), Session.getToken());
+                                                System.out.println("Ajout de l'objet au backpack : " + responseAddToBackpack);
+
+                                                history.append("Vous avez récupéré " + item.getName() + " du coffre et l’avez ajouté au backpack.\n");
+
+                                                // 3️⃣ Recharger l'affichage
+                                                backpackPanel.removeAllComponents();
+                                                Panel refreshedBackpack = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
+                                                        playerHealth, enemyHealth, perso,
+                                                        historyLabel, history, tourCounter, tourLabel,
+                                                        combatWindow, showNormalAttacks, showSpecialAttacks, objectButton,
+                                                        bonusNextAttack, turnPotionForce, bonusattaque, playerHPmax, enemyhpmax);
+
+                                                actionsPanel.removeAllComponents();
+                                                actionsPanel.addComponent(refreshedBackpack);
+
+                                            } catch (Exception ex) {
+                                                ex.printStackTrace();
+                                                history.append("⚠️ Erreur lors du transfert de l’objet.\n");
+                                            }
+
+                                            historyLabel.setText(history.toString());
+                                        });
+
+                                        contenuPanel.addComponent(itemButton);
+                                    }
+                                */
+                                    }
+                                }
+                                // Bouton Coffre qui toggle l'affichage du contenu
+                                Button coffreButton = new Button(coffre.getName() + " (Coffre)", () -> {
+                                    contenuPanel.setVisible(!contenuPanel.isVisible());
+                                    contenuPanel.invalidate(); // 🟢 Rafraîchit uniquement le contenu
+                                });
+
+                                // Optionnel : entoure le bouton coffre + contenu avec une bordure
+                                Panel coffreContainer = new Panel(new GridLayout(1));
+
+                                coffreContainer.addComponent(coffreButton);
+                                coffreContainer.addComponent(contenuPanel);
+
+                                backpackPanel.addComponent(coffreContainer);
+                                backpackPanel.addComponent(new EmptySpace(new TerminalSize(1, 1))); // espacement
+                                break;
+
+
                             default:
                                 history.append("Objet inconnu : " + objlist.getName() + ".\n");
                                 break;
@@ -2355,6 +2431,7 @@ public class LanternaApp {
     }
 
     /**
+<<<<<<< HEAD
      * @param condition
      * Calcule la preogression des trophés,obligé sinon les conditions sons foireusses (0,1)
      * **/
@@ -2422,6 +2499,67 @@ public class LanternaApp {
 
 
 
+=======
+     * @return
+     *  permet d'afficher les regles du jeu
+     * **/
+    private static void showRules(WindowBasedTextGUI gui) {
+        BasicWindow window = new BasicWindow("Règles du jeu :");
+        window.setHints(List.of(Window.Hint.CENTERED)); //Centrés
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new EmptySpace());
+        panel.addComponent(new Label("Bienvenue dans Crystal Clash !"));
+        panel.addComponent(new Label("Voici les règles du jeu :"));
+
+        panel.addComponent(new EmptySpace());
+
+        panel.addComponent(new Label("• Chaque joueur commence avec 100 PV."));
+        panel.addComponent(new Label("• Les joueurs jouent à tour de rôle."));
+        panel.addComponent(new Label("• Chaque joueur peut utiliser des objets depuis son sac à dos (backpack)."));
+        panel.addComponent(new Label("• Les attaques de base sont toujours disponibles."));
+        panel.addComponent(new Label("• Les attaques spéciales se débloquent après plusieurs attaques normales."));
+        panel.addComponent(new Label("• Les objets ont une endurance limitée."));
+
+        panel.addComponent(new EmptySpace());
+
+        panel.addComponent(new Label("Récompenses en fin de combat :"));
+        panel.addComponent(new Label("• Le gagnant reçoit 50 cristaux et monte d'un niveau."));
+        panel.addComponent(new Label("• Le perdant ne reçoit rien."));
+        panel.addComponent(new Label("• Si un joueur abandonne (forfait), il ne reçoit rien."));
+        panel.addComponent(new Label("• L’adversaire d’un joueur forfait gagne 25 cristaux."));
+        panel.addComponent(new EmptySpace());
+
+
+        panel.addComponent(new Label("Matchmaking :"));
+        panel.addComponent(new Label("• Pour jouer avec un ami, allez dans la salle d'attente et attendez qu'il vous rejoigne."));
+        panel.addComponent(new Label("• Sinon, vous pouvez lancer un combat contre un bot en cliquant sur \"Lancer un combat\"."));
+        panel.addComponent(new EmptySpace());
+
+        panel.addComponent(new Label("Gérer l'équipement :"));
+        panel.addComponent(new Label("• Inventaire : 30 emplacements."));
+        panel.addComponent(new Label("• Sac à dos : 5 emplacements pour les objets actifs."));
+        panel.addComponent(new Label("• Coffre : 10 emplacements, peut être mis dans l'inventaire ou le sac à dos."));
+
+
+        panel.addComponent(new Label("Trophées :"));
+        panel.addComponent(new Label("• Vous pouvez obtenir des trophées en réalisant des défis."));
+        panel.addComponent(new Label("• Certains trophées offrent des récompenses spéciales comme des objets et des cristaux pour certains"));
+
+        panel.addComponent(new EmptySpace());
+
+        panel.addComponent(new Label("Roulette :"));
+        panel.addComponent(new Label("• Une fois par jour, vous pouvez jouer à la roulette."));
+        panel.addComponent(new Label("• Cela vous permet de gagner des objets aléatoires."));
+        panel.addComponent(new EmptySpace());
+        panel.addComponent(new Button("Retour", window::close));
+
+        window.setComponent(panel);
+        gui.addWindowAndWait(window);
+
+    }
+
+>>>>>>> 9ddcfc096593cfab8d4a67f7d334d4fcdbc3051d
     /**
      * @param panel
      *juste a servir a convertir le contenu visuel  label en String
