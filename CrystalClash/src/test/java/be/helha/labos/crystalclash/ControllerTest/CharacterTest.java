@@ -7,6 +7,7 @@ import be.helha.labos.crystalclash.DAOImpl.CharacterDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
 import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.BackPack;
+import be.helha.labos.crystalclash.Object.Equipment;
 import be.helha.labos.crystalclash.Service.CharacterService;
 import be.helha.labos.crystalclash.Service.InventoryService;
 import be.helha.labos.crystalclash.Service.UserService;
@@ -391,7 +392,7 @@ public class CharacterTest {
         }
         characterService.saveBackPackForCharacter(username, backpack);
 
-        //cree l'invenataire et mettre objet de trop dedans
+        //crée l'inventaire et mettre objet de trop dedans
         inventoryDAO.createInventoryForUser(username);
         Inventory inventory = inventoryDAO.getInventoryForUser(username);
         // Ajouter un objet
@@ -413,6 +414,68 @@ public class CharacterTest {
 
     }
 
+
+    @Test
+    @Order(9)
+    @DisplayName("Test récupération d'un equipment")
+    public void testGetEquipment() throws Exception {
+        String username = "CharacterTestUser";
+
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Characters").deleteMany(new org.bson.Document("username", username));
+
+        // Simuler un utilisateur connecté (tout ce qu'il faut faire pour que le contrôleur fonctionne)
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, null);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        var character = new be.helha.labos.crystalclash.Characters.Aquaman();
+
+        characterService.saveCharacterForUser(username, character.getClass().getSimpleName());
+        characterService.createEquipmentForCharacter(username, character.getClass().getSimpleName());
+        Equipment equipmentGet = characterService.getEquipmentForCharacter(username);
+        assertNotNull(equipmentGet, "L'equipement doit être null");
+        assertTrue(equipmentGet.getObjets().isEmpty(), "L'equipement doit être vide après la création");
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Test d'ajout d'une armure de l'equipement")
+    public void testaddInEquipment() throws Exception {
+        String username = "CharacterTestUser";
+
+        var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        mongo.getCollection("Characters").deleteMany(new org.bson.Document("username", username));
+
+        // Simuler un utilisateur connecté (tout ce qu'il faut faire pour que le contrôleur fonctionne)
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, null);
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        var character = new be.helha.labos.crystalclash.Characters.Aquaman();
+
+        characterService.saveCharacterForUser(username, character.getClass().getSimpleName());
+        characterService.createEquipmentForCharacter(username, character.getClass().getSimpleName());
+
+        // Créer l'inventaire
+        inventoryDAO.createInventoryForUser(username);
+        Inventory inventory = inventoryDAO.getInventoryForUser(username);
+
+        // Ajouter un objet dans l'inventaire
+        var objet = new be.helha.labos.crystalclash.Object.Armor("Armure", 150,15,5,15);
+        objet.setType("Armor");
+        inventory.ajouterObjet(objet);
+
+        // Sauvegarder l'inventaire
+        inventoryDAO.saveInventoryForUser(username, inventory);
+
+        // Ajout de l’objet a l'equipement
+        characterService.addArmorToEquipment(username, objet.getName(), objet.getType());
+
+        // Vérification du contenu de l'equipement
+        Equipment equipment = characterService.getEquipmentForCharacter(username);
+        assertNotNull(equipment, "L'equipement ne doit pas être null");
+        assertEquals(1, equipment.getObjets().size(), "L'equipement doit contenir un objet");
+        assertEquals("Armure", equipment.getObjets().get(0).getName(), "L'equipement doit être correctement ajouté");
+    }
 
 }
 
