@@ -60,4 +60,29 @@ public class EquipmentTest {
         assertTrue(equipment.getObjets().isEmpty());
     }
 
+    @Order(4)
+    @Test
+    @DisplayName("Retirer une armure inexistante")
+    public void testRemoveNotExistArmor() {
+        ObjectBase obj = new ObjectBase("ghostarmor",25,1,3);
+        boolean result = equipment.removeArmor(obj);
+        assertFalse(result);
+    }
+
+    @Order(5)
+    @Test
+    @DisplayName("Test du getter getObjets()")
+    public void testGetObjets() {
+        List<ObjectBase> objets = equipment.getObjets();
+        assertNotNull(objets);
+        assertTrue(objets.isEmpty(), "L'équipement doit être vide à l'initialisation");
+    }
+
+    @Order(6)
+    @Test
+    @DisplayName("Retour de la capacité maximale de l'equipement")
+    public void testGetCapaciteMax() {
+        int capacite = equipment.getCapaciteMax();
+        assertEquals(1, capacite, "La capacité maximale de l'equipement doit être 1");
+    }
 }
