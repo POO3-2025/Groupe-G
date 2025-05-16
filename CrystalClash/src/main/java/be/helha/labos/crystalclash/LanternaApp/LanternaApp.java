@@ -693,67 +693,7 @@ public class LanternaApp {
         gui.addWindowAndWait(profileWindow);
     }
 
-    /**
-     * Affiche la boutique
-     *
-     * @param gui
-     */
-    private static void DisplayShop(WindowBasedTextGUI gui) {
-        BasicWindow shopWindow = new BasicWindow("Boutique");
-        shopWindow.setHints(Arrays.asList(Hint.CENTERED));
 
-        int level = Session.getUserInfo().getLevel();
-
-        Panel panel = new Panel(new GridLayout(1));
-        //pour mettre a jour les cristaux
-        try {
-            String userJson = Login_Register_userHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
-            UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
-            Session.setUserInfo(updatedInfo);
-        } catch (Exception e) {
-            System.out.println("Impossible de rafraîchir les infos du joueur : " + e.getMessage());
-        }
-        UserInfo info = Session.getUserInfo();
-        panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
-        panel.addComponent(new EmptySpace());
-
-        try {
-            String json = ShopHttpClient.getShops(Session.getToken());
-            List<Map<String, Object>> shopItems = new Gson().fromJson(json, List.class);
-
-            panel.addComponent(new Label("Objets disponibles :"));
-            for (Map<String, Object> item : shopItems) {
-                String name = (String) item.get("name");
-                String type = (String) item.get("type");
-                double price = (double) item.get("price");
-                double requiredLevel = (double) item.get("requiredLevel");
-                if (level < requiredLevel) continue;
-                panel.addComponent(new Button(name + " (" + type + ", " + price + "c, niv " + requiredLevel + "+)", () -> {
-                    try {
-                        String resultJson = ShopHttpClient.buyItem(name, type, Session.getToken());
-                        JsonObject result = JsonParser.parseString(resultJson).getAsJsonObject();
-                        String message = result.get("message").getAsString();
-                        MessageDialog.showMessageDialog(gui, "Achat", message);
-                        try {
-                            String userJson = Login_Register_userHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
-                            UserInfo updateUserInfo = new Gson().fromJson(userJson, UserInfo.class);
-                        } catch (Exception e) {
-                            System.out.println("Impossible de mettre a jour les info du joueur" + e.getMessage());
-                        }
-                    } catch (Exception e) {
-                        MessageDialog.showMessageDialog(gui, "Erreur", "Impossible d'acheter : " + e.getMessage());
-                    }
-                }));
-            }
-
-        } catch (Exception e) {
-            panel.addComponent(new Label("Erreur lors du chargement de la boutique : " + e.getMessage()));
-        }
-
-        panel.addComponent(new Button("Retour", shopWindow::close));
-        shopWindow.setComponent(panel);
-        gui.addWindowAndWait(shopWindow);
-    }
 
     /**
      * Affiche le contenu du BackPack
