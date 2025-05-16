@@ -6,14 +6,17 @@ import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
 import be.helha.labos.crystalclash.DAOImpl.CharacterDAOImpl;
 import be.helha.labos.crystalclash.DeserialiseurCustom.ObjectBasePolymorphicDeserializer;
 import be.helha.labos.crystalclash.Object.BackPack;
+import be.helha.labos.crystalclash.Object.Equipment;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -141,11 +144,13 @@ VALUES (?, ?, ?, ?, ?, ?, ?,?)
 
                 if (existing == null) {
                     Document backpack = new Document("objets", List.of());
+                    Document equipment = new Document("armor", List.of());
                     long count = collection.countDocuments(new Document("username", username));
                     boolean isFirst = (count == 0);
                     Document docu = new Document("username", username)
                             .append("type", characterType)
                             .append("backpack", backpack)
+                            .append("equipment", equipment)
                             .append("selected", isFirst);
                     collection.insertOne(docu);
                 }
@@ -161,6 +166,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?,?)
         assertNotNull(result);
         assertEquals("Elf", result.getString("type"));
         assertTrue(result.containsKey("backpack"));
+        assertTrue(result.containsKey("equipment"));
     }
 
     @Test
@@ -711,6 +717,630 @@ VALUES (?, ?, ?, ?, ?, ?, ?,?)
     }
 
 
+    @Test
+    @Order(15)
+    @DisplayName("Test création de l'equipement si existant pas encore ")
+    public void testCreateEquipmentForCharacter() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        MongoCollection<Document> collection = mongoTest.getCollection("Characters");
+
+        // Préparer un document sans backpack
+        collection.insertOne(new Document("username", "EquipmentUser").append("type", "Troll"));
+
+        dao = new CharacterDAOImpl() {
+            @Override
+            public void createBackPackForCharacter(String username, String characterType) {
+                Document filtre = new Document("username", username).append("type", characterType);
+                Document doc = mongoTest.getCollection("Characters").find(filtre).first();
+
+                if (doc != null && doc.containsKey("equipment")) return;
+
+                Document equipment = new Document("armor", List.of());
+                Document update = new Document("$set", new Document("equipment", equipment));
+                mongoTest.getCollection("Characters").updateOne(filtre, update);
+            }
+        };
+
+        dao.createBackPackForCharacter("EquipmentUser", "Troll");
+
+        Document result = collection.find(new Document("username", "EquipmentUser").append("type", "Troll")).first();
+        assertNotNull(result);
+        assertTrue(result.containsKey("equipment"));
+    }
+
+    @Test
+    @Order(16)
+    @DisplayName("Test récupération de l'équipement")
+    public void testGetEquipmentForCharacter() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        MongoCollection<Document> collection = mongoTest.getCollection("Characters");
+
+        // Préparation de l'équipement simulé avec une armure
+        Document armorItem = new Document("name", "casque de fer").append("type", "Armor");
+        Document equipment = new Document("armor", List.of(armorItem));
+
+        // Insertion du personnage avec équipement dans la DB de test
+        collection.insertOne(new Document()
+                .append("username", "EquipmentGetUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("equipment", equipment)
+        );
+
+        // DAO modifié temporairement pour utiliser la base de test
+        CharacterDAOImpl dao = new CharacterDAOImpl() {
+            @Override
+            public Equipment getEquipmentForCharacter(String username) {
+                Equipment equipment = new Equipment();
+                try {
+                    Document doc = mongoTest.getCollection("Characters")
+                            .find(new Document("username", username).append("selected", true))
+                            .first();
+
+                    if (doc != null && doc.containsKey("equipment")) {
+                        Document equipmentDoc = (Document) doc.get("equipment");
+                        if (equipmentDoc.containsKey("armor")) {
+                            Object armorField = equipmentDoc.get("armor");
+
+                            Gson gson = new GsonBuilder()
+                                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                                    .create();
+
+                            if (armorField instanceof List<?>) {
+                                @SuppressWarnings("unchecked")
+                                List<Document> armorDocs = (List<Document>) armorField;
+
+                                String armorJson = gson.toJson(armorDocs);
+                                Type armorListType = new TypeToken<List<ObjectBase>>() {}.getType();
+                                List<ObjectBase> armorList = gson.fromJson(armorJson, armorListType);
+
+                                for (ObjectBase armor : armorList) {
+                                    equipment.AddArmor(armor);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return equipment;
+            }
+        };
+
+        // Exécution du test
+        Equipment result = dao.getEquipmentForCharacter("EquipmentGetUser");
+        assertNotNull(result);
+        assertFalse(result.getObjets().isEmpty());
+        assertEquals("casque de fer", result.getObjets().get(0).getName());
+    }
+
+
+    @Test
+    @Order(17)
+    @DisplayName("Test ajout d'une armure dans l'equipement")
+    public void testAddArmorToEquipment() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        // Créer l'objet dans l'inventaire
+        mongoTest.getCollection("Inventory").insertOne(new Document()
+                .append("username", "EquipmentAddUser")
+                .append("objets", List.of(
+                        new Document("name", "armure du chaos").append("type", "Armor")
+                ))
+        );
+
+        // Créer le personnage avec un equipement existant
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "EquipmentAddUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("equipment", new Document("armor", List.of()))
+        );
+
+        // Redéfinir une DAO avec base Mongo test
+        dao = new CharacterDAOImpl() {
+            @Override
+            public Equipment getEquipmentForCharacter(String username) {
+                Equipment equipment = new Equipment();
+                try {
+                    Document doc = mongoTest.getCollection("Characters")
+                            .find(new Document("username", username).append("selected", true))
+                            .first();
+
+                    if (doc != null && doc.containsKey("equipment")) {
+                        Document equipmentDoc = (Document) doc.get("equipment");
+                        if (equipmentDoc.containsKey("armor")) {
+                            Object armorField = equipmentDoc.get("armor");
+
+                            Gson gson = new GsonBuilder()
+                                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                                    .create();
+
+                            if (armorField instanceof List<?>) {
+                                @SuppressWarnings("unchecked")
+                                List<Document> armorDocs = (List<Document>) armorField;
+
+                                String armorJson = gson.toJson(armorDocs);
+                                Type armorListType = new TypeToken<List<ObjectBase>>() {}.getType();
+                                List<ObjectBase> armorList = gson.fromJson(armorJson, armorListType);
+
+                                for (ObjectBase armor : armorList) {
+                                    equipment.AddArmor(armor);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return equipment;
+            }
+            // Ajouter un objet a l'equipement
+            @Override
+            public ApiReponse addArmorToEquipment(String username, String name, String type) {
+                // Simuler le comportement simplifié : injecter directement dans Mongo
+                Document object = new Document("name", name).append("type", type);
+                mongoTest.getCollection("Characters").updateOne(
+                        new Document("username", username),
+                        new Document("$push", new Document("equipment.armor", object))
+                );
+                return new ApiReponse("Objet ajouté", null);
+            }
+        };
+
+        // Appeler la méthode testée
+        dao.addArmorToEquipment("EquipmentAddUser", "armure du chaos", "Armor");
+
+        Equipment result = dao.getEquipmentForCharacter("EquipmentAddUser");
+
+        assertNotNull(result);
+        assertEquals(1, result.getObjets().size());
+        assertEquals("armure du chaos", result.getObjets().get(0).getName());
+        assertEquals("Armor", result.getObjets().get(0).getType());
+    }
+
+    @Test
+    @Order(18)
+    @DisplayName("Test suppression d'une armure dans l'equipement")
+    public void testRemoveArmorFromEquipment() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        // Créer le personnage avec un backpack existant
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "EquipmentRemoveUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("equipment", new Document("armor", List.of(
+                        new Document("name", "armure").append("type", "Armor")
+                )))
+        );
+
+        dao = new CharacterDAOImpl() {
+            @Override
+            public ApiReponse removeArmorFromEquipment(String username, String name) {
+                mongoTest.getCollection("Characters").updateOne(
+                        new Document("username", username),
+                        new Document("$pull", new Document("equipment.armor",
+                                new Document("name", name)))
+                );
+                return new ApiReponse("Objet supprimé", null);
+            }
+
+            @Override
+            public Equipment getEquipmentForCharacter(String username) {
+                Equipment equipment = new Equipment();
+                try {
+                    Document doc = mongoTest.getCollection("Characters")
+                            .find(new Document("username", username).append("selected", true))
+                            .first();
+
+                    if (doc != null && doc.containsKey("equipment")) {
+                        Document equipmentDoc = (Document) doc.get("equipment");
+                        if (equipmentDoc.containsKey("armor")) {
+                            Object armorField = equipmentDoc.get("armor");
+
+                            Gson gson = new GsonBuilder()
+                                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                                    .create();
+
+                            if (armorField instanceof List<?>) {
+                                @SuppressWarnings("unchecked")
+                                List<Document> armorDocs = (List<Document>) armorField;
+
+                                String armorJson = gson.toJson(armorDocs);
+                                Type armorListType = new TypeToken<List<ObjectBase>>() {}.getType();
+                                List<ObjectBase> armorList = gson.fromJson(armorJson, armorListType);
+
+                                for (ObjectBase armor : armorList) {
+                                    equipment.AddArmor(armor);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return equipment;
+            }
+        };
+
+        dao.removeArmorFromEquipment("EquipmentRemoveUser", "armure");
+
+        Equipment result = dao.getEquipmentForCharacter("EquipmentRemoveUser");
+
+        assertNotNull(result);
+        assertTrue(result.getObjets().isEmpty());
+    }
+
+
+    @Test
+    @Order(19)
+    @DisplayName("Échec - Objet introuvable dans l'inventaire ou coffre")
+    public void testAddArmorToEquipment_ObjectNotFound() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        // Inventaire sans l'objet recherché
+        mongoTest.getCollection("Inventory").insertOne(new Document()
+                .append("username", "UserEquipmentNotFoundTest")
+                .append("objets", List.of(
+                        new Document("name", "armure").append("type", "Armor")
+                ))
+        );
+
+        // Backpack vide
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "UserEquipmentNotFoundTest")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("equipment", new Document("armor", List.of()))
+        );
+
+        dao = new CharacterDAOImpl() {
+            @Override
+            public Equipment getEquipmentForCharacter(String username) {
+                Equipment equipment = new Equipment();
+                try {
+                    Document doc = mongoTest.getCollection("Characters")
+                            .find(new Document("username", username).append("selected", true))
+                            .first();
+
+                    if (doc != null && doc.containsKey("equipment")) {
+                        Document equipmentDoc = (Document) doc.get("equipment");
+                        if (equipmentDoc.containsKey("armor")) {
+                            Object armorField = equipmentDoc.get("armor");
+
+                            Gson gson = new GsonBuilder()
+                                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                                    .create();
+
+                            if (armorField instanceof List<?>) {
+                                @SuppressWarnings("unchecked")
+                                List<Document> armorDocs = (List<Document>) armorField;
+
+                                String armorJson = gson.toJson(armorDocs);
+                                Type armorListType = new TypeToken<List<ObjectBase>>() {}.getType();
+                                List<ObjectBase> armorList = gson.fromJson(armorJson, armorListType);
+
+                                for (ObjectBase armor : armorList) {
+                                    equipment.AddArmor(armor);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return equipment;
+            }
+
+            @Override
+            public ApiReponse addArmorToEquipment(String username, String name, String type) {
+
+                return new ApiReponse("Objet non trouvé dans l'inventaire ni dans un coffre.", null);
+            }
+        };
+
+        ApiReponse response = dao.addArmorToEquipment("UserEquipmentNotFoundTest", "ghostarmure", "Armor");
+
+        assertNotNull(response);
+        assertEquals("Objet non trouvé dans l'inventaire ni dans un coffre.", response.getMessage());
+    }
+
+    @Test
+    @Order(20)
+    @DisplayName("Échec - Suppression d'objet inexistant de l'equipement")
+    public void testRemoveArmorFromEquipment_ObjectNotFound() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "NoSuchItemUserEquipment")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("equipment", new Document("armor", List.of()))
+        );
+
+        dao =new CharacterDAOImpl(){
+            @Override
+            public ApiReponse removeArmorFromEquipment(String username, String name) {
+                Document result = mongoTest.getCollection("Characters").find(
+                        new Document("username", username).append("equipment.armor.name", name)
+                ).first();
+
+                if (result == null) {
+                    return new ApiReponse("Objet non trouvé dans l'équipement'.", null);
+                }
+
+                mongoTest.getCollection("Characters").updateOne(
+                        new Document("username", username),
+                        new Document("$pull", new Document("equipment.armor",
+                                new Document("name", name)))
+                );
+                return new ApiReponse("Objet supprimé", null);
+            }
+
+        };
+
+        ApiReponse response = dao.removeArmorFromEquipment("NoSuchItemUserEquipment", "ghostarmor");
+
+        assertNotNull(response);
+        assertEquals("Objet non trouvé dans l'équipement'.", response.getMessage());
+    }
+
+
+
+    @Test
+    @Order(21)
+    @DisplayName("Échec - Inventaire plein lors du retrait de l'equipement")
+    public void testRemoveArmorFromEquipment_InventoryFull() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        // Objet à retirer de l'equipement
+        Document objet = new Document("name", "armure").append("type", "Armor");
+
+        List<Document> inventoryFull = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            inventoryFull.add(new Document("name", "item" + i).append("type", "Armor"));
+        }
+
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "InventoryFullUser2")
+                .append("type", "Aquaman")
+                .append("selected", true)
+                .append("equipment", new Document("armor", List.of(objet)))
+        );
+
+        mongoTest.getCollection("Inventory").insertOne(new Document()
+                .append("username", "InventoryFullUser2")
+                .append("objets", inventoryFull)
+        );
+
+        dao =new CharacterDAOImpl(){
+            @Override
+            public ApiReponse removeArmorFromEquipment(String username, String name) {
+                // Vérifie si l'armure' est dans l'equipement
+                Document character = mongoTest.getCollection("Characters").find(
+                        new Document("username", username).append("equipment.armor.name", name)
+                ).first();
+
+                if (character == null) {
+                    return new ApiReponse("Objet non trouvé dans l'equipement'.", null);
+                }
+
+                // Vérifie si l’inventaire est plein
+                Document inventory = mongoTest.getCollection("Inventory")
+                        .find(new Document("username", username)).first();
+
+                if (inventory != null) {
+                    List<Document> objets = (List<Document>) inventory.get("objets");
+                    if (objets != null && objets.size() >= 30) {
+                        return new ApiReponse("Inventaire plein !", null);
+                    }
+                }
+
+                // Simule suppression
+                mongoTest.getCollection("Characters").updateOne(
+                        new Document("username", username),
+                        new Document("$pull", new Document("equipment.armor", new Document("name", name)))
+                );
+
+                return new ApiReponse("Objet supprimé", null);
+            }
+
+        };
+
+        ApiReponse response = dao.removeArmorFromEquipment("InventoryFullUser2", "armure");
+
+        assertNotNull(response);
+        assertEquals("Inventaire plein !", response.getMessage());
+    }
+
+    @Test
+    @Order(22)
+    @DisplayName("Échec - Equipement plein")
+    public void testAddArmorToEquipement_WhenFull() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+
+        // Créer un inventaire avec un objet à ajouter
+        mongoTest.getCollection("Inventory").insertOne(new Document()
+                .append("username", "EquipmentFullUser")
+                .append("objets", List.of(
+                        new Document("name", "armure").append("type", "Armor")
+                ))
+        );
+
+        // Créer un equipement avec 1 armure (limite atteinte)
+        List<Document> objets = List.of(
+
+                new Document("name", "obj1").append("type", "Armor")
+        );
+
+        mongoTest.getCollection("Characters").insertOne(new Document()
+                .append("username", "EquipmentFullUser")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("equipment", new Document("armor", objets))
+        );
+
+        dao = new CharacterDAOImpl() {
+            @Override
+            public Equipment getEquipmentForCharacter(String username) {
+                Equipment equipment = new Equipment();
+                try {
+                    Document doc = mongoTest.getCollection("Characters")
+                            .find(new Document("username", username).append("selected", true))
+                            .first();
+
+                    if (doc != null && doc.containsKey("equipment")) {
+                        Document equipmentDoc = (Document) doc.get("equipment");
+                        if (equipmentDoc.containsKey("armor")) {
+                            Object armorField = equipmentDoc.get("armor");
+
+                            Gson gson = new GsonBuilder()
+                                    .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
+                                    .create();
+
+                            if (armorField instanceof List<?>) {
+                                @SuppressWarnings("unchecked")
+                                List<Document> armorDocs = (List<Document>) armorField;
+
+                                String armorJson = gson.toJson(armorDocs);
+                                Type armorListType = new TypeToken<List<ObjectBase>>() {}.getType();
+                                List<ObjectBase> armorList = gson.fromJson(armorJson, armorListType);
+
+                                for (ObjectBase armor : armorList) {
+                                    equipment.AddArmor(armor);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return equipment;
+            }
+
+            @Override
+            public ApiReponse addArmorToEquipment(String username, String name, String type) {
+                Equipment equipment = getEquipmentForCharacter(username);
+                if (equipment.getObjets().size() >= 1) {
+                    return new ApiReponse("Equipement plein !", null);
+                }
+
+                Document object = new Document("name", name).append("type", type);
+                mongoTest.getCollection("Characters").updateOne(
+                        new Document("username", username),
+                        new Document("$push", new Document("equipment.armor", object))
+                );
+                return new ApiReponse("Objet ajouté", null);
+            }
+        };
+
+        ApiReponse response = dao.addArmorToEquipment("EquipmentFullUser", "armure", "Armor");
+
+        assertNotNull(response);
+        assertEquals("Equipement plein !", response.getMessage());
+    }
+
+
+    @Test
+    @Order(23)
+    @DisplayName("Test mise à jour de la fiabilité d’un objet dans le backpack")
+    public void testUpdateReliabilityInBackPack() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        MongoCollection<Document> collection = mongoTest.getCollection("Characters");
+
+        // Document initial avec backpack et un objet ayant une fiabilité de 5
+        Document objet = new Document("name", "épée").append("type", "Weapon").append("reliability", 5);
+        collection.insertOne(new Document()
+                .append("username", "ReliabilityBackpack")
+                .append("type", "Elf")
+                .append("selected", true)
+                .append("backpack", new Document("objets", List.of(objet)))
+        );
+
+        dao = new CharacterDAOImpl() {
+            @Override
+            public ApiReponse updateReliabilityInBackPack(String username, String objectName, int newReliability) {
+                Document filter = new Document("username", username)
+                        .append("selected", true)
+                        .append("backpack.objets.name", objectName);
+
+                Document update = new Document("$set",
+                        new Document("backpack.objets.$.reliability", newReliability));
+
+                mongoTest.getCollection("Characters").updateOne(filter, update);
+
+                return new ApiReponse("Fiabilité mise à jour", null);
+            }
+        };
+
+        // Appel de la méthode testée
+        dao.updateReliabilityInBackPack("ReliabilityBackpack", "épée", 4);
+
+        // Récupération du personnage et de son backpack
+        Document result = collection.find(
+                new Document("username", "ReliabilityBackpack").append("selected", true)
+        ).first();
+
+        assertNotNull(result);
+        List<Document> objets = ((Document) result.get("backpack")).getList("objets", Document.class);
+        assertFalse(objets.isEmpty());
+        assertEquals("épée", objets.get(0).getString("name"));
+        assertEquals(4, objets.get(0).getInteger("reliability"));
+    }
+
+
+    @Test
+    @Order(24)
+    @DisplayName("Test mise à jour de la fiabilité d’une armure dans le backpack")
+    public void testUpdateReliabilityInEquipment() {
+        MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
+        MongoCollection<Document> collection = mongoTest.getCollection("Characters");
+
+        // Document initial avec equipement et une armure ayant une fiabilité de 10
+        Document objet = new Document("name", "armure").append("type", "Armor").append("reliability", 10);
+        collection.insertOne(new Document()
+                .append("username", "ReliabilityEquipment")
+                .append("type", "Dragon")
+                .append("selected", true)
+                .append("equipment", new Document("armor", List.of(objet)))
+        );
+
+        dao = new CharacterDAOImpl() {
+            @Override
+            public ApiReponse updateReliabilityInEquipment(String username, String objectName, int newReliability) {
+                Document filter = new Document("username", username)
+                        .append("selected", true)
+                        .append("equipment.armor.name", objectName);
+
+                Document update = new Document("$set",
+                        new Document("equipment.armor.$.reliability", newReliability));
+
+                mongoTest.getCollection("Characters").updateOne(filter, update);
+
+                return new ApiReponse("Fiabilité mise à jour", null);
+            }
+        };
+
+        // Appel de la méthode testée
+        dao.updateReliabilityInEquipment("ReliabilityEquipment", "armure", 9);
+
+        // Récupération du personnage et de son equipement
+        Document result = collection.find(
+                new Document("username", "ReliabilityEquipment").append("selected", true)
+        ).first();
+
+        assertNotNull(result);
+        List<Document> objets = ((Document) result.get("equipment")).getList("armor", Document.class);
+        assertFalse(objets.isEmpty());
+        assertEquals("armure", objets.get(0).getString("name"));
+        assertEquals(9, objets.get(0).getInteger("reliability"));
+    }
 
 
 

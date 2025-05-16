@@ -844,7 +844,7 @@ public class CharacterDAOImpl implements CharacterDAO {
     public ApiReponse updateReliabilityInEquipment(String username, String objectId, int newReliability) {
         try {
             Equipment equipment = getEquipmentForCharacter(username);
-            System.out.println("je passe par la, characterDAO");
+
             boolean found = false;
 
             for (ObjectBase obj : equipment.getObjets()) {

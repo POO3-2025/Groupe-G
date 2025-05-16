@@ -1902,6 +1902,77 @@ public class LanternaApp {
                                         actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton,  perso, playerHPmax, enemyhpmax);
                                 break;
 
+
+
+
+                            case "CoffreDesJoyaux":
+                                CoffreDesJoyaux coffre = (CoffreDesJoyaux) objlist;
+
+                                // Crée le sous-panel pour le contenu (initialement masqué)
+                                Panel contenuPanel = new Panel(new GridLayout(1));
+                                contenuPanel.setVisible(false); // caché au début
+
+                                List<ObjectBase> contenu = coffre.getContenu();
+                                if (contenu == null || contenu.isEmpty()) {
+                                    contenuPanel.addComponent(new Label("→ Le coffre est vide."));
+                                } else {
+                                    for (ObjectBase item : contenu) {
+                                        String itemLabel = "→ " + item.getName() + " (" + item.getType() + ")";
+                                            /*
+                                        // Crée un bouton pour chaque objet dans le coffre
+                                        Button itemButton = new Button(itemLabel, () -> {
+                                            try {
+                                                // 1️⃣ Supprimer l'objet du contenu du coffre (MongoDB)
+                                                String responseRemoveFromCoffre = HttpService.removeObjectFromCoffre(username, coffre.getId(), item.getId(), Session.getToken());
+                                                System.out.println("Suppression de l'objet du coffre : " + responseRemoveFromCoffre);
+
+                                                // 2️⃣ Ajouter l'objet au backpack (MongoDB)
+                                                String responseAddToBackpack = HttpService.addObjectToBackpack(username, item.getId(), Session.getToken());
+                                                System.out.println("Ajout de l'objet au backpack : " + responseAddToBackpack);
+
+                                                history.append("Vous avez récupéré " + item.getName() + " du coffre et l’avez ajouté au backpack.\n");
+
+                                                // 3️⃣ Recharger l'affichage
+                                                backpackPanel.removeAllComponents();
+                                                Panel refreshedBackpack = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
+                                                        playerHealth, enemyHealth, perso,
+                                                        historyLabel, history, tourCounter, tourLabel,
+                                                        combatWindow, showNormalAttacks, showSpecialAttacks, objectButton,
+                                                        bonusNextAttack, turnPotionForce, bonusattaque, playerHPmax, enemyhpmax);
+
+                                                actionsPanel.removeAllComponents();
+                                                actionsPanel.addComponent(refreshedBackpack);
+
+                                            } catch (Exception ex) {
+                                                ex.printStackTrace();
+                                                history.append("⚠️ Erreur lors du transfert de l’objet.\n");
+                                            }
+
+                                            historyLabel.setText(history.toString());
+                                        });
+
+                                        contenuPanel.addComponent(itemButton);
+                                    }
+                                */
+                                    }
+                                }
+                                // Bouton Coffre qui toggle l'affichage du contenu
+                                Button coffreButton = new Button(coffre.getName() + " (Coffre)", () -> {
+                                    contenuPanel.setVisible(!contenuPanel.isVisible());
+                                    contenuPanel.invalidate(); // 🟢 Rafraîchit uniquement le contenu
+                                });
+
+                                // Optionnel : entoure le bouton coffre + contenu avec une bordure
+                                Panel coffreContainer = new Panel(new GridLayout(1));
+
+                                coffreContainer.addComponent(coffreButton);
+                                coffreContainer.addComponent(contenuPanel);
+
+                                backpackPanel.addComponent(coffreContainer);
+                                backpackPanel.addComponent(new EmptySpace(new TerminalSize(1, 1))); // espacement
+                                break;
+
+
                             default:
                                 history.append("Objet inconnu : " + objlist.getName() + ".\n");
                                 break;
