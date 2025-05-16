@@ -1297,7 +1297,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?,?)
 
     @Test
     @Order(24)
-    @DisplayName("Test mise à jour de la fiabilité d’une armure dans le backpack")
+    @DisplayName("Test mise à jour de la fiabilité d’une armure dans l'equipement")
     public void testUpdateReliabilityInEquipment() {
         MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
         MongoCollection<Document> collection = mongoTest.getCollection("Characters");
