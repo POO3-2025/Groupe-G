@@ -249,6 +249,11 @@ public class LanternaApp {
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
+
+        mainPanel.addComponent(createSectionLabel("Règles du jeu"));
+        mainPanel.addComponent(new Button("Voir les règles du jeu", ()->showRules(gui)));
+
+        mainPanel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
         // Section Profil
         mainPanel.addComponent(createSectionLabel("Profil"));
         mainPanel.addComponent(new Button("Voir profil", () -> afficherMonProfil(gui)));
@@ -2321,6 +2326,66 @@ public class LanternaApp {
 
         window.setComponent(panel);
         gui.addWindowAndWait(window);
+    }
+
+    /**
+     * @return
+     *  permet d'afficher les regles du jeu
+     * **/
+    private static void showRules(WindowBasedTextGUI gui) {
+        BasicWindow window = new BasicWindow("Règles du jeu :");
+        window.setHints(List.of(Window.Hint.CENTERED)); //Centrés
+
+        Panel panel = new Panel(new GridLayout(1));
+        panel.addComponent(new EmptySpace());
+        panel.addComponent(new Label("Bienvenue dans Crystal Clash !"));
+        panel.addComponent(new Label("Voici les règles du jeu :"));
+
+        panel.addComponent(new EmptySpace());
+
+        panel.addComponent(new Label("• Chaque joueur commence avec 100 PV."));
+        panel.addComponent(new Label("• Les joueurs jouent à tour de rôle."));
+        panel.addComponent(new Label("• Chaque joueur peut utiliser des objets depuis son sac à dos (backpack)."));
+        panel.addComponent(new Label("• Les attaques de base sont toujours disponibles."));
+        panel.addComponent(new Label("• Les attaques spéciales se débloquent après plusieurs attaques normales."));
+        panel.addComponent(new Label("• Les objets ont une endurance limitée."));
+
+        panel.addComponent(new EmptySpace());
+
+        panel.addComponent(new Label("Récompenses en fin de combat :"));
+        panel.addComponent(new Label("• Le gagnant reçoit 50 cristaux et monte d'un niveau."));
+        panel.addComponent(new Label("• Le perdant ne reçoit rien."));
+        panel.addComponent(new Label("• Si un joueur abandonne (forfait), il ne reçoit rien."));
+        panel.addComponent(new Label("• L’adversaire d’un joueur forfait gagne 25 cristaux."));
+        panel.addComponent(new EmptySpace());
+
+
+        panel.addComponent(new Label("Matchmaking :"));
+        panel.addComponent(new Label("• Pour jouer avec un ami, allez dans la salle d'attente et attendez qu'il vous rejoigne."));
+        panel.addComponent(new Label("• Sinon, vous pouvez lancer un combat contre un bot en cliquant sur \"Lancer un combat\"."));
+        panel.addComponent(new EmptySpace());
+
+        panel.addComponent(new Label("Gérer l'équipement :"));
+        panel.addComponent(new Label("• Inventaire : 30 emplacements."));
+        panel.addComponent(new Label("• Sac à dos : 5 emplacements pour les objets actifs."));
+        panel.addComponent(new Label("• Coffre : 10 emplacements, peut être mis dans l'inventaire ou le sac à dos."));
+
+
+        panel.addComponent(new Label("Trophées :"));
+        panel.addComponent(new Label("• Vous pouvez obtenir des trophées en réalisant des défis."));
+        panel.addComponent(new Label("• Certains trophées offrent des récompenses spéciales comme des objets et des cristaux pour certains"));
+
+        panel.addComponent(new EmptySpace());
+
+        panel.addComponent(new Label("Roulette :"));
+        panel.addComponent(new Label("• Une fois par jour, vous pouvez jouer à la roulette."));
+        panel.addComponent(new Label("• Cela vous permet de gagner des objets aléatoires."));
+        panel.addComponent(new EmptySpace());
+        panel.addComponent(new Button("Retour", window::close));
+
+        window.setComponent(panel);
+        gui.addWindowAndWait(window);
+
     }
 
     /**
