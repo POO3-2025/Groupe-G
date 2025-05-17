@@ -2413,7 +2413,7 @@ public class LanternaApp {
                         historyPanel.addComponent(new Label("Historique :"));
 
                         List<String> log = updated.getLog();
-                        int start = Math.max(0, log.size() - 10); // Affiche les 20 dernières entrées
+                        int start = Math.max(0, log.size() - 10); // Affiche les 10 dernières entrées
 
                         for (int i = start; i < log.size(); i++) {
                             historyPanel.addComponent(new Label(log.get(i)));
