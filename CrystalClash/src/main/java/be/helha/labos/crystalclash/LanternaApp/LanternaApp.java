@@ -742,7 +742,6 @@ public class LanternaApp {
                     double price = (double) item.get("price");
                     double requiredLevel = (double) item.get("requiredLevel");
 
-
                     if (level < requiredLevel) continue;
 
                     String label = name + ": " + price + "cristaux, niveau" + requiredLevel ;
@@ -2105,12 +2104,9 @@ public class LanternaApp {
                 try {
                     Thread.sleep(2000);
                     String json = FightHttpCLient.getCombatState(Session.getUsername(), Session.getToken());
-                    //Quand ça rencontre un objet de type ObjectBase, utilise le deserialiseur custom
-                    //comme ça Gson saure instancier les bonnes sous-classes
                     Gson gson = new GsonBuilder()
                             .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                             .create();
-                    //Transforme en objet java SateCombat(permet a l'interface de savoir le bon état du combat)
                     StateCombat updated = gson.fromJson(json, StateCombat.class);
                     //Si null alors le joueur a quitté
                     //SI pas je récup le dernier winner
@@ -2119,9 +2115,7 @@ public class LanternaApp {
                             String winner = null;
                             try {
                                 String reponseJson = FightHttpCLient.getLastWinner(Session.getUsername(), Session.getToken());
-                                //parser la chaine JSON recu de reponseJson en un objet JsonObject (on peux la acceder a chaque champ)
                                 JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
-                                //extrait le champs winner de l'objet JSON et stock dans winner
                                 winner = jsonObject.get("winner").getAsString();
                             } catch (Exception e) {
                                 System.out.println("Erreur récup du gagnant : " + e.getMessage());
@@ -2155,21 +2149,13 @@ public class LanternaApp {
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
 
-                           //Thread pour afficher les pv 0
-                            new Thread(() ->{
-                                try{
-                                    Thread.sleep(600);
-                                } catch (InterruptedException e) {
-                                    throw new RuntimeException(e);
-                                }
-                           gui.getGUIThread().invokeLater(() ->{
                             String winner = null;
                             try {
                                 String reponseJson  = FightHttpCLient.getLastWinner(Session.getUsername(), Session.getToken());
                                 JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
-                                winner = jsonObject.get("winner").getAsString();
-                            } catch (Exception e) {
+                                winner = jsonObject.get("winner").getAsString();                                } catch (Exception e) {
                             }
+
 
                             String message;
                             if (winner == null) {
@@ -2184,8 +2170,6 @@ public class LanternaApp {
                             combatWindow.close();
                             MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
                             afficherMenuPrincipal(gui);
-                        });
-                            }).start();
                         });
                         break;
                     }
@@ -2390,24 +2374,24 @@ public class LanternaApp {
             boolean or = stats.getBoolean("or",false);
 
             String bronzeLabel = "bronze : " + CalculateProgression(List.of(
-              win >= 1,
-                win >= 1 && nombreTours <= 15
+                    win >= 1,
+                    win >= 1 && nombreTours <= 15
             ));
             if (bronze) bronzeLabel += " obtenu";
 
             String sliverLabel = "silver : " + CalculateProgression(List.of(
-                winConcecutive >= 5,
-                cristaux >= 200,
-                win >= 1 && nombreTours <=10
+                    winConcecutive >= 5,
+                    cristaux >= 200,
+                    win >= 1 && nombreTours <=10
             ));
             if (silver) sliverLabel += "obtenu";
 
 
             String orLabel = "or : " + CalculateProgression(List.of(
-                winConcecutive >= 10,
-                cristaux >= 500,
-                win >=1 && nombreTours <= 6,
-                bazooka > 0
+                    winConcecutive >= 10,
+                    cristaux >= 500,
+                    win >=1 && nombreTours <= 6,
+                    bazooka > 0
             ));
             if (or) orLabel += "obtenu";
 
@@ -2502,30 +2486,30 @@ public class LanternaApp {
         boolean bronzeOk = (win >= 1) && (win >= 1 && nbrtours <= 15);
         if (bronzeOk && !Session.getTrophyNoti("bronze")) {
             MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
-                "Trophé Bronze débloqué ! \n\n" +
-                    "Conditions remplies : \n" +
-                    "Gagnez 1 combat\nGagnez un combat en 15 tours ou moins \n\n " +
-                    "Récompense : Epée en bois");
+                    "Trophé Bronze débloqué ! \n\n" +
+                            "Conditions remplies : \n" +
+                            "Gagnez 1 combat\nGagnez un combat en 15 tours ou moins \n\n " +
+                            "Récompense : Epée en bois");
             Session.addTrophyNoti("bronze");
         }
 
         boolean silverok = (winconcec >= 5) && (cristaux >=200) && (win >= 1 && nbrtours <= 10);
         if (silverok && !Session.getTrophyNoti("silver")) {
             MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
-                "Trophé Silver  débloqué ! \n\n" +
-                    "Conditions remplies : \n" +
-                    "5 victoires concécutives\nGagnez un combat en 10 tours ou moins \nGagnez 200 cristaux " +
-                    "Récompense : Couteau en diamant + 50 cristaux");
+                    "Trophé Silver  débloqué ! \n\n" +
+                            "Conditions remplies : \n" +
+                            "5 victoires concécutives\nGagnez un combat en 10 tours ou moins \nGagnez 200 cristaux " +
+                            "Récompense : Couteau en diamant + 50 cristaux");
             Session.addTrophyNoti("or");
 
         }
         boolean orOK = (winconcec >= 10) && (cristaux >=500) && (win >= 1 && nbrtours <= 6) && (bazooka > 0);
         if (orOK && !Session.getTrophyNoti("or")) {
             MessageDialog.showMessageDialog(gui, "Trophée débloqué !",
-                "Trophé Or débloqué ! \n\n" +
-                    "Conditions remplies : \n" +
-                    "10 victoires concécutives\nGagnez un combat en 6 tours ou moins \nGagnez 500 cristaux\nBazooka utilisé\n\n " +
-                    "Récompense : Couteau en diamant + 75 cristaux");
+                    "Trophé Or débloqué ! \n\n" +
+                            "Conditions remplies : \n" +
+                            "10 victoires concécutives\nGagnez un combat en 6 tours ou moins \nGagnez 500 cristaux\nBazooka utilisé\n\n " +
+                            "Récompense : Couteau en diamant + 75 cristaux");
             Session.addTrophyNoti("or");
 
         }
