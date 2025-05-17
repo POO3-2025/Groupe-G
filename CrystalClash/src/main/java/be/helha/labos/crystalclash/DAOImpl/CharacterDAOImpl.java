@@ -19,6 +19,7 @@ import org.springframework.stereotype.Repository;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @Repository
@@ -533,6 +534,12 @@ public class CharacterDAOImpl implements CharacterDAO {
                         CoffreDesJoyaux coffre = (CoffreDesJoyaux) obj;
                         List<Document> contenuDocs = new ArrayList<>();
                         for (ObjectBase item : coffre.getContenu()) {
+
+                            if ((item instanceof Weapon weapon && weapon.getReliability() == 0) ||
+                                    (item instanceof Armor armor && armor.getReliability() == 0)) {
+                                System.out.println("Suppression objet cassé dans coffre : " + item.getName());
+                                continue;
+                            }
                             Document itemDoc = new Document()
                                     .append("id", item.getId())
                                     .append("name", item.getName())
@@ -798,12 +805,13 @@ public class CharacterDAOImpl implements CharacterDAO {
     public ApiReponse updateReliabilityInBackPack(String username, String objectId, int newReliability) {
         try {
             BackPack backpack = getBackPackForCharacter(username);
-
             boolean found = false;
 
             for (ObjectBase obj : backpack.getObjets()) {
+                System.out.println("Objet backpack: " + obj.getId());
+
+                // 1. Objet direct dans le backpack
                 if (obj.getId().equals(objectId)) {
-                    // Vérifie que c'est bien une Weapon ou Armor
                     if (obj instanceof Weapon weapon) {
                         weapon.setReliability(newReliability);
                         found = true;
@@ -813,22 +821,42 @@ public class CharacterDAOImpl implements CharacterDAO {
                         found = true;
                         break;
                     } else {
-                        return new ApiReponse("L'objet trouvé n'a pas de reliability (ce n'est ni une arme ni une armure).", null);
+                        return new ApiReponse("L'objet trouvé n'est ni une arme ni une armure.", null);
                     }
+                }
+
+                // 2. Si objet est un coffre, parcourir son contenu
+                else if (obj instanceof CoffreDesJoyaux coffre) {
+                    for (ObjectBase inner : coffre.getContenu()) {
+                        System.out.println(" -> Contenu coffre: " + inner.getId());
+
+                        if (inner.getId().equals(objectId)) {
+                            if (inner instanceof Weapon w) {
+                                w.setReliability(newReliability);
+                                found = true;
+                            } else if (inner instanceof Armor a) {
+                                a.setReliability(newReliability);
+                                found = true;
+                            } else {
+                                return new ApiReponse("L'objet dans le coffre n'est ni une arme ni une armure.", null);
+                            }
+                            break;
+                        }
+                    }
+                    if (found) break;
                 }
             }
 
             if (!found) {
-                return new ApiReponse("Objet avec l'ID spécifié non trouvé dans le backpack.", null);
+                return new ApiReponse("Objet avec l'ID spécifié non trouvé dans le backpack ni dans les coffres.", null);
             }
 
-            // Sauvegarder le backpack après modification
             saveBackPackForCharacter(username, backpack);
-
             return new ApiReponse("Reliability de l'objet modifiée avec succès.", null);
+
         } catch (Exception e) {
             e.printStackTrace();
-            return new ApiReponse("Erreur lors de la modification de la reliability : " + e.getMessage(), null);
+            return new ApiReponse("Erreur lors de la modification : " + e.getMessage(), null);
         }
     }
 
@@ -886,30 +914,37 @@ public class CharacterDAOImpl implements CharacterDAO {
     @Override
     public ApiReponse deleteObjectFromBackPack(String username, String objectId) {
         try {
-            // Récupérer le backpack actuel du personnage sélectionné
             BackPack backpack = getBackPackForCharacter(username);
 
             if (backpack == null || backpack.getObjets().isEmpty()) {
                 return new ApiReponse("Backpack vide ou introuvable.", null);
             }
 
-            // Chercher l'objet à supprimer en utilisant l'objectId
-            ObjectBase objectToRemove = backpack.getObjets().stream()
-                    .filter(obj -> obj.getId().equals(objectId))  // On compare par l'ID de l'objet
-                    .findFirst()
-                    .orElse(null);
+            // 1. Supprimer si l'objet est directement dans le backpack
+            Iterator<ObjectBase> iterator = backpack.getObjets().iterator();
+            while (iterator.hasNext()) {
+                ObjectBase obj = iterator.next();
+                if (obj.getId().equals(objectId)) {
+                    iterator.remove();
+                    saveBackPackForCharacter(username, backpack);
+                    return new ApiReponse("Objet supprimé du backpack.", obj);
+                }
 
-            if (objectToRemove == null) {
-                return new ApiReponse("Objet non trouvé dans le backpack.", null);
+                // 2. Si c’est un coffre, chercher dedans
+                if (obj instanceof CoffreDesJoyaux coffre) {
+                    Iterator<ObjectBase> contenuIter = coffre.getContenu().iterator();
+                    while (contenuIter.hasNext()) {
+                        ObjectBase item = contenuIter.next();
+                        if (item.getId().equals(objectId)) {
+                            contenuIter.remove();
+                            saveBackPackForCharacter(username, backpack);
+                            return new ApiReponse("Objet supprimé du coffre.", item);
+                        }
+                    }
+                }
             }
 
-            // Supprimer l'objet
-            backpack.getObjets().remove(objectToRemove);
-
-            // Sauvegarder le nouveau backpack sans l'objet
-            saveBackPackForCharacter(username, backpack);
-
-            return new ApiReponse("Objet supprimé du backpack.", objectToRemove);
+            return new ApiReponse("Objet non trouvé dans le backpack ou les coffres.", null);
 
         } catch (Exception e) {
             System.err.println("Erreur lors de la suppression de l'objet du backpack : " + e.getMessage());
@@ -917,6 +952,7 @@ public class CharacterDAOImpl implements CharacterDAO {
             return new ApiReponse("Erreur interne lors de la suppression de l'objet.", null);
         }
     }
+
 
 }
 
