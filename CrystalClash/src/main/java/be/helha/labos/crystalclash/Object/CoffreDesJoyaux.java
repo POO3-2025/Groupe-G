@@ -38,7 +38,7 @@ public class CoffreDesJoyaux extends ObjectBase {
 
     /**
      * Ajoute un objet au coffre.
-     * @param object
+     * @param object object
      * @return true si l'objet a été ajouté, false si le coffre est plein.
      */
     public boolean AddObjects(ObjectBase object) {

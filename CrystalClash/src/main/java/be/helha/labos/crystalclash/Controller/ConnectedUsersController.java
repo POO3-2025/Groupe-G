@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Controller pour gérer les utilisateurs connectés et le matchmaking.
  * Il permet de récupérer la liste des utilisateurs connectés, de gérer les connexions et déconnexions,
  * ainsi que d'entrer et sortir du matchmaking.
- */
+ **/
 public class ConnectedUsersController {
 
     // username, infos complètes du joueur, synchronizedMap va etre utilise pour les post,get,delete
@@ -73,7 +73,7 @@ public class ConnectedUsersController {
     /**
     * @param userInfo = user renvoie le json avec ses infos
      * @return ResponseEntity avec un message de succès
-    * matchmakingWaitingRoom qui est Map<String, UserInfo>
+    * matchmakingWaitingRoom
      *ajout useer ds la salle d'attente matchmakingWaitingRoom si username pas null
     * */
     @PostMapping("/matchmaking/enter")
@@ -103,7 +103,7 @@ public class ConnectedUsersController {
     }
 
     /**
-     * @param username
+     * @param username username
      * @return retourner tous les joueurs ds la salle sauf sois meme
      * ici on va retourner tous les joueurs ds la salle sauf sois meme
      * synchronized = lui permet de faire une action a la fois sur la MAP matchmakingWaitingRoom pour garder une bonne cohérance quoi

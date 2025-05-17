@@ -61,7 +61,8 @@ public class Equipment {
 
     /**
      * Récupère la liste des armures équipées.
-     * @return armorList Liste des armures.
+     * return armorList Liste des armures.
+     * @param armorList etat objet
      */
     //Utilsié dans figthService pour changer l'etat de l'endurance de l'objet
     public void setObjets(List<ObjectBase> armorList) {

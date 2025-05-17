@@ -13,8 +13,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         "be.helha.labos.crystalclash.DAOImpl",
         "be.helha.labos.crystalclash.Service",
 })
+
+/**
+ * Lancement de springboot
+ * **/
 public class CrystalClashApplication {
 
+    /**
+     * Main
+     * **/
     public static void main(String[] args) {
         System.out.println("=== CrystalClash démarre ===");
         SpringApplication.run(CrystalClashApplication.class, args);

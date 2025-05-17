@@ -21,10 +21,10 @@ public class ObjectBase {
 
     /**
      * Constructeur de la classe ObjectBase.
-     * @param name
-     * @param price
-     * @param reliability
-     * @param requiredLevel
+     * @param name name
+     * @param price price
+     * @param reliability reliability
+     * @param requiredLevel requiredLevel
      * **/
     public ObjectBase(String name, int price, int requiredLevel, int reliability) {
         this.name = name;
@@ -40,7 +40,7 @@ public class ObjectBase {
     public String getType() {return type;}
     /**
      * CHange le type de l'objet.
-     * @param type
+     * @param type type
      * **/
     public void setType(String type) {  this.type = type; }
 
@@ -78,7 +78,7 @@ public class ObjectBase {
     }
     /**
      * Change le nom de l'objet.
-     * @param name
+     * @param name name
      * **/
     public void setName(String name) {
         this.name = name;
@@ -92,7 +92,7 @@ public class ObjectBase {
     }
     /**
      * Change le prix de l'objet.
-     * @param price
+     * @param price price
      * **/
     public void setPrice(int price) {
         this.price = price;
@@ -115,7 +115,7 @@ public class ObjectBase {
 
     /**
      * Change l'ID de l'objet.
-     * @param id
+     * @param id id
      * **/
     public void setId(String id) {
         this.id = id;
@@ -123,7 +123,7 @@ public class ObjectBase {
 
     /**
      * Change le niveau requis pour utiliser l'objet.
-     * @param requiredLevel
+     * @param requiredLevel requiredLevel
      * **/
     public void setRequiredLevel(int requiredLevel) {
         this.requiredLevel = requiredLevel;
@@ -137,7 +137,7 @@ public class ObjectBase {
     }
     /**
      * Change la fiabilité de l'objet.
-     * @param reliability
+     * @param reliability reliability
      * **/
     public void setReliability(int reliability) {
         this.reliability = reliability;

@@ -1,6 +1,8 @@
 package be.helha.labos.crystalclash.User;
 
 import be.helha.labos.crystalclash.DTO.Trophee;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +20,10 @@ import java.util.List;
     private String selectedCharacter;
     private int gagner ;
     private int perdu;
-    private int victoiresConsecutives;
+
+    private int winconsecutive;
+
+
 
     //trophee
     public List<Trophee> trophees =  new ArrayList<Trophee>();
@@ -127,27 +132,27 @@ import java.util.List;
      * @return Le nombre de victoires consécutives.
      */
     public int getWinconsecutive(){
-        return victoiresConsecutives;
+        return winconsecutive;
     }
     /**
      * change le nombre de victoires consécutives de l'utilisateur.
-     * @param victoiresConsecutives Le nombre de victoires consécutives.
+     * @param winconsecutive Le nombre de victoires consécutives.
      */
-    public void setWinconsecutive(int victoiresConsecutives){
-        this.victoiresConsecutives = victoiresConsecutives;
+    public void setWinconsecutive(int winconsecutive){
+        this.winconsecutive = winconsecutive;
     }
 
     /**
      * Incrémente le nombre de victoires consécutives de l'utilisateur.
      */
     public void incrementWinconsecutive(){
-        victoiresConsecutives ++;
+        winconsecutive ++;
     }
     /**
      * Réinitialise le nombre de victoires consécutives de l'utilisateur.
      */
     public void resetVictoiresConsecutives() {
-        this.victoiresConsecutives = 0;
+        this.winconsecutive = 0;
     }
 
     //Pour barre et trophés

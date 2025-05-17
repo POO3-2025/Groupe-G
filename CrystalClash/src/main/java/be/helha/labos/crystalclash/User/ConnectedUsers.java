@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-//Simple pour le moment
+/**
+ * ConnectedUsers map qui va contenir tous les users co
+ * **/
 public class ConnectedUsers {
     //Ici une map qui contien les infos du joeuur connecté
     private static final Map<String,UserInfo> connectedUsers = new ConcurrentHashMap<>();
@@ -28,6 +30,7 @@ public class ConnectedUsers {
 
     /**
      * Retourne le nombre d'utilisateurs connectés.
+     * @return connectedUsers.size()
      */
     public static int getConnectedUserCount() {
         return connectedUsers.size();
@@ -35,11 +38,14 @@ public class ConnectedUsers {
 
     /**
      * Récupère un utilisateur connecté par son nom.
+     * @return connectedUsers.get(username);
+     * @param username  username
      */
     public static UserInfo getUser(String username) {
         return connectedUsers.get(username);
     }
     /**
+     * @return connectedUsers
      * Retourne une Map contenant les infos du joueur
      */
     public static Map<String, UserInfo> getConnectedUsers() {

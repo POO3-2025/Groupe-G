@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Connected_LogoutHttpClient communique avec le front et back
+ * **/
 public class Connected_LogoutHttpClient {
 
     private static final String BASE_URL = HttpConfig.getBaseUrl();
@@ -48,6 +51,8 @@ public class Connected_LogoutHttpClient {
 
     /**
      * Obtient la liste de tout les joueurs co
+     * throws throws
+     * @return tb
      * **/
     public static List<UserInfo> getConnectedUsers() throws Exception {
         HttpRequest request = HttpRequest.newBuilder()

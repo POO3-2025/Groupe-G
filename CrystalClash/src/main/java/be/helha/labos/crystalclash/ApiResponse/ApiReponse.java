@@ -10,8 +10,8 @@ public class ApiReponse {
     private Object data;
     /**
      * Constructeur de la classe ApiReponse
-     * @param message
-     * @param data
+     * @param message message
+     * @param data data
      */
     public ApiReponse(String message, Object data) {
         this.message = message;
@@ -29,7 +29,7 @@ public class ApiReponse {
     }
     /**
      * Setter du message
-     * @param message
+     * @param message message
      */
     public void setMessage(String message){
         this.message = message;
@@ -45,7 +45,7 @@ public class ApiReponse {
     }
     /**
      * Setter de data
-     * @param data
+     * @param data data
      */
     public void setData(Object data){
         this.data = data;

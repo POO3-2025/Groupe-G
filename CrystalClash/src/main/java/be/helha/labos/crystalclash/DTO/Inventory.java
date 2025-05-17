@@ -27,7 +27,7 @@ public class Inventory {
 
     /**
      * Ajouter des objets a l'inventaire
-    * @param objet
+    * @param objet objet
      * @return true si l'objet a été ajouté, false sinon
      * Si l'inventaire pas plein on ajoute l objet dedans
     * **/
@@ -39,7 +39,7 @@ public class Inventory {
 
     /**
      * Retirer un objet de l'inventaire
-     * @param objet
+     * @param objet objet
      * @return true si l'objet a été retiré, false sinon
      * **/
     public boolean retirerObjet(ObjectBase objet) {

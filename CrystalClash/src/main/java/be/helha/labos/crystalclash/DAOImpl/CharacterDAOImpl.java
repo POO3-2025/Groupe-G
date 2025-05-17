@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Logique au db
+ * **/
 @Repository
 public class CharacterDAOImpl implements CharacterDAO {
     @Autowired
@@ -197,8 +200,6 @@ public class CharacterDAOImpl implements CharacterDAO {
                 // Vérifie la présence du champ "armor"
                 if (equipmentDoc.containsKey("armor")) {
                     Object armorField = equipmentDoc.get("armor");
-                    System.out.println("Raw armor field: " + armorField);
-                    System.out.println("Class of armor field: " + armorField.getClass());
 
                     // Prépare Gson avec le désérialiseur polymorphique
                     Gson gson = new GsonBuilder()
@@ -212,19 +213,17 @@ public class CharacterDAOImpl implements CharacterDAO {
 
                         // Conversion correcte en JSON
                         String armorJson = gson.toJson(armorDocs);
-                        System.out.println("Armor JSON: " + armorJson);
 
                         // Désérialise la liste en objets Java
                         Type armorListType = new TypeToken<List<ObjectBase>>() {}.getType();
                         List<ObjectBase> armorList = gson.fromJson(armorJson, armorListType);
-                        System.out.println("Armor list deserialized: " + armorList);
+
 
                         // Ajoute chaque armure dans l'équipement
                         for (ObjectBase armor : armorList) {
                             equipment.AddArmor(armor);
                         }
 
-                        System.out.println("Equipment récupéré : " + equipment.getObjets());
                     } else {
                         System.out.println("Le champ 'armor' n'est pas une liste valide.");
                     }
@@ -395,7 +394,7 @@ public class CharacterDAOImpl implements CharacterDAO {
      * Retire une armure de l'équipement du personnage du joueur
      * @param username le nom d'utilisateur
      * @param name le nom de l'armure à retirer
-     * @return
+     * @return return
      */
     @Override
     public ApiReponse removeArmorFromEquipment(String username, String name) {
@@ -478,8 +477,8 @@ public class CharacterDAOImpl implements CharacterDAO {
     /**
      * sauve le backpack du personnage du joueur
      *
-     * @param username
-     * @param backPack
+     * @param username username
+     * @param backPack backPack du user
      */
     @Override
     public void saveBackPackForCharacter(String username, BackPack backPack) {
@@ -736,7 +735,7 @@ public class CharacterDAOImpl implements CharacterDAO {
      * @param username le nom d'utilisateur
      * @param name le nom de l'objet
      * @param type le type de l'objet
-     * @return
+     * @return apiReponse
      */
     @Override
     public ApiReponse addObjectToCoffre(String username, String name, String type) {
@@ -909,7 +908,7 @@ public class CharacterDAOImpl implements CharacterDAO {
      * Supprime un objet du backpack du personnage du joueur
      * @param username le nom d'utilisateur
      * @param objectId l'identifiant de l'objet
-     * @return
+     * @return ApiReposne
      */
     @Override
     public ApiReponse deleteObjectFromBackPack(String username, String objectId) {

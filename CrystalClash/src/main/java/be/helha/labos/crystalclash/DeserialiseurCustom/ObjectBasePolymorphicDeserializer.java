@@ -28,7 +28,7 @@ public class ObjectBasePolymorphicDeserializer implements JsonDeserializer<Objec
 
         try {
             //Obtenir dynamiquement la classe correspondantes au type voulu
-            //Gson sait maintenant qu elle classe réellement a instancier avec l'onjet Json complet
+            //Gson sait maintenant qu elle classe réellement a instancier avec l'objet Json complet
             Class<?> clazz = Class.forName("be.helha.labos.crystalclash.Object." + type);
             //Injection des tous ses champs
             return context.deserialize(json, clazz);

@@ -31,7 +31,7 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<UserInfo> getUserByUsername(String username) {
         try (Connection conn = ConfigManager.getInstance().getSQLConnection("mysqlproduction")) {
-            PreparedStatement stmt = conn.prepareStatement("SELECT username, level, cristaux,is_connected, gagner,perdu FROM users WHERE username = ?");
+            PreparedStatement stmt = conn.prepareStatement("SELECT username, level, cristaux,is_connected, gagner,perdu,Winconsecutive FROM users WHERE username = ?");
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
 
@@ -43,6 +43,9 @@ public class UserDAOImpl implements UserDAO {
                 user.setConnected(rs.getBoolean("is_connected"));
                 user.setGagner(rs.getInt("gagner"));
                 user.setPerdu(rs.getInt("perdu"));
+                user.setWinconsecutive(rs.getInt("Winconsecutive"));
+
+
 
                 String stats = userCombatStatService.getStats(username);
                 if(stats != null) {

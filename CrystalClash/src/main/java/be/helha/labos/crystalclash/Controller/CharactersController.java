@@ -83,8 +83,8 @@ public class CharactersController {
 
     /**
      * @param username
-     * @return Reponse de type ApiReponse avec un message d' erreur  ou un message de succès
-     * @throws Exception
+     * return Reponse de type ApiReponse avec un message d' erreur  ou un message de succès
+     * throws Exception
      * Récupérer le personnage sélectionné pour l'utilisateur
      * */
     @GetMapping("/{username}")
@@ -106,7 +106,7 @@ public class CharactersController {
      * @param username
      * @return Reponse de type ApiReponse avec un message d' erreur
      * ou un message de succès avec la liste des objet du backPack
-     * @throws Exception
+     * throws Exception
      * Récupérer le backpack du personnage
      * */
     @GetMapping("/{username}/backpack")
@@ -145,7 +145,7 @@ public class CharactersController {
     }
 
     /**
-     * @param username
+     * @param username username
      * @return Reponse de type ApiReponse avec un message d'erreur ou un message de succès
      * Supprime un objet du backpack du personnage
      * */
@@ -161,10 +161,10 @@ public class CharactersController {
     }
 
     /**
-     * @param username
-     * @param payload
+     * @param username username
+     * @param payload payload
      * @return Reponse de type ApiReponse avec un message d'erreur ou de succès
-     * @throws Exception
+     * throws Exception
      * Ajoute un objet au coffre du backpack du personnage
      * */
     @PostMapping("/{username}/backpack/coffre/add")
@@ -185,7 +185,7 @@ public class CharactersController {
         }
     }
     /**
-     * @param username
+     * @param username username
      * @return Reponse de type ApiReponse avec un message d'erreur ou de succès
      * Modifier la reliability d'un objet (Weapon) dans le backpack du personnage
      * */
@@ -206,7 +206,7 @@ public class CharactersController {
     }
 
     /**
-     * @param username
+     * @param username username
      * @return Reponse de type ApiReponse avec un message d'erreur ou de succès
      * Modifier la reliability d'un objet (Armor) dans l'equipement du personnage
      * */
@@ -232,8 +232,8 @@ public class CharactersController {
     }
 
     /**
-     * @param username
-     * @param objectId
+     * @param username username
+     * @param objectId objectId
      * @return Reponse de type ApiReponse avec le message de succès ou d'erreur
      * Supprime un objet definitivement du backpack du personnage
      * */
@@ -257,7 +257,7 @@ public class CharactersController {
     /**
      * @param username
      * @return Reponse de type ApiReponse
-     * @throws Exception
+     * throws Exception
      * @return ReponseEntity avec le message de succès et la liste d'equipement ou d'erreur
      * Récupérer l'equipement du personnage
      * */

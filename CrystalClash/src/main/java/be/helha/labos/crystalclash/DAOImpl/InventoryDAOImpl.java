@@ -264,7 +264,9 @@ public class InventoryDAOImpl implements InventoryDAO {
             return new ApiReponse("Erreur lors de l'ajout au coffre : " + e.getMessage(), null);
         }
     }
-//pour les tests
+ /**
+  * @param userService  uservice
+  * **/
     public void setUserService(UserService userService) {
         this.userService = userService;
     }

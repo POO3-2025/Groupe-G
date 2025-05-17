@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -709,20 +711,24 @@ public class LanternaApp {
         shopWindow.setHints(Arrays.asList(Hint.CENTERED));
 
         int level = Session.getUserInfo().getLevel();
-
         Panel panel = new Panel(new GridLayout(1));
-        //pour mettre a jour les cristaux
-        try {
-            String userJson = Login_Register_userHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
-            UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
-            Session.setUserInfo(updatedInfo);
-        } catch (Exception e) {
-            System.out.println("Impossible de rafraîchir les infos du joueur : " + e.getMessage());
-        }
-        UserInfo info = Session.getUserInfo();
-        panel.addComponent(new Label("Cristaux : " + info.getCristaux()));
+
+        Label cristaux = new Label("");
+        panel.addComponent(cristaux);
         panel.addComponent(new EmptySpace());
 
+        //Runnable signife qu'une fois appelé refreshCristaux ca sera une tache a éxcuté, dans ce cas un refresh des cristaux
+        Runnable refreshCristaux = () -> {
+            try {
+                String userJson = Login_Register_userHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
+                UserInfo updatedInfo = new Gson().fromJson(userJson, UserInfo.class);
+                Session.setUserInfo(updatedInfo);
+                cristaux.setText("Cristaux : " + updatedInfo.getCristaux());
+            } catch (Exception e) {
+                System.out.println("Impossible de rafraîchir les infos du joueur : " + e.getMessage());
+            }
+        };
+        refreshCristaux.run();
         try {
             String json = ShopHttpClient.getShops(Session.getToken());
             List<Map<String, Object>> shopItems = new Gson().fromJson(json, List.class);
@@ -762,8 +768,8 @@ public class LanternaApp {
                             Session.setUserInfo(new Gson().fromJson(userJson, UserInfo.class));
 
                             //mis a jour cristaux apres achat
-                            shopWindow.close();
-                            DisplayShop(gui);
+                            refreshCristaux.run();
+
                         } catch (Exception e) {
                             MessageDialog.showMessageDialog(gui, "Erreur", "Impossible d'acheter : " + e.getMessage());
                         }
@@ -1251,14 +1257,12 @@ public class LanternaApp {
                     //Quitte la salle et la fentre combat s'ouvre
                     if (state != null && state.getPlayerNow() != null) {
                         gui.getGUIThread().invokeLater(() -> {
-                            System.out.println("===> Passage dans invokeLater : lancement du combat");
                             shouldRun.set(false);
                             combatWindow.close();
                             LanternaApp.StartCombatLan(gui, state);
                         });
                         break;
                     }
-
 
                     //Secondes taches mettre a jour
                     //Appelle du endpoint
@@ -1528,7 +1532,8 @@ public class LanternaApp {
 
                             } else {
                                 int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
-                                history.append("⏳ Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
+                                history.append("Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
+                                history.append("Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
                                 historyLabel.setText(history.toString());
                                 updateToursRestants(perso, toursRestantsLabel);
                             }
@@ -1882,7 +1887,7 @@ public class LanternaApp {
                                 }
 
 
-                                // 🔥 Supprimer la potion de la base de données (Backpack MongoDB)
+                                //  Supprimer la potion de la base de données (Backpack MongoDB)
                                 try {
                                     String responseDelete = CharacterHttpClient.deleteObjectFromBackpack(username, objectId, Session.getToken());
                                     System.out.println("Suppression potion : " + responseDelete);
@@ -1921,7 +1926,7 @@ public class LanternaApp {
                                 turnPotionForce.set(true);
                                 history.append("Vous avez utilisé " + potionForce.getName() + " et gagnerez +" + bonusAttack + " dégâts à votre prochaine attaque.\n");
 
-                                // 🔥 Supprimer la potion de la base de données (Backpack MongoDB)
+                                // Supprimer la potion de la base de données (Backpack MongoDB)
                                 try {
                                     String responseDelete = CharacterHttpClient.deleteObjectFromBackpack(username, objectId, Session.getToken());
                                     System.out.println("Suppression potion de force : " + responseDelete);
@@ -2034,7 +2039,7 @@ public class LanternaApp {
                                 System.out.println("MAJ fiabilité arme : " + response);
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                history.append("⚠️ Erreur de synchro fiabilité.\n");
+                                history.append(" Erreur de synchro fiabilité.\n");
                             }
 
                             if (weapon.getReliability() == 0) {
@@ -2163,7 +2168,7 @@ public class LanternaApp {
         AtomicBoolean shouldRun = new AtomicBoolean(true);//Le thread l'utilse pour savoir quand stopé
         boolean[] forfaitEffectue = {false}; //boolean pour savoir si le user a quitter le combat
         int[] lasttour = {state.getTour()}; //Retient juste le tour précédent pour éviter de recréer des bouton inutilement
-
+       boolean[] clearFromTour = {false}; // Tour à partir duquel on affiche l'historique
 
         String adversaire = state.getOpponent(Session.getUsername());
 
@@ -2182,7 +2187,8 @@ public class LanternaApp {
         mainPanel.addComponent(horizontalLine);
 
         Panel pvPanel = new Panel(new GridLayout(3));
-
+        Label labelReliability = new Label("Endurance de l'armure : ?");
+        mainPanel.addComponent(labelReliability);
         Label labelPvAdversaire = new Label("PV adversaire : " + state.getPv(adversaire));
         Label labelMesPv = new Label("Vos PV : " + state.getPv(Session.getUsername()));
         EmptySpace espace = new EmptySpace(new TerminalSize(5, 1)); // espace horizontal
@@ -2219,12 +2225,13 @@ public class LanternaApp {
             try {
                 FightHttpCLient.forfait(Session.getUsername(), Session.getToken());
                 forfaitEffectue[0] = true;
+                shouldRun.set(false);
+
             } catch (Exception e) {
                 System.out.println("Erreur forfait : " + e.getMessage());
             }
-            shouldRun.set(false);
-            combatWindow.close();
-            LanternaApp.afficherMenuPrincipal(gui);
+
+
         }));
 
         //Ajout bouton action, le joueur qui doit jouer les voit, l'autre non
@@ -2318,8 +2325,9 @@ public class LanternaApp {
                             } else {
                                 message = "Vous êtes mort, le ccmbat est terminé, " + winner + " a gagné.";
                             }
-                            combatWindow.close();
+
                             MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
+                            combatWindow.close();
                             afficherMenuPrincipal(gui);
                         });
                             }).start();
@@ -2334,13 +2342,23 @@ public class LanternaApp {
                         labelPvAdversaire.setText("PV adversaire : " + updated.getPv(adversaire));
                         labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
+                        int endurence = updated.getArmorReliabilities(Session.getUsername());
+                        String message = (endurence > 0)
+                            ? "Endurence de l'armure : " + endurence
+                            :"Aucune armure equipée";
+                             labelReliability.setText(message);
 
-                        // Rafraîchi l'historique à chaque update
+                        // Rafraîchir l'historique
                         historyPanel.removeAllComponents();
                         historyPanel.addComponent(new Label("Historique :"));
-                        for (String entry : updated.getLog()) {
-                            historyPanel.addComponent(new Label(entry));
+
+                        List<String> log = updated.getLog();
+                        int start = Math.max(0, log.size() - 10); // Affiche les 20 dernières entrées
+
+                        for (int i = start; i < log.size(); i++) {
+                            historyPanel.addComponent(new Label(log.get(i)));
                         }
+
 
                         // Met à jour les actions si le tour change
                         //lasttour : apres apprel au back, getTour compare avec lasttour si tour diff alors il regarde getPlayerNow pour know a qui le tour
@@ -2513,7 +2531,9 @@ public class LanternaApp {
         panel.addComponent(new Label("Progression des trophées :"));
 
         try {
-            UserInfo user = Login_Register_userHttpClient.fetchUserInfo(Session.getUsername(), Session.getToken()); //Pour winConcecutive ds mysql
+            String json = Login_Register_userHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
+            UserInfo user = new Gson().fromJson(json, UserInfo.class); //Déserialise manuellement ici
+
             Document stats = Login_Register_userHttpClient.fetchUserStats(Session.getUsername(), Session.getToken()); //Pour stat dans mongo
             NotifThropy(gui, stats, user);
             int cristaux = stats.getInteger("cristauxWin", 0);

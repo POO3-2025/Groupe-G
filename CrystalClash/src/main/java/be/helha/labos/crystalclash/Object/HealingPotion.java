@@ -14,10 +14,10 @@ public class HealingPotion extends ObjectBase {
 
     /**
      * Constructeur de la classe HealingPotion.
-     * @param name
-     * @param price
-     * @param levelrequired
-     * @param heal
+     * @param name name
+     * @param price price
+     * @param levelrequired level requit
+     * @param heal vie perso
      */
     public HealingPotion(String name, int price,int levelrequired, int heal){
         super(name,price,levelrequired,1);
@@ -36,6 +36,7 @@ public class HealingPotion extends ObjectBase {
     }
     /**
      * GETTER de la variable heal
+     * @return  heal
      */
     public int getHeal(){
         return heal;
@@ -43,6 +44,7 @@ public class HealingPotion extends ObjectBase {
 
     /**
      * SETTER de la variable heal
+     * @param Heal vie perso
      */
     public void setHeal(int Heal){
         this.heal = Heal;

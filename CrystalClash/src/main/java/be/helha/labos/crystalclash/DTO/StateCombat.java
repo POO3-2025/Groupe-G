@@ -76,10 +76,6 @@ public class StateCombat {
         this.pv1 = character1.getPV();
         this.pv2 = character2.getPV();
 
-        System.out.println(">>> Création du combat");
-        System.out.println(">>> " + player1 + " avec personnage " + character1.getClass().getSimpleName() + " - PV : " + pv1);
-        System.out.println(">>> " + player2 + " avec personnage " + character2.getClass().getSimpleName() + " - PV : " + pv2);
-
         this.playerNow =player1;
         this.backpack.put(player1, bp1 != null ? bp1 : new ArrayList<>());
         this.backpack.put(player2, bp2 != null ? bp2 : new ArrayList<>());
@@ -128,9 +124,7 @@ public class StateCombat {
      * @return Les points de vie du joueur, ou 0 si le joueur est null.
      */
     public int getPv(String player) {
-        System.out.println(">>> getPv appelé avec : " + player);
-        System.out.println(">>> player1 = " + player1 + " / pv1 = " + pv1);
-        System.out.println(">>> player2 = " + player2 + " / pv2 = " + pv2);
+
         if (player == null) return 0;
         return player.equals(player1) ? pv1 : pv2;
     }

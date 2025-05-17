@@ -40,8 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @param request
      * @param response
      * @param chain
-     * Recup le token depuis l'entete Authorization (pour ça que dans postman il faut mettre Authorization: Bearer <token>
-     *     sinon le user n'est pas autentifier pour faire des requetes
+     * Recup le token depuis l'entete Authorization pour ça que dans postman il faut mettre Authorization: Bearer token
+     *sinon le user n'est pas autentifier pour faire des requetes
      * **/
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)

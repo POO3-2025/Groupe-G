@@ -16,7 +16,7 @@ import java.util.Collections;
 /**
  *UserDetailsService = authentifier les uti depuis la base de données
  * Classe qui permet a Spring Sercurity de recup un uti ds la db lors de la connexion /login
- * @service = detectable auto par spring
+ * service = detectable auto par spring
  * UserDetailsService = interface de spring use pour charger les infos d'un uti en base depuis son username
  * **/
 @Service

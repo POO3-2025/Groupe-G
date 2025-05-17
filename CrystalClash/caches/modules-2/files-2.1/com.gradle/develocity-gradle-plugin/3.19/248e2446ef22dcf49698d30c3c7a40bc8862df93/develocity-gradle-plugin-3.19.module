@@ -1,0 +1,100 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.gradle",
+    "module": "develocity-gradle-plugin",
+    "version": "3.19",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.11-rc-2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "develocity-gradle-plugin-3.19.jar",
+          "url": "develocity-gradle-plugin-3.19.jar",
+          "size": 18744839,
+          "sha512": "04c36a88058d405eeb84c9f19f70b611bc9b60b37ba2135c1c95e5e888fc90b318c6e896a64b1ecfd47e249e5462bfa39cacd54db8575f6f55fe211bb0034a3c",
+          "sha256": "2d4cddc4cb19dba6badc669e22f01b225ab30022fc9b8238d5ad86f308c8bb91",
+          "sha1": "d4eefa369e5e2b1e99725757ff94044cdb82d0b8",
+          "md5": "48b2106c0416b9da99173292e8090e60"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "develocity-gradle-plugin-3.19.jar",
+          "url": "develocity-gradle-plugin-3.19.jar",
+          "size": 18744839,
+          "sha512": "04c36a88058d405eeb84c9f19f70b611bc9b60b37ba2135c1c95e5e888fc90b318c6e896a64b1ecfd47e249e5462bfa39cacd54db8575f6f55fe211bb0034a3c",
+          "sha256": "2d4cddc4cb19dba6badc669e22f01b225ab30022fc9b8238d5ad86f308c8bb91",
+          "sha1": "d4eefa369e5e2b1e99725757ff94044cdb82d0b8",
+          "md5": "48b2106c0416b9da99173292e8090e60"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "develocity-gradle-plugin-3.19-javadoc.jar",
+          "url": "develocity-gradle-plugin-3.19-javadoc.jar",
+          "size": 285001,
+          "sha512": "295698f33867109dc71c71e2ae391b1b5cce60c5535fa09447e3043ed1373369884991fc959d62de7c5d17d605c5a398e4c5872b3ea707241c455f28f8f7ab42",
+          "sha256": "900f4106bc0a4a2388ed849472f44778b82509af73d9d5bcd56933b7b0dcddff",
+          "sha1": "f2267bdcb767a98c59b4577af5d045734381d349",
+          "md5": "93a494491adc05f0525f3935f913336a"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "develocity-gradle-plugin-3.19-sources.jar",
+          "url": "develocity-gradle-plugin-3.19-sources.jar",
+          "size": 48174,
+          "sha512": "7e3b23132a048c637b990041202404800b40da1fe31194dd096570c862c3e9ca0ead2fd922722fcb75c2daf1e715bd6dcb17ce29bc75258f53e15bb9f68346cb",
+          "sha256": "1c9ce7e0c18558a23e2a86933a635e3b261b3d35b64b04911c4d5f79700e4eeb",
+          "sha1": "8ed5ec6e84143b769c159b05043d4e6b6baac619",
+          "md5": "732401abb86953a6596e6c844d4bf312"
+        }
+      ]
+    }
+  ]
+}

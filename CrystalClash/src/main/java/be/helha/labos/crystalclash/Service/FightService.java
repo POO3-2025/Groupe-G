@@ -92,7 +92,7 @@ public class FightService {
                 state.setCombatDisplayed(true);
                 state.setReadyToBeCleaned(true); // marquer pour suppression à la prochaine lecture
 
-                return state; // ← ON AUTORISE une dernière visualisation
+                return state; // ON AUTORISE une dernière visualisation
             }
             int endurance = getArmoRelibility(username);
             state.setArmorReliability(username, endurance);
@@ -504,10 +504,9 @@ public class FightService {
 
 
 
-       /*
+
     //Set pour les tets pour que ce soit accessible pour les tests
     //public pour y avoir acces, void retourne rien et ensuite un set et a l'interieure un  this..... : fait réference a l'attribut privée de la classe voulue
-    */
     /***
      * @param characterService
      * */
@@ -529,6 +528,9 @@ public class FightService {
         this.inventoryService = inventoryService;
     }
 
+    /**
+     *
+     * **/
     public CharacterService getCharacterService() {
         return this.characterService;
     }

@@ -19,10 +19,10 @@ public class CharacterHttpClient {
     /**
      * Envoie une requête pour sélectionner un personnage
      *
-     * @param username
-     * @param characterType
-     * @param token
-     * @throws Exception
+     * @param username du user
+     * @param characterType type de perso
+     * @param token token user
+     * @throws Exception exception rencontrée
      */
     public static void selectCharacter(String username, String characterType, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -50,10 +50,10 @@ public class CharacterHttpClient {
     /**
      * Envoie une requête pour récupérer le personnage d'un utilisateur
      *
-     * @param username
-     * @param token
-     * @return
-     * @throws Exception
+     * @param username username
+     * @param token token user
+     * @return response
+     * @throws Exception exception
      */
     public static String getCharacter(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -96,10 +96,11 @@ public class CharacterHttpClient {
 
     /**
      * Met objet de l'inventaire ds le back en envoyant requete
-     *  @param username
-     * @param name
-     * @param token
-     * @param type
+     *  @param username user
+     * @param name name object
+     * @param token token
+     * @param type type
+     * @return  response
      **/
     public static String putInBackpack(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(

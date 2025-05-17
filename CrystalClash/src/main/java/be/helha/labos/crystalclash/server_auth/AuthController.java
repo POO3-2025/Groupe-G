@@ -20,6 +20,9 @@ import be.helha.labos.crystalclash.Service.UserService;
 import java.util.Optional;
 
 
+/**
+ * Authcontroller
+ * **/
 @RestController
 public class AuthController {
     @Autowired
@@ -43,6 +46,7 @@ public class AuthController {
      * recoit un loginRequest (Json avec username et password), vérif les infos, genere le token et marque l'uti comme connecté
      * et renvoie la reponse du serveur
      * LoginRequest loginRequest contient le username et password
+     * @return reurn
      * **/
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
