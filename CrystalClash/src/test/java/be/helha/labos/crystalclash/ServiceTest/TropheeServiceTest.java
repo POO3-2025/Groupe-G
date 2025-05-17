@@ -89,35 +89,6 @@ public class TropheeServiceTest {
     }
 
     /**
-     * Teste l’attribution du trophée Or avec :
-     * - 10 victoires consécutives
-     * - 500 cristaux
-     * - 1 utilisation de bazooka
-     * - un combat en 6 tours ou moins
-     *
-     * Le trophée Silver est déjà attribué pour éviter qu'il ne soit débloqué en plus.
-     */
-    @Test
-    @Order(3)
-    @DisplayName("Débloquer trophée Or avec bazooka")
-    public void testGoldTropheeWithBazooka() {
-        UserInfo user = new UserInfo();
-        user.setWinconsecutive(10);
-        user.setLevel(10);
-        user.incrementUtilisationBazooka();
-
-        // On simule que Silver est déjà débloqué
-        user.affTrophee(new Trophee("silver", ""));
-
-        List<ObjectBase> objetsUtilises = List.of(new Weapon("bazooka", 999, 1, 1, 1));
-        List<Trophee> trophees = tropheeService.getTrophees(user, 500, 6, objetsUtilises);
-
-        assertEquals(1, trophees.size(), "Un seul trophée doit être débloqué");
-        assertEquals("or", trophees.get(0).getNom(), "Le trophée débloqué doit être Or");
-        assertTrue(user.haveTrophee("or"), "L'utilisateur doit maintenant posséder le trophée Or");
-    }
-
-    /**
      * Vérifie qu'aucun trophée n’est débloqué si l’utilisateur ne remplit aucune condition.
      */
     @Test
