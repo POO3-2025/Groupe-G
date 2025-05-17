@@ -135,7 +135,7 @@ public class CharacterDAOImpl implements CharacterDAO {
 
         // S'il existe déjà et qu'il a un équipement, ne rien faire
         if (doc != null && doc.containsKey("equipment")) {
-            return; // Si un équipement existe déjà, on ne fait rien
+            return;
         }
 
         // Si pas déjà, crée un équipement vide (pas d'armure initialement)
@@ -276,7 +276,7 @@ public class CharacterDAOImpl implements CharacterDAO {
                 Document doc = new Document()
                         .append("id", armor.getId())
                         .append("name", armor.getName())
-                        .append("type", armor.getType()) // Assurez-vous que c'est bien "armor"
+                        .append("type", armor.getType())
                         .append("price", armor.getPrice())
                         .append("requiredLevel", armor.getRequiredLevel())
                         .append("reliability", armor.getReliability())
