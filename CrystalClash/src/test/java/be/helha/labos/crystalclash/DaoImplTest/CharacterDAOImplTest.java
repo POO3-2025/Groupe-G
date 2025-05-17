@@ -724,7 +724,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?,?)
         MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
         MongoCollection<Document> collection = mongoTest.getCollection("Characters");
 
-        // Préparer un document sans backpack
+        // Préparer un document sans equipement
         collection.insertOne(new Document("username", "EquipmentUser").append("type", "Troll"));
 
         dao = new CharacterDAOImpl() {
@@ -907,7 +907,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?,?)
     public void testRemoveArmorFromEquipment() {
         MongoDatabase mongoTest = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
 
-        // Créer le personnage avec un backpack existant
+        // Créer le personnage avec un equipement existant
         mongoTest.getCollection("Characters").insertOne(new Document()
                 .append("username", "EquipmentRemoveUser")
                 .append("type", "Elf")
@@ -990,7 +990,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?,?)
                 ))
         );
 
-        // Backpack vide
+        // Equipement vide
         mongoTest.getCollection("Characters").insertOne(new Document()
                 .append("username", "UserEquipmentNotFoundTest")
                 .append("type", "Elf")
@@ -1121,7 +1121,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?,?)
         dao =new CharacterDAOImpl(){
             @Override
             public ApiReponse removeArmorFromEquipment(String username, String name) {
-                // Vérifie si l'armure' est dans l'equipement
+                // Vérifie si l'armure est dans l'equipement
                 Document character = mongoTest.getCollection("Characters").find(
                         new Document("username", username).append("equipment.armor.name", name)
                 ).first();
