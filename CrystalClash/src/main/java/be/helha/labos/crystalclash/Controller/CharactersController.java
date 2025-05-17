@@ -235,7 +235,7 @@ public class CharactersController {
      * @param username
      * @param objectId
      * @return Reponse de type ApiReponse avec le message de succès ou d'erreur
-     * Supprime un objet  du backpack du personnage
+     * Supprime un objet definitivement du backpack du personnage
      * */
     @PostMapping("/{username}/backpack/delete/{objectId}")
     public ResponseEntity<ApiReponse> deleteObjectFromBackpack(
