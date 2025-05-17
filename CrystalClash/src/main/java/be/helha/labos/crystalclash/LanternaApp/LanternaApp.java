@@ -1950,72 +1950,23 @@ public class LanternaApp {
 
 
 
+
                             case "CoffreDesJoyaux":
                                 CoffreDesJoyaux coffre = (CoffreDesJoyaux) objlist;
 
-                                // Crée le sous-panel pour le contenu (initialement masqué)
-                                Panel contenuPanel = new Panel(new GridLayout(1));
-                                contenuPanel.setVisible(false); // caché au début
+                                afficherCoffreAvecBoutons(gui, coffre, actionsPanel, backpackPanel, playerHP, enemyHP,
+                                        playerHealth, enemyHealth, perso,
+                                        historyLabel, history, tourCounter, tourLabel,
+                                        combatWindow,
+                                        showNormalAttacks, showSpecialAttacks, objectButton,
+                                        bonusNextAttack, turnPotionForce, bonusattaque,
+                                        playerHPmax, enemyhpmax);
 
-                                List<ObjectBase> contenu = coffre.getContenu();
-                                if (contenu == null || contenu.isEmpty()) {
-                                    contenuPanel.addComponent(new Label("→ Le coffre est vide."));
-                                } else {
-                                    for (ObjectBase item : contenu) {
-                                        String itemLabel = "→ " + item.getName() + " (" + item.getType() + ")";
-                                            /*
-                                        // Crée un bouton pour chaque objet dans le coffre
-                                        Button itemButton = new Button(itemLabel, () -> {
-                                            try {
-                                                // 1️⃣ Supprimer l'objet du contenu du coffre (MongoDB)
-                                                String responseRemoveFromCoffre = HttpService.removeObjectFromCoffre(username, coffre.getId(), item.getId(), Session.getToken());
-                                                System.out.println("Suppression de l'objet du coffre : " + responseRemoveFromCoffre);
-
-                                                // 2️⃣ Ajouter l'objet au backpack (MongoDB)
-                                                String responseAddToBackpack = HttpService.addObjectToBackpack(username, item.getId(), Session.getToken());
-                                                System.out.println("Ajout de l'objet au backpack : " + responseAddToBackpack);
-
-                                                history.append("Vous avez récupéré " + item.getName() + " du coffre et l’avez ajouté au backpack.\n");
-
-                                                // 3️⃣ Recharger l'affichage
-                                                backpackPanel.removeAllComponents();
-                                                Panel refreshedBackpack = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
-                                                        playerHealth, enemyHealth, perso,
-                                                        historyLabel, history, tourCounter, tourLabel,
-                                                        combatWindow, showNormalAttacks, showSpecialAttacks, objectButton,
-                                                        bonusNextAttack, turnPotionForce, bonusattaque, playerHPmax, enemyhpmax);
-
-                                                actionsPanel.removeAllComponents();
-                                                actionsPanel.addComponent(refreshedBackpack);
-
-                                            } catch (Exception ex) {
-                                                ex.printStackTrace();
-                                                history.append("⚠️ Erreur lors du transfert de l’objet.\n");
-                                            }
-
-                                            historyLabel.setText(history.toString());
-                                        });
-
-                                        contenuPanel.addComponent(itemButton);
-                                    }
-                                */
-                                    }
-                                }
-                                // Bouton Coffre qui toggle l'affichage du contenu
-                                Button coffreButton = new Button(coffre.getName() + " (Coffre)", () -> {
-                                    contenuPanel.setVisible(!contenuPanel.isVisible());
-                                    contenuPanel.invalidate(); // 🟢 Rafraîchit uniquement le contenu
-                                });
-
-                                // Optionnel : entoure le bouton coffre + contenu avec une bordure
-                                Panel coffreContainer = new Panel(new GridLayout(1));
-
-                                coffreContainer.addComponent(coffreButton);
-                                coffreContainer.addComponent(contenuPanel);
-
-                                backpackPanel.addComponent(coffreContainer);
-                                backpackPanel.addComponent(new EmptySpace(new TerminalSize(1, 1))); // espacement
                                 break;
+
+
+
+
 
 
                             default:
@@ -2037,6 +1988,175 @@ public class LanternaApp {
 
         return backpackPanel;
     }
+
+
+    public static void afficherCoffreAvecBoutons(WindowBasedTextGUI gui, CoffreDesJoyaux coffre, Panel actionsPanel, Panel backpackPanel,
+                                                 AtomicInteger playerHP, AtomicInteger enemyHP,
+                                                 Label playerHealth, Label enemyHealth, Personnage perso,
+                                                 Label historyLabel, StringBuilder history, AtomicInteger tourCounter, Label tourLabel,
+                                                 BasicWindow combatWindow,
+                                                 Button showNormalAttacks, Button showSpecialAttacks, Button objectButton,
+                                                 AtomicInteger bonusNextAttack, AtomicBoolean turnPotionForce, Label bonusattaque,
+                                                 int playerHPmax, int enemyhpmax) {
+
+        final BasicWindow window = new BasicWindow(coffre.getName());
+        Panel panel = new Panel();
+        panel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
+
+        List<ObjectBase> objets = coffre.getContenu();
+        if (objets.isEmpty()) {
+            panel.addComponent(new Label("Le coffre est vide."));
+        } else {
+            for (ObjectBase objet : objets) {
+                Button boutonObjet = new Button(objet.getName(), () -> {
+                    switch (objet.getType()) {
+                        case "Weapon":
+                            Weapon weapon = (Weapon) objet;
+                            String weaponUseMessage = weapon.use();
+                            int weaponDamage = weapon.getDamage();
+                            if (turnPotionForce.get()) {
+                                weaponDamage += bonusNextAttack.get();
+                                bonusNextAttack.set(0);
+                                turnPotionForce.set(false);
+                                bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
+                            }
+                            enemyHP.addAndGet(-weaponDamage);
+                            history.append("Vous avez utilisé " + weapon.getName() + " et infligé " + weaponDamage + " PV à l'ennemi.\n");
+
+                            // Met à jour la fiabilité sur serveur
+                            try {
+                                String response = CharacterHttpClient.updateObjectReliability(
+                                        Session.getUsername(),
+                                        weapon.getId(),
+                                        weapon.getReliability(),
+                                        Session.getToken()
+                                );
+                                System.out.println("MAJ fiabilité arme : " + response);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                history.append("⚠️ Erreur de synchro fiabilité.\n");
+                            }
+
+                            if (weapon.getReliability() == 0) {
+                                history.append("Malheureusement " + weapon.getName() + " s'est brisée.\n");
+                            }
+                            break;
+
+                        case "HealingPotion":
+                            HealingPotion potion = (HealingPotion) objet;
+                            int healAmount = potion.getHeal();
+                            int currentHP = playerHP.get();
+                            int actualHeal = Math.min(healAmount, playerHPmax - currentHP);
+
+                            if (actualHeal > 0) {
+                                playerHP.addAndGet(actualHeal);
+                                history.append("Vous avez utilisé " + potion.getName() + " et récupéré " + actualHeal + " PV.\n");
+                            } else {
+                                history.append("Vos PV sont déjà au maximum. La potion n’a eu aucun effet.\n");
+                            }
+
+                            if (turnPotionForce.get()) {
+                                bonusNextAttack.set(0);
+                                turnPotionForce.set(false);
+                            }
+
+                            // Supprime la potion du serveur
+                            try {
+                                String responseDelete = CharacterHttpClient.deleteObjectFromBackpack(Session.getUsername(), potion.getId(), Session.getToken());
+                                System.out.println("Suppression potion : " + responseDelete);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                history.append("Erreur lors de la suppression de la potion.\n");
+                            }
+                            break;
+
+                        case "PotionOfStrenght":
+                            if (turnPotionForce.get()) {
+                                bonusNextAttack.set(0);
+                                turnPotionForce.set(false);
+                            }
+                            PotionOfStrenght potionForce = (PotionOfStrenght) objet;
+                            int bonusAttack = potionForce.getBonusATK();
+                            bonusNextAttack.set(bonusAttack);
+                            bonusattaque.setText("Le bonus d'attaque est de " + bonusNextAttack.get());
+                            turnPotionForce.set(true);
+                            history.append("Vous avez utilisé " + potionForce.getName() + " et gagnerez +" + bonusAttack + " dégâts à votre prochaine attaque.\n");
+
+                            try {
+                                String responseDelete = CharacterHttpClient.deleteObjectFromBackpack(Session.getUsername(), potionForce.getId(), Session.getToken());
+                                System.out.println("Suppression potion de force : " + responseDelete);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                history.append("Erreur lors de la suppression de la potion.\n");
+                            }
+                            break;
+
+                        // Ajoute ici d'autres cas si besoin...
+
+                        default:
+                            history.append("Objet inconnu : " + objet.getName() + ".\n");
+                            break;
+                    }
+
+                    historyLabel.setText(history.toString());
+
+                    // Met à jour les labels de vie
+                    playerHealth.setText("PV Joueur : " + playerHP.get() + "/" + playerHPmax);
+                    enemyHealth.setText("PV Ennemi : " + enemyHP.get() + "/" + enemyhpmax);
+
+                    // Ferme la fenêtre coffre
+                    window.close();
+
+                    // Recharge le backpack principal dans actionsPanel
+                    backpackPanel.removeAllComponents();
+                    Panel refreshedBackpack = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
+                            playerHealth, enemyHealth, perso,
+                            historyLabel, history, tourCounter, tourLabel,
+                            combatWindow,
+                            showNormalAttacks, showSpecialAttacks, objectButton, bonusNextAttack,
+                            turnPotionForce, bonusattaque, playerHPmax, enemyhpmax);
+
+                    actionsPanel.removeAllComponents();
+                    actionsPanel.addComponent(refreshedBackpack);
+
+                    // L'ennemi joue son tour après utilisation d'objet
+                    enemyTurn(gui, playerHealth, enemyHealth, combatWindow,
+                            playerHP, enemyHP, historyLabel, history, tourCounter, tourLabel,
+                            actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton, perso, playerHPmax, enemyhpmax);
+                });
+
+                panel.addComponent(boutonObjet);
+            }
+
+        }
+
+        panel.addComponent(new EmptySpace());
+
+        // Ajout du bouton Fermer
+        Button closeButton = new Button("Fermer", () -> {
+            // Fermer la fenêtre du coffre
+            window.close();
+
+            // Recharger le backpackPanel
+            backpackPanel.removeAllComponents();
+            Panel refreshedBackpack = createBackpackPanel(gui, actionsPanel, playerHP, enemyHP,
+                    playerHealth, enemyHealth, perso,
+                    historyLabel, history, tourCounter, tourLabel,
+                    combatWindow,
+                    showNormalAttacks, showSpecialAttacks, objectButton, bonusNextAttack,
+                    turnPotionForce, bonusattaque, playerHPmax, enemyhpmax);
+
+            // Réafficher le backpack dans le panel principal
+            actionsPanel.removeAllComponents();
+            actionsPanel.addComponent(refreshedBackpack);
+        });
+
+        panel.addComponent(closeButton);
+
+        window.setComponent(panel);
+        gui.addWindowAndWait(window); //  Affichage du coffre
+    }
+
     /**
      * Afficher l'ecran de comabt et mettre a jour dynamiquement l'affichage des deux cotés
      * Pv joueur, historique, actions possibles, bouton quitter,detection fin de combat,passage de tour
