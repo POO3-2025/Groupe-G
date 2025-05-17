@@ -244,7 +244,7 @@ public class CharactersController {
             @RequestHeader("Authorization") String token) {
 
         try {
-            // Optionnel : vérifier que le token est valide (si tu veux le gérer côté controller)
+            // Optionnel : vérifier que le token est valide
             ApiReponse response = characterService.deleteObjectFromBackPack(username, objectId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
