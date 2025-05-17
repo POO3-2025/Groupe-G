@@ -2149,11 +2149,21 @@ public class LanternaApp {
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
 
+                            new  Thread(() ->{
+                                try{
+                                    Thread.sleep(600);
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
+
+                           gui.getGUIThread().invokeLater(() -> {
+
                             String winner = null;
                             try {
                                 String reponseJson  = FightHttpCLient.getLastWinner(Session.getUsername(), Session.getToken());
                                 JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
-                                winner = jsonObject.get("winner").getAsString();                                } catch (Exception e) {
+                                winner = jsonObject.get("winner").getAsString();
+                            } catch (Exception e) {
                             }
 
 
@@ -2170,6 +2180,8 @@ public class LanternaApp {
                             combatWindow.close();
                             MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
                             afficherMenuPrincipal(gui);
+                        });
+                            }).start();
                         });
                         break;
                     }
