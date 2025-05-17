@@ -460,7 +460,7 @@ public class CharacterTest {
         inventoryDAO.createInventoryForUser(username);
         Inventory inventory = inventoryDAO.getInventoryForUser(username);
 
-        // Ajouter un objet dans l'inventaire
+        // Ajouter une armure dans l'inventaire
         var objet = new be.helha.labos.crystalclash.Object.Armor("Armure", 150,15,5,15);
         objet.setType("Armor");
         inventory.ajouterObjet(objet);
@@ -468,7 +468,7 @@ public class CharacterTest {
         // Sauvegarder l'inventaire
         inventoryDAO.saveInventoryForUser(username, inventory);
 
-        // Ajout de l’objet a l'equipement
+        // Ajout de l’armure a l'equipement
         characterService.addArmorToEquipment(username, objet.getName(), objet.getType());
 
         // Vérification du contenu de l'equipement
