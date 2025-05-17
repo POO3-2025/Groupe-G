@@ -17,7 +17,6 @@ public class CharacterService {
 
     private final CharacterDAO characterDAO;
 
-
     /**
      * Constructeur avec injection du DAO des personnages.
      *
@@ -32,153 +31,175 @@ public class CharacterService {
      * Récupère le personnage sélectionné pour un utilisateur donné.
      *
      * @param username Le nom d'utilisateur.
-     * @return Le personnage sélectionné.
+     * @return Le nom du personnage sélectionné.
      */
     public String getCharacterForUser(String username){
         return characterDAO.getCharacterForUser(username);
     }
+
     /**
-     * Sauvegarde le personnage pour un utilisateur donné.
-     * @param username
-     * @param character
-     * */
+     * Sauvegarde le personnage sélectionné pour un utilisateur donné.
+     *
+     * @param username Nom d'utilisateur.
+     * @param character Nom du personnage à sauvegarder.
+     */
     public void saveCharacterForUser(String username, String character){
-        //Logique métier pouµ la validation, gere perso, ..
+        // Logique métier pour la validation, gestion du personnage, etc.
         characterDAO.saveCharacterForUser(username, character);
     }
+
     /**
      * Crée un backpack pour un personnage donné.
-     * @param username
-     * @param character
-     * */
+     *
+     * @param username Nom d'utilisateur.
+     * @param character Nom du personnage.
+     */
     public void createBackPackForCharacter(String username, String character){
-        //Logique metier pour la création de BackPack si besoin
+        // Logique métier pour la création du backpack si nécessaire.
         characterDAO.createBackPackForCharacter(username, character);
     }
+
     /**
-     * Récupère le backpack pour un personnage donné.
-     * @param username
-     * */
+     * Récupère le backpack associé au personnage de l'utilisateur.
+     *
+     * @param username Nom d'utilisateur.
+     * @return Le backpack du personnage.
+     */
     public BackPack getBackPackForCharacter(String username){
         return characterDAO.getBackPackForCharacter(username);
     }
+
     /**
-     * change de  personnage sélectionné pour un utilisateur donné.
-     * @param username
-     * @param character
-     * */
+     * Définit le personnage sélectionné pour un utilisateur.
+     *
+     * @param username Nom d'utilisateur.
+     * @param character Nom du personnage à sélectionner.
+     */
     public void setSelectedCharacter(String username, String character){
         characterDAO.setSelectedCharacter(username, character);
     }
+
     /**
-     * Sauvegarde le backpack pour un personnage donné.
-     * @param username
-     * @param backPack
-     * */
-    public void  saveBackPackForCharacter(String username, BackPack backPack){
-        if(backPack == null || backPack.getObjets().size() >5) {
+     * Sauvegarde le contenu du backpack pour un personnage donné.
+     *
+     * @param username Nom d'utilisateur.
+     * @param backPack Backpack à sauvegarder.
+     */
+    public void saveBackPackForCharacter(String username, BackPack backPack){
+        if (backPack == null || backPack.getObjets().size() > 5) {
             System.out.println("backpack invalide ou trop grand.");
             return;
         }
         characterDAO.saveBackPackForCharacter(username, backPack);
-
     }
 
     /**
      * Ajoute un objet au backpack d'un personnage.
-     * @param username
-     * @param name
-     * @param type
-     * */
+     *
+     * @param username Nom d'utilisateur.
+     * @param name Nom de l'objet.
+     * @param type Type de l'objet.
+     * @return Réponse API avec le résultat de l'opération.
+     */
     public ApiReponse addObjectToBackPack(String username, String name, String type){
         return characterDAO.addObjectToBackPack(username, name, type);
     }
 
     /**
-     * Suppression d'un objet du backpack d'un personnage.
-     * @param username
-     * @param name
-     * */
+     * Supprime un objet du backpack d'un personnage.
+     *
+     * @param username Nom d'utilisateur.
+     * @param name Nom de l'objet à supprimer.
+     * @return Réponse API avec le résultat de l'opération.
+     */
     public ApiReponse removeObjectFromBackPack(String username, String name){
         return characterDAO.removeObjectFromBackPack(username, name);
     }
 
     /**
-     * Ajoute un objet au coffre d'un personnage.
-     * @param username
-     * @param name
-     * @param type
-     * @return
+     * Ajoute un objet au coffre (inventaire étendu) d'un personnage.
+     *
+     * @param username Nom d'utilisateur.
+     * @param name Nom de l'objet.
+     * @param type Type de l'objet.
+     * @return Réponse API avec le résultat de l'opération.
      */
     public ApiReponse addObjectToCoffre(String username, String name, String type){
         return characterDAO.addObjectToCoffre(username, name, type);
     }
 
     /**
-     * update de la reliability d'un objet du backpack d'un personnage.
-     * @param username
-     * @param objectId
-     * @param newReliability
-     * @return
+     * Met à jour la fiabilité (reliability) d’un objet dans le backpack d’un personnage.
+     *
+     * @param username Nom d'utilisateur.
+     * @param objectId Identifiant de l'objet.
+     * @param newReliability Nouvelle valeur de fiabilité.
+     * @return Réponse API avec le résultat de l'opération.
      */
     public ApiReponse updateReliabilityInBackPack(String username, String objectId, Integer newReliability) {
-        return characterDAO.updateReliabilityInBackPack(username,objectId,newReliability);
+        return characterDAO.updateReliabilityInBackPack(username, objectId, newReliability);
     }
 
     /**
-     * update de la reliability d'un equipement d'un personnage.
-     * @param username
-     * @param objectId
-     * @param newReliability
-     * @return
+     * Met à jour la fiabilité (reliability) d’un objet dans l’équipement d’un personnage.
+     *
+     * @param username Nom d'utilisateur.
+     * @param objectId Identifiant de l'objet.
+     * @param newReliability Nouvelle valeur de fiabilité.
+     * @return Réponse API avec le résultat de l'opération.
      */
     public ApiReponse updateReliabilityInEquipment(String username, String objectId, Integer newReliability) {
-        return characterDAO.updateReliabilityInEquipment(username,objectId,newReliability);
+        return characterDAO.updateReliabilityInEquipment(username, objectId, newReliability);
     }
 
     /**
-     * Suppression d'un objet du backpack d'un personnage.
-     * @param username
-     * @param objectId
-     * @return
+     * Supprime un objet du backpack d’un personnage via son identifiant.
+     *
+     * @param username Nom d'utilisateur.
+     * @param objectId Identifiant de l’objet à supprimer.
+     * @return Réponse API avec le résultat de l’opération.
      */
     public ApiReponse deleteObjectFromBackPack(String username, String objectId) {
         return characterDAO.deleteObjectFromBackPack(username, objectId);
     }
 
     /**
-     * creation d'un equipement pour un personnage.
-     * @param username
-     * @param characterType
-     * @return
+     * Crée un équipement de base pour un personnage donné.
+     *
+     * @param username Nom d'utilisateur.
+     * @param characterType Type de personnage.
      */
     public void createEquipmentForCharacter(String username, String characterType){
-        characterDAO.createEquipmentForCharacter(username,characterType);
+        characterDAO.createEquipmentForCharacter(username, characterType);
     }
+
     /**
-     * recuperer un equipement pour un personnage.
-     * @param username
-     * @return
+     * Récupère l'équipement associé à un personnage.
+     *
+     * @param username Nom d'utilisateur.
+     * @return L'équipement du personnage.
      */
     public Equipment getEquipmentForCharacter(String username){
         return characterDAO.getEquipmentForCharacter(username);
     }
 
     /**
-     * sauvegarde un equipement pour un personnage.
-     * @param username
-     * @param equipment
+     * Sauvegarde l'équipement d'un personnage.
+     *
+     * @param username Nom d'utilisateur.
+     * @param equipment Équipement à sauvegarder.
      */
     public void saveEquipmentForCharacter(String username, Equipment equipment){
-        characterDAO.saveEquipmentForCharacter(username,equipment);
+        characterDAO.saveEquipmentForCharacter(username, equipment);
     }
 
     /**
      * Ajoute une armure à l'équipement d'un personnage.
-     * @param username
-     * @param name
-     * @param type
-     * @return
+     *
+     * @param username Nom d'utilisateur.
+     * @param name Nom de l'armure.
+     * @param type Type de l'armure.
+     * @return Réponse API avec le résultat de l'opération.
      */
     public ApiReponse addArmorToEquipment(String username, String name, String type){
         return characterDAO.addArmorToEquipment(username, name, type);
@@ -186,11 +207,13 @@ public class CharacterService {
 
     /**
      * Supprime une armure de l'équipement d'un personnage.
-     * @param username
-     * @param name
-     * @return
+     *
+     * @param username Nom d'utilisateur.
+     * @param name Nom de l'armure à retirer.
+     * @return Réponse API avec le résultat de l'opération.
      */
     public ApiReponse removeArmorFromEquipment(String username, String name){
-        return characterDAO.removeArmorFromEquipment(username,name);
+        return characterDAO.removeArmorFromEquipment(username, name);
     }
 }
+
