@@ -137,7 +137,7 @@ public class CharacterHttpClient {
                 .timeout(Duration.ofSeconds(5))
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json)) // POST car tu fais une action qui modifie
+                .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
@@ -153,7 +153,7 @@ public class CharacterHttpClient {
 
         // Construire l'URL correcte
         String url = BASE_URL + "/characters/" + username + "/backpack/update/" + objectId;
-        System.out.println("URL: " + url); // Afficher l'URL pour déboguer
+
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -174,8 +174,7 @@ public class CharacterHttpClient {
 
         // Construire l'URL correcte
         String url = BASE_URL + "/characters/" + username + "/equipment/update/" + objectId;
-        System.out.println("URL: " + url); // Afficher l'URL pour déboguer
-        System.out.println("je passe par la, httpservice");
+
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .timeout(Duration.ofSeconds(5))
@@ -202,7 +201,7 @@ public class CharacterHttpClient {
         ));
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/delete/" + objectId)) //
+                .uri(URI.create(BASE_URL + "/characters/" + username + "/backpack/delete/" + objectId))
                 .timeout(Duration.ofSeconds(5))
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
@@ -283,7 +282,7 @@ public class CharacterHttpClient {
                 .timeout(Duration.ofSeconds(5))
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json)) // POST car tu fais une action qui modifie
+                .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
 
         HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
