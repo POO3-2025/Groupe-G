@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 
 public class LanternaApp {
@@ -524,7 +525,6 @@ public class LanternaApp {
         gui.addWindowAndWait(persoWindow);
     }
 
-
     /**
      * Affiche l'inventaire du joueur
      *
@@ -555,19 +555,25 @@ public class LanternaApp {
                 // Sert a voir si le joueur a un coffre
                 boolean hasCoffre = inventory.getObjets().stream()
                         .anyMatch(obj -> obj instanceof CoffreDesJoyaux);
-                //Parcour liste objets de l'inventaire
-                //obj représente object du joueur
-                // Personnalisation selon le type
-                for (ObjectBase obj : inventory.getObjets()) {
-                    String label = obj.getName() + " (" + obj.getType() + ")";
 
-                    panel.addComponent(new Button(label, () -> {
-                        afficherDetailsObjet(gui, obj, () -> {
-                            inventoryWindow.close();
-                            displayInventory(gui);
-                        }, hasCoffre);
-                    }));
+                Map<String,List<ObjectBase>> groupeType = inventory.getObjets().stream()
+                        .collect(Collectors.groupingBy(ObjectBase::getType));
+
+                for (String type  : groupeType.keySet().stream().sorted().toList()) {
+                    panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+                    panel.addComponent(new Label(" == " + type.toUpperCase() + "=="));
+                    panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+                    for (ObjectBase ob : groupeType.get(type)) {
+                        String label = ob.getName();
+                        panel.addComponent(new Button(label, () -> {
+                            afficherDetailsObjet(gui,ob, () -> { //Lambda
+                                inventoryWindow.close(); //ferme fenetre détails
+                                displayInventory(gui);//relance affichage de l'inventaire (1 fois celle des details fermée)
+                            }, hasCoffre); //Permet de savoir si activer bouton pour mettre objet dedans .
+                        }));
+                    }
                 }
+
             }
             panel.addComponent(new EmptySpace());
             panel.addComponent(new Button("Retour", inventoryWindow::close));
@@ -817,50 +823,66 @@ public class LanternaApp {
                 panel.addComponent(new Label("Votre BackPack est vide."));
             } else {
                 panel.addComponent(new Label("Contenu du BackPack :"));
-                for (ObjectBase obj : objets) {
-                    String label = obj.getName() + " (" + obj.getType() + ")";
-                    panel.addComponent(new Button(label, () -> {
-                        BasicWindow detailsWindow = new BasicWindow("Détails de l'objet");
-                        detailsWindow.setHints(Arrays.asList(Hint.CENTERED));
+                // Grouper les objets par type (ex : Weapon, Armor, HealingPotion...)
+                Map<String, List<ObjectBase>> groupes = Arrays.stream(objets)
+                        .collect(Collectors.groupingBy(ObjectBase::getType));
 
-                        Panel detailsPanel = new Panel(new GridLayout(1));
-                        detailsPanel.addComponent(new Label(obj.getDetails()));
-                        detailsPanel.addComponent(new EmptySpace());
+                // Pour chaque type d'objet trié ordre
+                for (String type : groupes.keySet().stream().sorted().toList()) {
+                    panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
+                    panel.addComponent(new Label("== " + type.toUpperCase() + " ==")); // titre du groupe
+                    panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
+                    List<ObjectBase> objetsTries = groupes.get(type).stream()
+                            .sorted(Comparator.comparing(ObjectBase::getName)) // Trie par nom d'objet
+                            .toList();
 
-                        detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
-                            try {
-                                String reponse = CharacterHttpClient.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
-                                JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
-                                String message = result.get("message").getAsString();
-                                MessageDialog.showMessageDialog(gui, "Retrait", message);
-                                detailsWindow.close();
-                                window.close();
-                                refreshBackpack.run();
-                            } catch (Exception e) {
-                                MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer du backPack : " + e.getMessage());
-                            }
-                        }));
-                        if (hasCoffre && !(obj instanceof CoffreDesJoyaux)) {
-                            detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
+                    for (ObjectBase obj : objetsTries) {
+                        String label = obj.getName();
+                        panel.addComponent(new Button(label, () -> {
+                            BasicWindow detailsWindow = new BasicWindow("Détails de l'objet");
+                            detailsWindow.setHints(Arrays.asList(Hint.CENTERED));
+
+                            Panel detailsPanel = new Panel(new GridLayout(1));
+                            detailsPanel.addComponent(new Label(obj.getDetails()));
+                            detailsPanel.addComponent(new EmptySpace());
+
+                            detailsPanel.addComponent(new Button("Retirer du backPack", () -> {
                                 try {
-                                    String result = CharacterHttpClient.putInCoffreBackPack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
-                                    JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
-                                    String message = resultJson.get("message").getAsString();
-                                    MessageDialog.showMessageDialog(gui, "Coffre", message);
+                                    String reponse = CharacterHttpClient.removeFromBackpack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                    JsonObject result = JsonParser.parseString(reponse).getAsJsonObject();
+                                    String message = result.get("message").getAsString();
+                                    MessageDialog.showMessageDialog(gui, "Retrait", message);
                                     detailsWindow.close();
+                                    window.close();
                                     refreshBackpack.run();
                                 } catch (Exception e) {
-                                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le coffre : " + e.getMessage());
+                                    MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de retirer du backPack : " + e.getMessage());
                                 }
                             }));
-                        }
 
-                        detailsPanel.addComponent(new Button("Retour", detailsWindow::close));
-                        detailsWindow.setComponent(detailsPanel);
-                        gui.addWindowAndWait(detailsWindow);
-                    }));
+                            if (hasCoffre && !(obj instanceof CoffreDesJoyaux)) {
+                                detailsPanel.addComponent(new Button("Mettre dans le coffre", () -> {
+                                    try {
+                                        String result = CharacterHttpClient.putInCoffreBackPack(Session.getUsername(), obj.getName(), obj.getType(), Session.getToken());
+                                        JsonObject resultJson = JsonParser.parseString(result).getAsJsonObject();
+                                        String message = resultJson.get("message").getAsString();
+                                        MessageDialog.showMessageDialog(gui, "Coffre", message);
+                                        detailsWindow.close();
+                                        refreshBackpack.run();
+                                    } catch (Exception e) {
+                                        MessageDialog.showMessageDialog(gui, "Erreur", "Impossible de mettre dans le coffre : " + e.getMessage());
+                                    }
+                                }));
+                            }
+
+                            detailsPanel.addComponent(new Button("Retour", detailsWindow::close));
+                            detailsWindow.setComponent(detailsPanel);
+                            gui.addWindowAndWait(detailsWindow);
+                        }));
+                    }
                 }
+
             }
 
         } catch (Exception e) {
@@ -871,6 +893,7 @@ public class LanternaApp {
         window.setComponent(panel);
         gui.addWindowAndWait(window);
     }
+
     /**
      * Affiche l'équipement du joueur
      *
