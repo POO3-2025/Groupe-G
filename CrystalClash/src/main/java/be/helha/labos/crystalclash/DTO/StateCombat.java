@@ -142,8 +142,9 @@ public class StateCombat {
      */
     public void setPv(String player, int pv) {
         if (player == null) return;
-        if (player.equals(player1)) this.pv1 = pv;
-        else if (player.equals(player2)) this.pv2 = pv;
+        int PvNoNegativ = Math.max(0,pv);
+        if (player.equals(player1)) this.pv1 = PvNoNegativ;
+        else if (player.equals(player2)) this.pv2 = PvNoNegativ;
     }
 
     /**

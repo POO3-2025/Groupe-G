@@ -103,7 +103,7 @@ public class Personnage {
     }
 
     public void setPV(int PV) {
-        this.PV = PV;
+        this.PV = Math.max(0,PV); //permet de ne pas aller dans les négatifs
     }
 
     public int getAttackBase() {
