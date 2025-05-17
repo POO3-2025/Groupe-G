@@ -1571,7 +1571,7 @@ public class LanternaApp {
 
                     actionsPanel.addComponent(objectButton[0]);
 
-// On ajoute le panel d’actions au panel des stats (déjà fait dans ton code d’origine)
+// On ajoute le panel d’actions au panel des stats
                     statsPanel.addComponent(actionsPanel);
 
 
@@ -1699,7 +1699,7 @@ public class LanternaApp {
                 history.setLength(0); // Effacer tout
                 history.append(lastTourContent); // Coller contenu du tour précédent
             } else {
-                // Sécurité : si jamais on ne trouve pas (ça ne devrait pas arriver)
+                // Sécurité : si jamais on ne trouve pas
                 history.setLength(0);
             }
         }
@@ -1843,7 +1843,7 @@ public class LanternaApp {
 
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
-                                    history.append("⚠️ Erreur de synchro fiabilité.\n");
+                                    history.append("Erreur de synchro fiabilité.\n");
                                 }
 
                                 // Vérification si l'arme est cassée et affichage du message après l'attaque
@@ -2090,8 +2090,6 @@ public class LanternaApp {
                                 history.append("Erreur lors de la suppression de la potion.\n");
                             }
                             break;
-
-                        // Ajoute ici d'autres cas si besoin...
 
                         default:
                             history.append("Objet inconnu : " + objet.getName() + ".\n");
