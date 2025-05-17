@@ -1538,7 +1538,7 @@ public class LanternaApp {
 
                             } else {
                                 int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
-                                history.append("⏳ Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
+                                history.append("Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
                                 historyLabel.setText(history.toString());
                                 updateToursRestants(perso, toursRestantsLabel);
                             }
@@ -2087,7 +2087,7 @@ public class LanternaApp {
                                 System.out.println("MAJ fiabilité arme : " + response);
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                history.append("⚠️ Erreur de synchro fiabilité.\n");
+                                history.append("Erreur de synchro fiabilité.\n");
                             }
 
                             if (weapon.getReliability() == 0) {

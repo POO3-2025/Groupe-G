@@ -92,7 +92,7 @@ public class FightService {
                 state.setCombatDisplayed(true);
                 state.setReadyToBeCleaned(true); // marquer pour suppression à la prochaine lecture
 
-                return state; // ← ON AUTORISE une dernière visualisation
+                return state; //  ON AUTORISE une dernière visualisation
             }
             int endurance = getArmoRelibility(username);
             state.setArmorReliability(username, endurance);
