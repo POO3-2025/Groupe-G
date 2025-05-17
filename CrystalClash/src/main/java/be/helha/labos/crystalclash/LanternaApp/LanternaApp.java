@@ -2105,9 +2105,12 @@ public class LanternaApp {
                 try {
                     Thread.sleep(2000);
                     String json = FightHttpCLient.getCombatState(Session.getUsername(), Session.getToken());
+                    //Quand ça rencontre un objet de type ObjectBase, utilise le deserialiseur custom
+                    //comme ça Gson saure instancier les bonnes sous-classes
                     Gson gson = new GsonBuilder()
                             .registerTypeAdapter(ObjectBase.class, new ObjectBasePolymorphicDeserializer())
                             .create();
+                    //Transforme en objet java SateCombat(permet a l'interface de savoir le bon état du combat)
                     StateCombat updated = gson.fromJson(json, StateCombat.class);
                     //Si null alors le joueur a quitté
                     //SI pas je récup le dernier winner
@@ -2116,7 +2119,9 @@ public class LanternaApp {
                             String winner = null;
                             try {
                                 String reponseJson = FightHttpCLient.getLastWinner(Session.getUsername(), Session.getToken());
+                                //parser la chaine JSON recu de reponseJson en un objet JsonObject (on peux la acceder a chaque champ)
                                 JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
+                                //extrait le champs winner de l'objet JSON et stock dans winner
                                 winner = jsonObject.get("winner").getAsString();
                             } catch (Exception e) {
                                 System.out.println("Erreur récup du gagnant : " + e.getMessage());
@@ -2150,13 +2155,21 @@ public class LanternaApp {
                             labelMesPv.setText("Vos PV : " + updated.getPv(Session.getUsername()));
 
 
+                           //Thread pour afficher les pv 0
+                            new Thread(() ->{
+                                try{
+                                    Thread.sleep(600);
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
+                           gui.getGUIThread().invokeLater(() ->{
                             String winner = null;
                             try {
                                 String reponseJson  = FightHttpCLient.getLastWinner(Session.getUsername(), Session.getToken());
                                 JsonObject jsonObject = JsonParser.parseString(reponseJson).getAsJsonObject();
-                                winner = jsonObject.get("winner").getAsString();                                } catch (Exception e) {
+                                winner = jsonObject.get("winner").getAsString();
+                            } catch (Exception e) {
                             }
-
 
                             String message;
                             if (winner == null) {
@@ -2171,6 +2184,8 @@ public class LanternaApp {
                             combatWindow.close();
                             MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
                             afficherMenuPrincipal(gui);
+                        });
+                            }).start();
                         });
                         break;
                     }
