@@ -861,7 +861,7 @@ public class CharacterDAOImpl implements CharacterDAO {
     }
 
     /**
-     * Modifie la reliability d'un objet (weapon ou armor) dans le backpack du personnage du joueur
+     * Modifie la reliability d'une armure dans l'equipement du personnage du joueur
      *
      * @param username Nom d'utilisateur
      * @param objectId ID de l'objet à modifier
