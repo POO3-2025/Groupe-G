@@ -17,12 +17,19 @@ public class CharacterHttpClient {
 
 
     /**
-     * Envoie une requête pour sélectionner un personnage
+     * Envoie une requête pour sélectionner un personnage pour un utilisateur donné.
      *
+<<<<<<< HEAD
      * @param username du user
      * @param characterType type de perso
      * @param token token user
      * @throws Exception exception rencontrée
+=======
+     * @param username      nom de l'utilisateur
+     * @param characterType type du personnage à sélectionner
+     * @param token         JWT d'authentification
+     * @throws Exception en cas d'erreur réseau ou réponse serveur invalide
+>>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
      */
     public static void selectCharacter(String username, String characterType, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -48,12 +55,19 @@ public class CharacterHttpClient {
     }
 
     /**
-     * Envoie une requête pour récupérer le personnage d'un utilisateur
+     * Envoie une requête pour récupérer le personnage associé à un utilisateur.
      *
+<<<<<<< HEAD
      * @param username username
      * @param token token user
      * @return response
      * @throws Exception exception
+=======
+     * @param username nom de l'utilisateur
+     * @param token    JWT d'authentification
+     * @return         JSON brut représentant le personnage de l'utilisateur
+     * @throws Exception en cas d'erreur réseau ou serveur
+>>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
      */
     public static String getCharacter(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -95,6 +109,7 @@ public class CharacterHttpClient {
 
 
     /**
+<<<<<<< HEAD
      * Met objet de l'inventaire ds le back en envoyant requete
      *  @param username user
      * @param name name object
@@ -102,6 +117,17 @@ public class CharacterHttpClient {
      * @param type type
      * @return  response
      **/
+=======
+     * Envoie une requête pour ajouter un objet de l'inventaire vers le backpack du personnage.
+     *
+     * @param username nom de l'utilisateur
+     * @param name     nom de l'objet à ajouter
+     * @param type     type de l'objet (ex: "Weapon", "Potion")
+     * @param token    JWT d'authentification
+     * @return         réponse brute du serveur
+     * @throws Exception en cas d'erreur réseau ou serveur
+     */
+>>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
     public static String putInBackpack(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,
@@ -121,12 +147,15 @@ public class CharacterHttpClient {
     }
 
     /**
-     * Retire de back pour mettre dans inventaire, evoie requete
-     * @param token
-     * @param name
-     * @param username
-     * @param type
-     **/
+     * Envoie une requête pour retirer un objet du backpack et le remettre dans l'inventaire.
+     *
+     * @param username nom de l'utilisateur
+     * @param name     nom de l'objet à retirer
+     * @param type     type de l'objet
+     * @param token    JWT d'authentification
+     * @return         réponse brute du serveur
+     * @throws Exception en cas d'erreur réseau ou serveur
+     */
     public static String removeFromBackpack(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,
@@ -146,7 +175,16 @@ public class CharacterHttpClient {
     }
 
 
-
+    /**
+     * Met à jour la fiabilité (durabilité) d’un objet se trouvant dans le backpack.
+     *
+     * @param username       nom de l'utilisateur
+     * @param objectId       identifiant de l'objet
+     * @param newReliability nouvelle valeur de fiabilité
+     * @param token          JWT d'authentification
+     * @return               réponse brute du serveur
+     * @throws Exception en cas d'erreur réseau ou serveur
+     */
     public static String updateObjectReliability(String username, String objectId, int newReliability, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "reliability", newReliability
@@ -168,6 +206,17 @@ public class CharacterHttpClient {
         return response.body();
     }
 
+
+    /**
+     * Met à jour la fiabilité (durabilité) d’un objet d’armure équipé.
+     *
+     * @param username       nom de l'utilisateur
+     * @param objectId       identifiant de l'objet d'armure
+     * @param newReliability nouvelle valeur de fiabilité
+     * @param token          JWT d'authentification
+     * @return               réponse brute du serveur
+     * @throws Exception en cas d'erreur réseau ou serveur
+     */
     public static String updateArmorReliability(String username, String objectId, int newReliability, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "reliability", newReliability
@@ -241,12 +290,15 @@ public class CharacterHttpClient {
 
 
     /**
-     * Met l'armure de l'inventaire ds l'equipement en envoyant requete
-     *  @param username
-     * @param name
-     * @param token
-     * @param type
-     **/
+     * Envoie une requête pour ajouter un objet de l'inventaire (armure) vers l'équipement du personnage.
+     *
+     * @param username nom de l'utilisateur
+     * @param name     nom de l'objet à équiper
+     * @param type     type de l'objet (ex: "Armor", "Weapon")
+     * @param token    JWT d'authentification
+     * @return         réponse brute du serveur
+     * @throws Exception en cas d'erreur réseau ou serveur
+     */
     public static String putInEquipment(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,
@@ -266,12 +318,15 @@ public class CharacterHttpClient {
     }
 
     /**
-     * Retire de l'equipement pour mettre dans inventaire, envoie requete
-     * @param token
-     * @param name
-     * @param username
-     * @param type
-     **/
+     * Envoie une requête pour retirer un objet de l'équipement et le remettre dans l'inventaire.
+     *
+     * @param username nom de l'utilisateur
+     * @param name     nom de l'objet à retirer
+     * @param type     type de l'objet
+     * @param token    JWT d'authentification
+     * @return         réponse brute du serveur
+     * @throws Exception en cas d'erreur réseau ou serveur
+     */
     public static String removeFromEquipment(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,
@@ -291,13 +346,15 @@ public class CharacterHttpClient {
     }
 
     /**
-     * @param token
-     * @param username
-     * @param type
-     * @param name
-     * Permet de mettre le coffre dans le backpack
+     * Envoie une requête pour transférer un objet du coffre au backpack du personnage.
      *
-     * **/
+     * @param username nom de l'utilisateur
+     * @param name     nom de l'objet à transférer
+     * @param type     type de l'objet
+     * @param token    JWT d'authentification
+     * @return         réponse brute du serveur
+     * @throws Exception en cas d'erreur réseau ou serveur
+     */
     public static String putInCoffreBackPack(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,

@@ -404,8 +404,8 @@ ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         assertNotNull(combatVisible, "Le combat doit encore être visible une fois");
 
 // 2e cette fois supprimé
-        StateCombat supprimé = fightService.getCombat(user2);
-        assertNull(supprimé, "Le combat doit être supprimé après affichage");
+        StateCombat supprime = fightService.getCombat(user2);
+        assertNull(supprime, "Le combat doit être supprimé après affichage");
 
     }
     @Test

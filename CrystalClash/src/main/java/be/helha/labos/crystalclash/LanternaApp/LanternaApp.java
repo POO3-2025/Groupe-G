@@ -1327,9 +1327,14 @@ public class LanternaApp {
     }
 
     /**
-     * Met à jour le label des tours restants pour l'attaque spéciale
-     * @param perso
-     * @param label
+     * Met à jour le texte d’un label pour indiquer le nombre de tours restants avant que
+     * l’attaque spéciale du joueur ne soit de nouveau disponible.
+     *
+     * Si l’attaque spéciale est disponible (le compteur d'attaques a atteint ou dépassé la restriction),
+     * le label affiche un message de disponibilité. Sinon, il indique le nombre de tours restants.
+     *
+     * @param perso Le personnage dont le compteur d’attaque et la restriction d’attaque spéciale sont utilisés.
+     * @param label Le label à mettre à jour avec le message correspondant.
      */
     private static void updateToursRestants(Personnage perso, Label label) {
         int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
@@ -1341,10 +1346,15 @@ public class LanternaApp {
     }
 
     /**
-     * Ouvre la fenêtre de combat
+     * Initialise et affiche la fenêtre de combat contre un ennemi.
      *
-     * @param gui
+     * Cette méthode configure les composants nécessaires à l'affichage de l'interface de combat,
+     * y compris les barres de vie, les boutons d'action du joueur (attaques normales, spéciales, objets),
+     * le suivi des tours, et l’historique du combat. Elle gère également les interactions pendant le combat.
+     *
+     * @param gui L’interface textuelle (TUI) utilisée pour afficher la fenêtre de combat.
      */
+
     private static void openCombatWindow(WindowBasedTextGUI gui) {
         BasicWindow combatWindow = new BasicWindow("Combat");
         combatWindow.setHints(Arrays.asList(Hint.CENTERED));
@@ -1533,7 +1543,10 @@ public class LanternaApp {
                             } else {
                                 int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
                                 history.append("Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
+<<<<<<< HEAD
                                 history.append("Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
+=======
+>>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
                                 historyLabel.setText(history.toString());
                                 updateToursRestants(perso, toursRestantsLabel);
                             }
@@ -1609,11 +1622,16 @@ public class LanternaApp {
     }
 
     /**
-     * Affiche les actions principales du joueur
-     * @param actionsPanel
-     * @param normalAttack
-     * @param specialAttack
-     * @param objectButton
+     * Affiche les actions principales du joueur dans le panneau prévu à cet effet.
+     *
+     * Cette méthode vide d'abord le panneau d'actions, puis y ajoute successivement les boutons
+     * permettant d'effectuer une attaque normale, une attaque spéciale, ou d'utiliser un objet.
+     * Des espaces vides sont insérés entre les composants pour améliorer la lisibilité de l'interface.
+     *
+     * @param actionsPanel Le panneau dans lequel les actions du joueur doivent être affichées.
+     * @param normalAttack Le bouton déclenchant une attaque normale.
+     * @param specialAttack Le bouton déclenchant une attaque spéciale.
+     * @param objectButton Le bouton permettant d’accéder à l’inventaire d’objets.
      */
     private static void showMainActions(Panel actionsPanel, Button normalAttack, Button specialAttack, Button objectButton) {
         actionsPanel.removeAllComponents();
@@ -1625,24 +1643,30 @@ public class LanternaApp {
     }
 
     /**
-     * Gère le tour de l'ennemi
-     * @param gui
-     * @param playerHealth
-     * @param enemyHealth
-     * @param combatWindow
-     * @param playerHP
-     * @param enemyHP
-     * @param historyLabel
-     * @param history
-     * @param tourCounter
-     * @param tourLabel
-     * @param actionsPanel
-     * @param showNormalAttacks
-     * @param showSpecialAttacks
-     * @param objectButton
-     * @param perso
-     * @param playerHPmax
-     * @param enemyhpmax
+     * Gère le tour de l'ennemi pendant le combat.
+     *
+     * Cette méthode inflige des dégâts au joueur, met à jour les barres de vie, l’historique
+     * du combat, et vérifie l’état de la partie (victoire ou défaite). Elle rafraîchit également
+     * les éléments de l’interface graphique et effectue un nettoyage de l’historique tous les 5 tours
+     * pour ne conserver que le contenu du tour précédent.
+     *
+     * @param gui L’interface textuelle utilisée pour afficher les dialogues et fenêtres.
+     * @param playerHealth Étiquette affichant les points de vie du joueur.
+     * @param enemyHealth Étiquette affichant les points de vie de l’ennemi.
+     * @param combatWindow Fenêtre du combat à fermer en cas de fin de combat.
+     * @param playerHP Points de vie actuels du joueur.
+     * @param enemyHP Points de vie actuels de l’ennemi.
+     * @param historyLabel Étiquette affichant l’historique du combat.
+     * @param history Historique du combat sous forme de texte.
+     * @param tourCounter Compteur du nombre de tours.
+     * @param tourLabel Étiquette affichant le numéro du tour actuel.
+     * @param actionsPanel Panneau contenant les boutons d’action du joueur.
+     * @param showNormalAttacks Bouton pour afficher les attaques normales.
+     * @param showSpecialAttacks Bouton pour afficher les attaques spéciales.
+     * @param objectButton Bouton pour accéder aux objets.
+     * @param perso Le personnage joueur.
+     * @param playerHPmax Points de vie maximum du joueur.
+     * @param enemyhpmax Points de vie maximum de l’ennemi.
      */
     private static void enemyTurn(WindowBasedTextGUI gui,
                                   Label playerHealth, Label enemyHealth, BasicWindow combatWindow,
@@ -1719,8 +1743,10 @@ public class LanternaApp {
     }
 
     /**
-     * Met à jour la fiabilité de l'armure
-     * @param history
+     * Met à jour la fiabilité de l'armure portée par le joueur en la synchronisant avec le serveur.
+     * Si une erreur survient lors de la requête HTTP, un message est ajouté à l’historique.
+     *
+     * @param history Historique du combat à enrichir avec les messages d'erreur ou d'information.
      */
     private static void UpdateReliabilityArmorPanel (StringBuilder history) {
 
@@ -1767,28 +1793,31 @@ public class LanternaApp {
     }
 
     /**
-     * Crée le panel du backpack
-     * @param gui
-     * @param actionsPanel
-     * @param playerHP
-     * @param enemyHP
-     * @param playerHealth
-     * @param enemyHealth
-     * @param perso
-     * @param historyLabel
-     * @param history
-     * @param tourCounter
-     * @param tourLabel
-     * @param combatWindow
-     * @param showNormalAttacks
-     * @param showSpecialAttacks
-     * @param objectButton
-     * @param bonusNextAttack
-     * @param turnPotionForce
-     * @param bonusattaque
-     * @param playerHPmax
-     * @param enemyhpmax
-     * @return
+     * Crée le panneau d'affichage du sac à dos (Backpack) du joueur contenant les objets utilisables.
+     * Chaque objet peut être une arme, une potion de soin, une potion de force ou un coffre,
+     * et déclenche une action spécifique lors de son utilisation.
+     *
+     * @param gui L'interface graphique basée sur texte (Lanterna) utilisée pour afficher les dialogues ou erreurs.
+     * @param actionsPanel Le panneau d’actions principal du combat à mettre à jour après chaque interaction.
+     * @param playerHP Points de vie actuels du joueur (modifiables via AtomicInteger).
+     * @param enemyHP Points de vie actuels de l'ennemi (modifiables via AtomicInteger).
+     * @param playerHealth Label affichant les points de vie du joueur.
+     * @param enemyHealth Label affichant les points de vie de l'ennemi.
+     * @param perso Le personnage joueur courant.
+     * @param historyLabel Label contenant l’historique des actions du combat.
+     * @param history StringBuilder qui conserve l’historique du combat à afficher.
+     * @param tourCounter Compteur de tours pour savoir combien d’actions se sont produites.
+     * @param tourLabel Label affichant le nombre de tours.
+     * @param combatWindow Fenêtre principale du combat utilisée pour les dialogues ou changements de scène.
+     * @param showNormalAttacks Bouton permettant d'afficher les attaques normales.
+     * @param showSpecialAttacks Bouton permettant d'afficher les attaques spéciales.
+     * @param objectButton Bouton pour afficher le sac à dos (Backpack).
+     * @param bonusNextAttack Stocke le bonus de dégâts de la prochaine attaque s’il y a une potion de force active.
+     * @param turnPotionForce Booléen indiquant si une potion de force est active pour le tour courant.
+     * @param bonusattaque Label affichant le bonus d’attaque si une potion de force a été utilisée.
+     * @param playerHPmax Points de vie maximum du joueur (utilisés pour limiter les soins).
+     * @param enemyhpmax Points de vie maximum de l'ennemi (non utilisé directement ici mais transmis à d'autres méthodes).
+     * @return Un {@link Panel} contenant les boutons représentant les objets du sac à dos et leurs effets.
      */
     private static Panel createBackpackPanel(WindowBasedTextGUI gui, Panel actionsPanel, AtomicInteger playerHP, AtomicInteger enemyHP,
                                              Label playerHealth, Label enemyHealth, Personnage perso,
@@ -1994,7 +2023,34 @@ public class LanternaApp {
         return backpackPanel;
     }
 
-
+    /**
+     * Affiche une fenêtre représentant le contenu d'un coffre contenant des objets utilisables (armes, potions, etc.).
+     * Chaque objet est affiché sous forme de bouton permettant de l'utiliser. Après utilisation, le coffre se ferme,
+     * le panneau du sac est mis à jour, et le tour de l'ennemi est déclenché.
+     *
+     * @param gui                L'interface utilisateur textuelle (TextGUI) utilisée pour afficher la fenêtre.
+     * @param coffre             Le coffre à afficher, contenant une liste d'objets à utiliser.
+     * @param actionsPanel       Le panneau principal contenant les actions et éléments de jeu (à mettre à jour après action).
+     * @param backpackPanel      Le panneau représentant le sac du joueur (sera mis à jour après usage d'objet).
+     * @param playerHP           Les points de vie actuels du joueur (modifiable via AtomicInteger).
+     * @param enemyHP            Les points de vie actuels de l'ennemi (modifiable via AtomicInteger).
+     * @param playerHealth       Label affichant les PV du joueur à l’écran.
+     * @param enemyHealth        Label affichant les PV de l'ennemi à l’écran.
+     * @param perso              Le personnage du joueur (utilisé pour les actions contextuelles comme attaquer).
+     * @param historyLabel       Label affichant l'historique des actions du combat.
+     * @param history            Historique du combat (StringBuilder modifié au fil des actions).
+     * @param tourCounter        Compteur de tours (augmente après chaque action de l’ennemi).
+     * @param tourLabel          Label affichant le numéro du tour actuel.
+     * @param combatWindow       Fenêtre principale du combat (utilisée lors du rafraîchissement).
+     * @param showNormalAttacks  Bouton affichant les attaques normales (réactivé après action).
+     * @param showSpecialAttacks Bouton affichant les attaques spéciales (réactivé après action).
+     * @param objectButton       Bouton ouvrant l’inventaire (réactivé après action).
+     * @param bonusNextAttack    Bonus temporaire de dégâts à appliquer à la prochaine attaque (modifiable).
+     * @param turnPotionForce    Indique si une potion de force a été utilisée (gère l’état du bonus).
+     * @param bonusattaque       Label affichant le bonus d’attaque actuel à l’écran.
+     * @param playerHPmax        PV maximum du joueur (utilisé pour éviter de dépasser ce seuil en soignant).
+     * @param enemyhpmax         PV maximum de l’ennemi (pour affichage et gestion du combat).
+     */
     public static void afficherCoffreAvecBoutons(WindowBasedTextGUI gui, CoffreDesJoyaux coffre, Panel actionsPanel, Panel backpackPanel,
                                                  AtomicInteger playerHP, AtomicInteger enemyHP,
                                                  Label playerHealth, Label enemyHealth, Personnage perso,
@@ -2039,7 +2095,11 @@ public class LanternaApp {
                                 System.out.println("MAJ fiabilité arme : " + response);
                             } catch (Exception e) {
                                 e.printStackTrace();
+<<<<<<< HEAD
                                 history.append(" Erreur de synchro fiabilité.\n");
+=======
+                                history.append("Erreur de synchro fiabilité.\n");
+>>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
                             }
 
                             if (weapon.getReliability() == 0) {
