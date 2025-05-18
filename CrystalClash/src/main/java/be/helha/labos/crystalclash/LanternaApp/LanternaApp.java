@@ -2375,7 +2375,7 @@ public class LanternaApp {
                                 message = "Vous avez quitté le combat, votre adversaire a gagné";
                             }
                             else {
-                                message = "Vous êtes mort, le ccmbat est terminé, " + winner + " a gagné.";
+                                message = "Vous êtes mort, le combat est terminé, " + winner + " a gagné.";
                             }
 
 
