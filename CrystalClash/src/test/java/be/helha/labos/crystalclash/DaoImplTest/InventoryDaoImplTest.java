@@ -2,12 +2,14 @@ package be.helha.labos.crystalclash.DaoImplTest;
 
 import be.helha.labos.crystalclash.DAO.UserDAO;
 import be.helha.labos.crystalclash.DAOImpl.InventoryDAOImpl;
+import be.helha.labos.crystalclash.DAOImpl.UserCombatStatDAOImpl;
 import be.helha.labos.crystalclash.DAOImpl.UserDAOImpl;
 import be.helha.labos.crystalclash.DTO.Inventory;
 import be.helha.labos.crystalclash.Object.CoffreDesJoyaux;
 import be.helha.labos.crystalclash.Object.ObjectBase;
 import be.helha.labos.crystalclash.Object.Weapon;
 import be.helha.labos.crystalclash.ConfigManagerMysql_Mongo.ConfigManager;
+import be.helha.labos.crystalclash.Service.UserCombatStatService;
 import be.helha.labos.crystalclash.Service.UserService;
 import com.mongodb.client.MongoDatabase;
 import org.junit.jupiter.api.*;
@@ -23,7 +25,8 @@ public class InventoryDaoImplTest {
 
 
     private InventoryDAOImpl inventoryDAO;
-
+    private UserService userService;
+    private UserCombatStatService userCombatStatService;
 
     /*
      *¨Rediriger les co de prod vers les bases des test
@@ -59,6 +62,15 @@ public class InventoryDaoImplTest {
                     mongoProductionConfig.getAsJsonObject("BDCredentials")
                             .add(key, mongoTestConfig.getAsJsonObject("BDCredentials").get(key)); //Et ça remplace la valeur prod pas celle de test
                 });
+
+        //question de facilité
+        var userCombatStatDAO = new UserCombatStatDAOImpl();
+        userCombatStatService = new UserCombatStatService(userCombatStatDAO);
+
+        UserDAO userDAO = new UserDAOImpl();
+        ((UserDAOImpl) userDAO).setUserCombatStatService(userCombatStatService);
+
+        userService = new UserService(userDAO);
 
         //Initialiser
         inventoryDAO = new InventoryDAOImpl();
@@ -188,7 +200,6 @@ public class InventoryDaoImplTest {
         assertTrue(res.getMessage().contains("succès"));
 
     }
-    //Test vendre objet
     @Test
     @Order(4)
     @DisplayName("Test vente objet depuis inventaire")
@@ -196,36 +207,27 @@ public class InventoryDaoImplTest {
         Inventory inventory = new Inventory();
         inventory.setUsername("InventoryTestUser");
 
-        Weapon weapon = new Weapon("Epee en bois",23,1,2,5);
+        Weapon weapon = new Weapon("Epee en bois", 23, 1, 2, 5);
         weapon.setName("Epee en bois");
         weapon.setType("Weapon");
-
-
-        inventory.setUsername("InventoryTestUser");
         inventory.ajouterObjet(weapon);
 
-        InventoryDAOImpl dao = new InventoryDAOImpl();
-        dao.saveInventoryForUser("InventoryTestUser", inventory);
+        // l'instance globale préparée dans setUp()
+        inventoryDAO.saveInventoryForUser("InventoryTestUser", inventory);
 
-        // 3. Injecter UserService
-        UserDAO userDAO = new UserDAOImpl();
-        UserService userService = new UserService(userDAO);
-        dao.setUserService(userService);
+        //  userService
+        inventoryDAO.setUserService(userService);
 
-        //Appelle de la pthode pour vendre
-        var sell = dao.SellObject("InventoryTestUser","Epee en bois","Weapon");
+        var sell = inventoryDAO.SellObject("InventoryTestUser", "Epee en bois", "Weapon");
 
-        //Verif aves asser
         assertNotNull(sell);
         assertNotNull(sell.getData());
 
-        //Naffiche pas d avertissement
         @SuppressWarnings("unchecked")
-         //Map car retourne une APIReponse et permet d'acceder a gain et rareté
-        Map<String, Object> data = (Map<String, Object>) sell.getData(); //Type objet
-        assertEquals(11, data.get("gain")); //Moitié du prix (bizarre mais comme ça)
-        assertEquals(111, data.get("nouveau_solde")); //Ancien solde de crisatux
-        assertEquals("commun", data.get("rarity")); //La rareté de l'objet car prix entre 50
+        Map<String, Object> data = (Map<String, Object>) sell.getData();
+        assertEquals(11, data.get("gain"));
+        assertEquals(111, data.get("nouveau_solde")); // 100 + 11
+        assertEquals("commun", data.get("rarity"));
     }
 
 

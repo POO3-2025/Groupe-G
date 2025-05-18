@@ -54,9 +54,13 @@ public class ShopDAOImplTest {
                     .add(key, mongoTestConfig.getAsJsonObject("BDCredentials").get(key)); //Et ça remplace la valeur prod pas celle de test
             });
 
-        // DAO et services, instanciation et injection manuelle car pas de spring ici donc ça ne peut pas aller rechercher automatiquement
-        var userDAO = new be.helha.labos.crystalclash.DAOImpl.UserDAOImpl(); //Acceder au user ds la db
-        UserService userService = new UserService(userDAO); //Crée le service métier
+        var userCombatStatDAO = new be.helha.labos.crystalclash.DAOImpl.UserCombatStatDAOImpl();
+        var userCombatStatService = new be.helha.labos.crystalclash.Service.UserCombatStatService(userCombatStatDAO);
+
+        var userDAO = new be.helha.labos.crystalclash.DAOImpl.UserDAOImpl();
+        userDAO.setUserCombatStatService(userCombatStatService);
+
+        UserService userService = new UserService(userDAO);
 
         dao = new ShopDAOImpl(); //Crée dao
         dao.setUserService(userService); //injection manuelle du user dans le shop (savoir les infos du user pour l'achat)
@@ -163,6 +167,61 @@ public class ShopDAOImplTest {
         assertEquals(50, obj.getPrice());
 
     }
+    @Order(3)
+    @Test
+    @DisplayName("Achat échoue si pas assez de cristaux")
+    public void testBuyItem_notEnoughCrystals() throws Exception {
+        var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
+        var stmt = conn.prepareStatement("UPDATE users SET cristaux = ? WHERE username = ?");
+        stmt.setInt(1, 10); // prix trop faible pour acheter une arme (ex: 10 < 50)
+        stmt.setString(2, "testuseShop");
+        stmt.executeUpdate();
+        stmt.close();
+        conn.close();
+
+        inventoryDAO.createInventoryForUser("testuseShop");
+        String result = dao.buyItem("testuseShop", "Epee en bois", "Weapon");
+
+        assertTrue(result.contains("Pas assez de cristaux"), "Le message doit indiquer un manque de cristaux");
     }
+    @Order(4)
+    @Test
+    @DisplayName("Achat échoue si inventaire plein")
+    public void testBuyItem_inventoryFull() {
+        inventoryDAO.createInventoryForUser("testuseShop");
+        Inventory inventory = new Inventory();
+        inventory.setUsername("testuseShop");
+
+        for (int i = 0; i < 30; i++) {
+            var obj = new be.helha.labos.crystalclash.Object.Weapon("Obj" + i, 10, 1, 1, 1);
+            obj.setType("Weapon");
+            inventory.ajouterObjet(obj);
+        }
+
+        inventoryDAO.saveInventoryForUser("testuseShop", inventory);
+        String result = dao.buyItem("testuseShop", "Epee en bois", "Weapon");
+
+        assertTrue(result.contains("Inventaire plein"), "Le message doit indiquer un inventaire plein");
+    }
+    @Order(5)
+    @Test
+    @DisplayName("Achat échoue si Coffre des Joyaux déjà possédé")
+    public void testBuyItem_alreadyHasCoffreDesJoyaux() {
+        inventoryDAO.createInventoryForUser("testuseShop");
+        Inventory inventory = new Inventory();
+        inventory.setUsername("testuseShop");
+
+        var coffre = new be.helha.labos.crystalclash.Object.CoffreDesJoyaux();
+        coffre.setName("Coffre des Joyaux");
+        coffre.setType("CoffreDesJoyaux");
+        inventory.ajouterObjet(coffre);
+
+        inventoryDAO.saveInventoryForUser("testuseShop", inventory);
+        String result = dao.buyItem("testuseShop", "Coffre des Joyaux", "CoffreDesJoyaux");
+
+        assertTrue(result.contains("déjà un Coffre"), "Le message doit refuser l'achat du Coffre s'il est déjà possédé");
+    }
+
+}
 
 

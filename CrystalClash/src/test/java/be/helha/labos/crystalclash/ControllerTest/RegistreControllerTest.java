@@ -78,7 +78,8 @@ public class RegistreControllerTest {
         inventoryDAO.setUserService(userService);
         var inventoryService = new InventoryService(inventoryDAO);
         inventoryService.setUserService(userService);
-
+        registreController.setInventoryService(inventoryService);
+        registreController.setUserCombatStatService(statsService);
         // DAO et Service personnages
         var characterDAO = new CharacterDAOImpl();
         characterDAO.setInventoryService(inventoryService);
@@ -89,6 +90,15 @@ public class RegistreControllerTest {
         userController.setUserService(userService);
         userController.setCharacterService(characterService);
         userController.setUserCombatStatService(statsService);
+
+
+        var registreDAO = new RegistreDAOimpl();
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        var registreService = new RegistreService(registreDAO);
+
+
+        registreController.setRegistreService(registreService);
+        registreController.setPasswordEncoder(encoder);
     }
 
 

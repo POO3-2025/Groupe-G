@@ -104,4 +104,21 @@ public class TropheeServiceTest {
         assertFalse(user.haveTrophee("Silver"), "Le trophée Silver ne doit pas être attribué");
         assertFalse(user.haveTrophee("Or"), "Le trophée Or ne doit pas être attribué");
     }
+    @Test
+    @Order(5)
+    @DisplayName("Trophée déjà obtenu ne doit pas être redonné")
+    public void testTropheeNonRedonne() {
+        UserInfo user = new UserInfo();
+        Trophee bronze = new Trophee("bronze", "Déjà débloqué");
+        bronze.debloquer();
+        user.affTrophee(bronze);
+
+        user.setGagner(5);
+        user.setLevel(3);
+
+        List<Trophee> trophees = tropheeService.getTrophees(user, 100, 10, List.of());
+
+        assertEquals(0, trophees.size(), "Aucun trophée ne doit être redonné");
+    }
+
 }

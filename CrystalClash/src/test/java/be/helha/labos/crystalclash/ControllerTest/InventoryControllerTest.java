@@ -18,7 +18,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class InventoryControllerTest {  // <- ici "Test" !
+public class InventoryControllerTest {  //
 
     private InventoryController inventoryController;
     private InventoryService inventoryService;
@@ -53,8 +53,14 @@ public class InventoryControllerTest {  // <- ici "Test" !
                             .add(key, mysqlTestConfig.getAsJsonObject("BDCredentials").get(key));
                 });
 
-        // DAO
+        //question de facilité
+        var userCombatStatDAO = new be.helha.labos.crystalclash.DAOImpl.UserCombatStatDAOImpl();
+        var userCombatStatService = new be.helha.labos.crystalclash.Service.UserCombatStatService(userCombatStatDAO);
         var userDAO = new be.helha.labos.crystalclash.DAOImpl.UserDAOImpl();
+        userDAO.setUserCombatStatService(userCombatStatService);
+
+
+        // DAO
         userService = new UserService(userDAO);
 
         inventoryDAO = new InventoryDAOImpl();
@@ -67,6 +73,8 @@ public class InventoryControllerTest {  // <- ici "Test" !
         // Controller
         inventoryController = new InventoryController();
         inventoryController.setInventoryService(inventoryService);
+
+
     }
 
     /**

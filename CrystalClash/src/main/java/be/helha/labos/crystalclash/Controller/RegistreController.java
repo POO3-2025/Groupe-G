@@ -82,5 +82,8 @@ public class RegistreController {
         this.inventoryService = inventoryService;
     }
 
+    public void setUserCombatStatService(UserCombatStatService userCombatStatService) {
+        this.userCombatStatService =  userCombatStatService;
+    }
 }
 

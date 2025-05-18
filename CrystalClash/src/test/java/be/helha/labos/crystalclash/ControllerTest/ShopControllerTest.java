@@ -78,8 +78,16 @@ public class ShopControllerTest {
         var mongo = ConfigManager.getInstance().getMongoDatabase("MongoDBTest");
         mongo.getCollection("Inventory").deleteMany(new org.bson.Document("username", TEST_USERNAME));
 
+
+        //question de facilité
+
+        var userCombatStatDAO = new be.helha.labos.crystalclash.DAOImpl.UserCombatStatDAOImpl();
+        var userCombatStatService = new be.helha.labos.crystalclash.Service.UserCombatStatService(userCombatStatDAO);
+        var userDAO = new be.helha.labos.crystalclash.DAOImpl.UserDAOImpl();
+        userDAO.setUserCombatStatService(userCombatStatService);
+
         //instance de dao manuellement, acces aux donnée
-        UserDAO userDAO = new UserDAOImpl();//inteagit avec tb users
+        UserDAO userDAO1 = new UserDAOImpl();//inteagit avec tb users
         InventoryDAO inventoryDAO = new InventoryDAOImpl();//gere opérations mongo
 
         //Pareil mais en injectant les daos (logique metier)
@@ -100,6 +108,8 @@ public class ShopControllerTest {
         shopController = new ShopController();//Ici pour les tests
         shopController.setShopService(shopService);
 
+
+
         inventoryDAO.createInventoryForUser(TEST_USERNAME);
 
         // simu user co
@@ -114,7 +124,7 @@ public class ShopControllerTest {
         var conn = ConfigManager.getInstance().getSQLConnection("mysqltest");
         var stmt = conn.prepareStatement("""
             INSERT INTO users (username, password, level, cristaux, is_connected,gagner,perdu,Winconsecutive)
-            VVALUES (?, ?, ?, ?, ?, ?, ?,?)
+            VALUES (?, ?, ?, ?, ?, ?, ?,?)
             ON DUPLICATE KEY UPDATE cristaux = VALUES(cristaux), level = VALUES(level)
         """);
         stmt.setString(1, TEST_USERNAME);

@@ -51,8 +51,14 @@ public class UserDAOImplTest {
                     .add(key, mongoTestConfig.getAsJsonObject("BDCredentials").get(key)); //Et ça remplace la valeur prod pas celle de test
             });
 
+        //question de facilité
+        var userCombatStatDAO = new be.helha.labos.crystalclash.DAOImpl.UserCombatStatDAOImpl();
+        var userCombatStatService = new be.helha.labos.crystalclash.Service.UserCombatStatService(userCombatStatDAO);
+        var userDAO = new be.helha.labos.crystalclash.DAOImpl.UserDAOImpl();
+        userDAO.setUserCombatStatService(userCombatStatService);
+
         //Initialiser
-        dao = new UserDAOImpl();
+        dao = userDAO;
     }
 
     /*

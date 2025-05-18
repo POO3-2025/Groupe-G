@@ -72,7 +72,12 @@ public class RouletteControllerTest {
                             .add(key, mysqlTestConfig.getAsJsonObject("BDCredentials").get(key));
                 });
 
+        //question de facilité
+        var userCombatStatDAO = new be.helha.labos.crystalclash.DAOImpl.UserCombatStatDAOImpl();
+        var userCombatStatService = new be.helha.labos.crystalclash.Service.UserCombatStatService(userCombatStatDAO);
         var userDAO = new be.helha.labos.crystalclash.DAOImpl.UserDAOImpl();
+        userDAO.setUserCombatStatService(userCombatStatService);
+
         userService = new UserService(userDAO);
 
         inventoryDAO = new InventoryDAOImpl();
@@ -91,6 +96,7 @@ public class RouletteControllerTest {
 
         rouletteController = new RouletteController();
         rouletteController.setRouletteService(rouletteService);
+
     }
     //Clean la roulette avant pour certains tests
     @BeforeEach
