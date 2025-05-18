@@ -18,18 +18,10 @@ public class CharacterHttpClient {
 
     /**
      * Envoie une requête pour sélectionner un personnage pour un utilisateur donné.
-     *
-<<<<<<< HEAD
-     * @param username du user
-     * @param characterType type de perso
-     * @param token token user
-     * @throws Exception exception rencontrée
-=======
      * @param username      nom de l'utilisateur
      * @param characterType type du personnage à sélectionner
      * @param token         JWT d'authentification
      * @throws Exception en cas d'erreur réseau ou réponse serveur invalide
->>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
      */
     public static void selectCharacter(String username, String characterType, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -56,18 +48,12 @@ public class CharacterHttpClient {
 
     /**
      * Envoie une requête pour récupérer le personnage associé à un utilisateur.
-     *
-<<<<<<< HEAD
-     * @param username username
-     * @param token token user
-     * @return response
-     * @throws Exception exception
-=======
+
      * @param username nom de l'utilisateur
      * @param token    JWT d'authentification
      * @return         JSON brut représentant le personnage de l'utilisateur
      * @throws Exception en cas d'erreur réseau ou serveur
->>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
+
      */
     public static String getCharacter(String username, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
@@ -109,15 +95,7 @@ public class CharacterHttpClient {
 
 
     /**
-<<<<<<< HEAD
-     * Met objet de l'inventaire ds le back en envoyant requete
-     *  @param username user
-     * @param name name object
-     * @param token token
-     * @param type type
-     * @return  response
-     **/
-=======
+
      * Envoie une requête pour ajouter un objet de l'inventaire vers le backpack du personnage.
      *
      * @param username nom de l'utilisateur
@@ -127,7 +105,6 @@ public class CharacterHttpClient {
      * @return         réponse brute du serveur
      * @throws Exception en cas d'erreur réseau ou serveur
      */
->>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
     public static String putInBackpack(String username, String name, String type, String token) throws Exception {
         String json = new Gson().toJson(Map.of(
                 "name", name,

@@ -126,11 +126,12 @@ public class LanternaApp {
 
         loginPanel.addComponent(new Button("Se connecter", () -> {
             try {
+                //Si le username et le MDP sont correct alors le serveur retourne un JSON contenant le JWT
                 String json = Login_Register_userHttpClient.login(usernameBox.getText(), passwordBox.getText());
-                JsonObject response = JsonParser.parseString(json).getAsJsonObject();
+                JsonObject response = JsonParser.parseString(json).getAsJsonObject();  //On parse la reponse en JsonObject pour avoir accès aux champs
                 if (response.has("token") && !response.get("token").isJsonNull()) {
-                    String token = response.get("token").getAsString();
-                    Session.setToken(token);
+                    String token = response.get("token").getAsString(); //On stock le token dans la sessions
+                    Session.setToken(token);//Donc ici on le stock dans Sessions coté client, c'est pour ça que nous ne devons nous reconnecter a chaque action.
                     Session.setUsername(usernameBox.getText());
                     // Ajout de l'utilisateur dans la liste des connectés après une connexion réussie
                     String username = usernameBox.getText();
@@ -1543,10 +1544,9 @@ public class LanternaApp {
                             } else {
                                 int toursRestants = perso.getRestrictionAttackSpecial() - perso.getCompteurAttack();
                                 history.append("Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
-<<<<<<< HEAD
+
                                 history.append("Il reste " + toursRestants + " tour" + (toursRestants > 1 ? "s" : "") + " avant l'attaque spéciale.\n");
-=======
->>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
+
                                 historyLabel.setText(history.toString());
                                 updateToursRestants(perso, toursRestantsLabel);
                             }
@@ -1981,10 +1981,6 @@ public class LanternaApp {
                                         actionsPanel, showNormalAttacks, showSpecialAttacks, objectButton,  perso, playerHPmax, enemyhpmax);
                                 break;
 
-
-
-
-
                             case "CoffreDesJoyaux":
                                 CoffreDesJoyaux coffre = (CoffreDesJoyaux) objlist;
 
@@ -1997,11 +1993,6 @@ public class LanternaApp {
                                         playerHPmax, enemyhpmax);
 
                                 break;
-
-
-
-
-
 
                             default:
                                 history.append("Objet inconnu : " + objlist.getName() + ".\n");
@@ -2095,11 +2086,9 @@ public class LanternaApp {
                                 System.out.println("MAJ fiabilité arme : " + response);
                             } catch (Exception e) {
                                 e.printStackTrace();
-<<<<<<< HEAD
+
                                 history.append(" Erreur de synchro fiabilité.\n");
-=======
-                                history.append("Erreur de synchro fiabilité.\n");
->>>>>>> 4af660bdac2875e32a9fc9c4ae8b4472dbed2e5b
+
                             }
 
                             if (weapon.getReliability() == 0) {
@@ -2342,7 +2331,7 @@ public class LanternaApp {
 
                             MessageDialog.showMessageDialog(gui, "Fin du combat", message);
                             combatWindow.close();
-                            afficherMenuPrincipal(gui);
+                            MatchMaking(gui);
                         });
                         break;
                     }
@@ -2388,7 +2377,7 @@ public class LanternaApp {
 
                             MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
                             combatWindow.close();
-                            afficherMenuPrincipal(gui);
+                            MatchMaking(gui);
                         });
                             }).start();
                         });
@@ -2413,7 +2402,7 @@ public class LanternaApp {
                         historyPanel.addComponent(new Label("Historique :"));
 
                         List<String> log = updated.getLog();
-                        int start = Math.max(0, log.size() - 10); // Affiche les 20 dernières entrées
+                        int start = Math.max(0, log.size() - 10); // Affiche les 10 dernières entrées
 
                         for (int i = start; i < log.size(); i++) {
                             historyPanel.addComponent(new Label(log.get(i)));
@@ -2464,9 +2453,12 @@ public class LanternaApp {
                 MessageDialog.showMessageDialog(gui, "Erreur", e.getMessage());
             }
         }));
-        actionPanel.addComponent(new Button("Ouvrir le Coffre des Joyaux", () -> {
-            displayChest(gui, state.getChest(Session.getUsername()));
-        }));
+        List<ObjectBase> chest = state.getChest(Session.getUsername());
+        if(chest != null && !chest.isEmpty()) {
+            actionPanel.addComponent(new Button("Ouvrir le Coffre des Joyaux", () -> {
+                displayChest(gui, state.getChest(Session.getUsername()));
+            }));
+        }
 
         // Objets du backpack
         for (ObjectBase obj : state.getBackpack(Session.getUsername())) {
@@ -2593,7 +2585,6 @@ public class LanternaApp {
         try {
             String json = Login_Register_userHttpClient.getUserInfo(Session.getUsername(), Session.getToken());
             UserInfo user = new Gson().fromJson(json, UserInfo.class); //Déserialise manuellement ici
-
             Document stats = Login_Register_userHttpClient.fetchUserStats(Session.getUsername(), Session.getToken()); //Pour stat dans mongo
             NotifThropy(gui, stats, user);
             int cristaux = stats.getInteger("cristauxWin", 0);
