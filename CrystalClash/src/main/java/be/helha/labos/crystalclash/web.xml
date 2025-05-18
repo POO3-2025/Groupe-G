@@ -1,0 +1,10 @@
+<web-app>
+    <servlet>
+        <servlet-name>connectedUsersServlet</servlet-name>
+        <servlet-class>be.helha.labos.crystalclash.User.ConnectedUsersServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>connectedUsersServlet</servlet-name>
+        <url-pattern>/connected-users</url-pattern>
+    </servlet-mapping>
+</web-app>
