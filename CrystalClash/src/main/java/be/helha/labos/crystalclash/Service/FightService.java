@@ -380,7 +380,7 @@ public class FightService {
             String winner = state.getWinner();
             String loser = state.getLoser();
 
-            userService.rewardWinner(winner, 50, 1);
+            userService.rewardWinner(winner, 25, 0);
             userService.IncrementWinner(winner); // +1 victoire pour le gagnant
             userService.incrementDefeat(loser);
             state.addLog(username + " a abandonné le combat.");
