@@ -2371,9 +2371,13 @@ public class LanternaApp {
                                 message = "Combat terminé sur une égalité !";
                             } else if (winner.equals(Session.getUsername())) {
                                 message = "Combat terminé, vous avez gagné !";
-                            } else {
+                            }else if(forfaitEffectue[0]){
+                                message = "Vous avez quitté le combat, votre adversaire a gagné";
+                            }
+                            else {
                                 message = "Vous êtes mort, le ccmbat est terminé, " + winner + " a gagné.";
                             }
+
 
                             MessageDialog.showMessageDialog(gui, "Fin du comabt", message);
                             combatWindow.close();
